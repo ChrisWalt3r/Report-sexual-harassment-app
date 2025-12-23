@@ -18,7 +18,7 @@ class LegalResource {
     this.contactNumber,
     this.email,
     this.website,
-    this.providesFreConsultation = false,
+    this.providesFreeConsultation = false,
     this.servicesOffered = const [],
   });
 
@@ -34,7 +34,7 @@ class LegalResource {
       contactNumber: json['contact_number'] as String?,
       email: json['email'] as String?,
       website: json['website'] as String?,
-      providesFreConsultation: json['provides_free_consultation'] as bool? ?? false,
+      providesFreeConsultation: json['provides_free_consultation'] as bool? ?? false,
       servicesOffered: (json['services_offered'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
@@ -51,7 +51,7 @@ class LegalResource {
       'contact_number': contactNumber,
       'email': email,
       'website': website,
-      'provides_free_consultation': providesFreConsultation,
+      'provides_free_consultation': providesFreeConsultation,
       'services_offered': servicesOffered,
     };
   }
