@@ -7,7 +7,7 @@ class LegalResource {
   final String? contactNumber;
   final String? email;
   final String? website;
-  final bool providesFreConsultation;
+  final bool providesFreeConsultation;
   final List<String> servicesOffered;
 
   const LegalResource({
