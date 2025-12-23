@@ -155,7 +155,7 @@ class _LegalGuidanceScreenState extends State<LegalGuidanceScreen> {
       ),
     ];
     
-    if (resource.providesFreConsultation) {
+    if (resource.providesFreeConsultation) {
       tags.add(const ServiceTag(label: 'Free Consultation', color: Colors.green));
     }
 
