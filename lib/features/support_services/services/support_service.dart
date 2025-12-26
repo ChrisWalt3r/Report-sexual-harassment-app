@@ -11,10 +11,8 @@ class SupportService {
   final String? baseUrl;
   final http.Client _client;
 
-  SupportService({
-    this.baseUrl,
-    http.Client? client,
-  }) : _client = client ?? http.Client();
+  SupportService({this.baseUrl, http.Client? client})
+    : _client = client ?? http.Client();
 
   /// Fetches all counseling services
   /// Returns local data if API is not configured
@@ -188,7 +186,7 @@ class SupportService {
         servicesOffered: [
           'Legal information',
           'Rights education',
-          'FAQ resources'
+          'FAQ resources',
         ],
       ),
       LegalResource(
@@ -199,11 +197,11 @@ class SupportService {
         resourceType: LegalResourceType.legalAidOrganization,
         contactNumber: '1-800-LEGAL-AID',
         email: 'help@legalaid.org',
-        providesFreConsultation: true,
+        providesFreeConsultation: true,
         servicesOffered: [
           'Free legal consultation',
           'Court representation',
-          'Document preparation'
+          'Document preparation',
         ],
       ),
       LegalResource(
@@ -217,7 +215,7 @@ class SupportService {
         servicesOffered: [
           'Filing complaints',
           'Investigation services',
-          'Mediation'
+          'Mediation',
         ],
       ),
     ];
@@ -238,7 +236,7 @@ class SupportService {
           'Forensic examination',
           'Medical treatment',
           'Evidence collection',
-          'Emotional support'
+          'Emotional support',
         ],
         operatingHours: '24/7',
       ),
@@ -254,7 +252,7 @@ class SupportService {
           'STI testing',
           'Emergency contraception',
           'General medical care',
-          'Referrals'
+          'Referrals',
         ],
         operatingHours: 'Mon-Fri: 8AM-6PM',
       ),
@@ -269,7 +267,7 @@ class SupportService {
         servicesProvided: [
           'Crisis intervention',
           'Psychiatric evaluation',
-          'Counseling referrals'
+          'Counseling referrals',
         ],
         operatingHours: '24/7',
       ),
