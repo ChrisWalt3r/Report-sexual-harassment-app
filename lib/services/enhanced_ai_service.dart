@@ -21,8 +21,11 @@ class EnhancedAIService extends ChangeNotifier {
   // Configuration
   static const String _huggingFaceApiUrl =
       'https://api-inference.huggingface.co/models';
-  static const String _apiKey =
-      'YOUR_HUGGING_FACE_API_KEY'; // Replace with actual key
+  // API key loaded from environment variable - run with: flutter run --dart-define=HF_API_KEY=your_key
+  static const String _apiKey = String.fromEnvironment(
+    'HF_API_KEY',
+    defaultValue: '',
+  );
 
   // Getters
   List<ChatMessage> get messages => List.unmodifiable(_messages);
@@ -78,8 +81,10 @@ Welcome message:''';
     return "Hello, I'm here to provide confidential support regarding any sexual harassment concerns. This conversation is private and secure. Please feel free to share what's on your mind when you're ready.";
   }
 
-  Future<void> sendMessage(String text,
-      {ChatMessageType type = ChatMessageType.text}) async {
+  Future<void> sendMessage(
+    String text, {
+    ChatMessageType type = ChatMessageType.text,
+  }) async {
     if (text.trim().isEmpty) return;
 
     final message = ChatMessage(
@@ -94,8 +99,10 @@ Welcome message:''';
     _conversationHistory.add("USER: ${text.trim()}");
 
     // Detect scenario and crisis situations
-    _currentScenario =
-        ResponseAnalyzer.detectScenario(text, _conversationHistory);
+    _currentScenario = ResponseAnalyzer.detectScenario(
+      text,
+      _conversationHistory,
+    );
 
     if (ResponseAnalyzer.isCrisisResponse(text)) {
       await _handleCrisisResponse();
@@ -142,14 +149,16 @@ Welcome message:''';
   }
 
   Future<String> _generateContextualResponse(String userMessage) async {
-    final scenarioPrompt = AIConfig.scenarioPrompts[_currentScenario] ??
+    final scenarioPrompt =
+        AIConfig.scenarioPrompts[_currentScenario] ??
         AIConfig.scenarioPrompts['emotional_support']!;
 
-    final conversationContext = _conversationHistory.length > 10
-        ? _conversationHistory
-            .sublist(_conversationHistory.length - 10)
-            .join('\n')
-        : _conversationHistory.join('\n');
+    final conversationContext =
+        _conversationHistory.length > 10
+            ? _conversationHistory
+                .sublist(_conversationHistory.length - 10)
+                .join('\n')
+            : _conversationHistory.join('\n');
 
     final fullPrompt = '''
 $scenarioPrompt
@@ -204,10 +213,7 @@ COUNSELOR RESPONSE:''';
           body: jsonEncode({
             'inputs': prompt,
             'parameters': modelConfig.toApiParameters(),
-            'options': {
-              'wait_for_model': true,
-              'use_cache': false,
-            }
+            'options': {'wait_for_model': true, 'use_cache': false},
           }),
         )
         .timeout(const Duration(seconds: 30));
@@ -227,7 +233,8 @@ COUNSELOR RESPONSE:''';
     }
 
     throw Exception(
-        'API call failed: ${response.statusCode} - ${response.body}');
+      'API call failed: ${response.statusCode} - ${response.body}',
+    );
   }
 
   String _postProcessResponse(String rawResponse, String userMessage) {
@@ -443,11 +450,13 @@ Closing message:''';
       'userMessages': _messages.where((m) => m.isFromUser).length,
       'agentMessages': _messages.where((m) => !m.isFromUser).length,
       'scenariosDetected': _currentScenario,
-      'sessionDuration': _messages.isNotEmpty
-          ? DateTime.now().difference(_messages.first.timestamp).inMinutes
-          : 0,
-      'crisisDetected':
-          ResponseAnalyzer.isCrisisResponse(_conversationHistory.join(' ')),
+      'sessionDuration':
+          _messages.isNotEmpty
+              ? DateTime.now().difference(_messages.first.timestamp).inMinutes
+              : 0,
+      'crisisDetected': ResponseAnalyzer.isCrisisResponse(
+        _conversationHistory.join(' '),
+      ),
     };
   }
 
@@ -459,13 +468,7 @@ Closing message:''';
 }
 
 // Reuse existing ChatMessage and ChatMessageType classes
-enum ChatMessageType {
-  text,
-  image,
-  file,
-  voice,
-  system,
-}
+enum ChatMessageType { text, image, file, voice, system }
 
 class ChatMessage {
   final String id;
