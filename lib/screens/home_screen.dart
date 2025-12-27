@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import '../widgets/bottom_nav_bar.dart';
+import '../features/support_services/screens/support_home_screen.dart';
 import 'ai_powered_chat_screen.dart';
 import 'emergency_screen.dart';
 import 'settings_screen.dart';
+import 'privacy_screen.dart';
+import 'report_form_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -51,10 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 Text(
                   'MUST Campus',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
                 ),
               ],
             ),
@@ -127,14 +127,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 8),
                   const Text(
                     'Speak Up. We are here to listen. All reports are confidential.',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white70,
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.white70),
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const PrivacyScreen(),
+                        ),
+                      );
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white.withValues(alpha: 0.2),
                       foregroundColor: Colors.white,
@@ -147,9 +151,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Services Grid
             GridView.count(
               shrinkWrap: true,
@@ -174,7 +178,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   'Counseling & Medical',
                   Icons.health_and_safety,
                   Colors.green,
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SupportHomeScreen(),
+                      ),
+                    );
+                  },
                 ),
                 _buildServiceCard(
                   context,
@@ -209,9 +220,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Info Card
             Container(
               width: double.infinity,
@@ -255,7 +266,12 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ReportFormScreen()),
+          );
+        },
         backgroundColor: const Color(0xFF2f3293),
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add_moderator),
@@ -322,7 +338,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 if (badge != null)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: badge == 'Live' ? Colors.green : color,
                       borderRadius: BorderRadius.circular(12),
@@ -350,10 +369,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 4),
             Text(
               subtitle,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey.shade600,
-              ),
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
             ),
           ],
         ),
