@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_styles.dart';
 import '../widgets/bottom_nav_bar.dart';
@@ -13,8 +14,10 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   int _currentNavIndex = 3;
-  
-  final TextEditingController _nameController = TextEditingController(text: 'John Doe');
+
+  final TextEditingController _nameController = TextEditingController(
+    text: 'John Doe',
+  );
 
   @override
   void dispose() {
@@ -58,18 +61,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
         leadingWidth: 110,
-        title: Text(
-          'Profile',
-          style: AppStyles.heading3,
-        ),
+        title: Text('Profile', style: AppStyles.heading3),
         centerTitle: true,
         actions: [
           TextButton(
             onPressed: () {
               // Handle save
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Profile saved')),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('Profile saved')));
             },
             child: Text(
               'Save',
@@ -133,10 +133,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             decoration: BoxDecoration(
               color: AppColors.background,
               borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: AppColors.borderLight,
-                width: 1,
-              ),
+              border: Border.all(color: AppColors.borderLight, width: 1),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -187,10 +184,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   decoration: BoxDecoration(
                     color: AppColors.primaryBlue,
                     shape: BoxShape.circle,
-                    border: Border.all(
-                      color: AppColors.white,
-                      width: 3,
-                    ),
+                    border: Border.all(color: AppColors.white, width: 3),
                   ),
                   child: const Icon(
                     Icons.edit,
@@ -214,9 +208,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // Role - centered
           Text(
             'Student',
-            style: AppStyles.bodySmall.copyWith(
-              color: AppColors.textGray,
-            ),
+            style: AppStyles.bodySmall.copyWith(color: AppColors.textGray),
           ),
         ],
       ),
@@ -266,9 +258,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             child: Text(
               'John Doe',
-              style: AppStyles.bodyMedium.copyWith(
-                color: AppColors.textDark,
-              ),
+              style: AppStyles.bodyMedium.copyWith(color: AppColors.textDark),
             ),
           ),
           const SizedBox(height: 20),
@@ -299,21 +289,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                 ),
-                Icon(
-                  Icons.lock_outline,
-                  size: 18,
-                  color: AppColors.textLight,
-                ),
+                Icon(Icons.lock_outline, size: 18, color: AppColors.textLight),
               ],
             ),
           ),
           const SizedBox(height: 6),
           Text(
             'Contact administration to correct this ID.',
-            style: TextStyle(
-              fontSize: 12,
-              color: AppColors.textLight,
-            ),
+            style: TextStyle(fontSize: 12, color: AppColors.textLight),
           ),
           const SizedBox(height: 20),
           // Email Address
@@ -335,9 +318,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             child: Text(
               'j.doe@student.must.ac.ug',
-              style: AppStyles.bodyMedium.copyWith(
-                color: AppColors.textDark,
-              ),
+              style: AppStyles.bodyMedium.copyWith(color: AppColors.textDark),
             ),
           ),
           const SizedBox(height: 20),
@@ -450,14 +431,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: OutlinedButton(
         onPressed: () {
-          // Handle quick exit
+          showDialog(
+            context: context,
+            builder:
+                (context) => AlertDialog(
+                  title: const Text('Quick Exit'),
+                  content: const Text(
+                    'This will close the app immediately. Are you sure?',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        SystemNavigator.pop();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('Exit Now'),
+                    ),
+                  ],
+                ),
+          );
         },
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.textDark,
-          side: const BorderSide(
-            color: AppColors.borderMedium,
-            width: 1,
-          ),
+          side: const BorderSide(color: AppColors.borderMedium, width: 1),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -466,16 +470,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.logout,
-              size: 18,
-            ),
+            const Icon(Icons.logout, size: 18),
             const SizedBox(width: 8),
             Text(
               'Quick Exit App',
-              style: AppStyles.bodyMedium.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
+              style: AppStyles.bodyMedium.copyWith(fontWeight: FontWeight.w500),
             ),
           ],
         ),

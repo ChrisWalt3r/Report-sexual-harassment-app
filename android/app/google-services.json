@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "886170592874",
+    "project_id": "sexual-harrasment-management",
+    "storage_bucket": "sexual-harrasment-management.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:886170592874:android:329c7b16fd22f02c248c13",
+        "android_client_info": {
+          "package_name": "com.must.report_harassment"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "886170592874-gteabrivhc0n29ofb1uknplc0ppmn9po.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.must.report_harassment",
+            "certificate_hash": "e63851f60fd2bf6e87dc0f5c47c5ceb8004abfbe"
+          }
+        },
+        {
+          "client_id": "886170592874-h621uq942ghruse6fbs7655lhk2cnvq4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB7feXAnLdt31hENr-zFHkAvsbsS3Be5AQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "886170592874-h621uq942ghruse6fbs7655lhk2cnvq4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
