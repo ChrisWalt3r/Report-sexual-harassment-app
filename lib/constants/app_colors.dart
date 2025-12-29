@@ -35,4 +35,9 @@ class AppColors {
   // Accent colors
   static const Color avatarOrange = Color(0xFFFED7AA);
   static const Color onlineGreen = Color(0xFF10B981);
+  
+  // Aliases for backwards compatibility
+  static const Color primary = primaryBlue;
+  static const Color textPrimary = textDark;
+  static const Color textSecondary = textGray;
 }
