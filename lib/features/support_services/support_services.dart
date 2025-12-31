@@ -1,5 +1,6 @@
 /// Support Services Module
 /// Exports all public components for easy importing
+library;
 
 // Models
 export 'models/counseling_service.dart';

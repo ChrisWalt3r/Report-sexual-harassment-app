@@ -5,7 +5,7 @@ import '../services/enhanced_ai_service.dart';
 import '../config/ai_config.dart';
 
 class AIPoweredChatScreen extends StatefulWidget {
-  const AIPoweredChatScreen({Key? key}) : super(key: key);
+  const AIPoweredChatScreen({super.key});
 
   @override
   State<AIPoweredChatScreen> createState() => _AIPoweredChatScreenState();

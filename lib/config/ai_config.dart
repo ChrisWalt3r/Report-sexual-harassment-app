@@ -1,25 +1,25 @@
 class AIConfig {
-  // Hugging Face Models Configuration
+  // Hugging Face Models Configuration - Using instruction-following models
   static final Map<String, ModelConfig> availableModels = {
     'primary': ModelConfig(
-      name: 'microsoft/DialoGPT-large',
-      description: 'Conversational AI optimized for dialogue',
-      maxTokens: 150,
+      name: 'mistralai/Mistral-7B-Instruct-v0.2',
+      description: 'Instruction-following model - best for guided responses',
+      maxTokens: 200,
       temperature: 0.7,
       topP: 0.9,
     ),
     'empathetic': ModelConfig(
-      name: 'facebook/blenderbot-400M-distill',
-      description: 'Empathetic conversational model',
-      maxTokens: 120,
+      name: 'HuggingFaceH4/zephyr-7b-beta',
+      description: 'Helpful assistant model with empathetic responses',
+      maxTokens: 200,
       temperature: 0.6,
       topP: 0.85,
     ),
     'supportive': ModelConfig(
-      name: 'microsoft/DialoGPT-medium',
-      description: 'Medium-sized conversational model',
-      maxTokens: 100,
-      temperature: 0.8,
+      name: 'google/flan-t5-large',
+      description: 'Text-to-text model good at following instructions',
+      maxTokens: 150,
+      temperature: 0.5,
       topP: 0.9,
     ),
   };
@@ -98,24 +98,47 @@ Be consistent and reliable in your support.
   // Response quality indicators
   static const Map<String, List<String>> qualityKeywords = {
     'supportive': [
-      'understand', 'believe', 'support', 'here for you',
-      'not your fault', 'brave', 'courage', 'safe space'
+      'understand',
+      'believe',
+      'support',
+      'here for you',
+      'not your fault',
+      'brave',
+      'courage',
+      'safe space',
     ],
     'informative': [
-      'options', 'resources', 'counseling', 'medical care',
-      'legal support', 'reporting process', 'confidential'
+      'options',
+      'resources',
+      'counseling',
+      'medical care',
+      'legal support',
+      'reporting process',
+      'confidential',
     ],
     'empowering': [
-      'your choice', 'your decision', 'control', 'autonomy',
-      'when you\'re ready', 'at your pace', 'your voice'
+      'your choice',
+      'your decision',
+      'control',
+      'autonomy',
+      'when you\'re ready',
+      'at your pace',
+      'your voice',
     ],
   };
 
   // Crisis keywords that trigger emergency protocols
   static const List<String> crisisKeywords = [
-    'emergency', 'danger', 'help me now', 'happening now',
-    'can\'t escape', 'threatening me', 'going to hurt',
-    'suicide', 'kill myself', 'end it all'
+    'emergency',
+    'danger',
+    'help me now',
+    'happening now',
+    'can\'t escape',
+    'threatening me',
+    'going to hurt',
+    'suicide',
+    'kill myself',
+    'end it all',
   ];
 
   // Cultural context for MUST (Uganda)
@@ -133,21 +156,29 @@ Cultural Context for MUST (Mbarara University of Science and Technology), Uganda
 
   // Response templates for common scenarios
   static const Map<String, String> responseTemplates = {
-    'validation': "I believe you, and I want you to know that what happened to you is not okay. Thank you for trusting me with this.",
-    
-    'confidentiality': "This conversation is completely confidential and secure. Your privacy is protected, and you control what information is shared.",
-    
-    'not_your_fault': "What happened to you is not your fault. The responsibility lies entirely with the person who chose to behave inappropriately.",
-    
-    'reporting_options': "You have several options for reporting, including anonymous reporting. You can take time to decide what feels right for you.",
-    
-    'immediate_safety': "Your safety is the most important thing right now. If you're in immediate danger, please contact campus security or emergency services.",
-    
-    'resources_available': "There are counselors, medical professionals, and legal advocates available to support you through this process.",
-    
-    'take_your_time': "There's no pressure to make any decisions right now. You can take the time you need to process and decide what's best for you.",
-    
-    'ongoing_support': "Support is available to you throughout this process and beyond. You don't have to go through this alone.",
+    'validation':
+        "I believe you, and I want you to know that what happened to you is not okay. Thank you for trusting me with this.",
+
+    'confidentiality':
+        "This conversation is completely confidential and secure. Your privacy is protected, and you control what information is shared.",
+
+    'not_your_fault':
+        "What happened to you is not your fault. The responsibility lies entirely with the person who chose to behave inappropriately.",
+
+    'reporting_options':
+        "You have several options for reporting, including anonymous reporting. You can take time to decide what feels right for you.",
+
+    'immediate_safety':
+        "Your safety is the most important thing right now. If you're in immediate danger, please contact campus security or emergency services.",
+
+    'resources_available':
+        "There are counselors, medical professionals, and legal advocates available to support you through this process.",
+
+    'take_your_time':
+        "There's no pressure to make any decisions right now. You can take the time you need to process and decide what's best for you.",
+
+    'ongoing_support':
+        "Support is available to you throughout this process and beyond. You don't have to go through this alone.",
   };
 }
 
@@ -182,87 +213,90 @@ class ResponseAnalyzer {
   static double calculateQualityScore(String response) {
     double score = 0.0;
     final lowerResponse = response.toLowerCase();
-    
+
     // Check for supportive language
     for (final keyword in AIConfig.qualityKeywords['supportive']!) {
       if (lowerResponse.contains(keyword)) {
         score += 0.2;
       }
     }
-    
+
     // Check for informative content
     for (final keyword in AIConfig.qualityKeywords['informative']!) {
       if (lowerResponse.contains(keyword)) {
         score += 0.15;
       }
     }
-    
+
     // Check for empowering language
     for (final keyword in AIConfig.qualityKeywords['empowering']!) {
       if (lowerResponse.contains(keyword)) {
         score += 0.25;
       }
     }
-    
+
     // Penalize for inappropriate content
     for (final prohibited in AIConfig.prohibitedTopics) {
       if (lowerResponse.contains(prohibited.toLowerCase())) {
         score -= 0.5;
       }
     }
-    
+
     // Length appropriateness (50-200 characters is ideal)
     if (response.length >= 50 && response.length <= 200) {
       score += 0.1;
     } else if (response.length < 20) {
       score -= 0.3;
     }
-    
+
     return score.clamp(0.0, 1.0);
   }
-  
+
   static bool isCrisisResponse(String userMessage) {
     final lowerMessage = userMessage.toLowerCase();
     return AIConfig.crisisKeywords.any(
-      (keyword) => lowerMessage.contains(keyword)
+      (keyword) => lowerMessage.contains(keyword),
     );
   }
-  
-  static String detectScenario(String userMessage, List<String> conversationHistory) {
+
+  static String detectScenario(
+    String userMessage,
+    List<String> conversationHistory,
+  ) {
     final lowerMessage = userMessage.toLowerCase();
-    
+
     // Crisis detection
     if (isCrisisResponse(userMessage)) {
       return 'crisis_intervention';
     }
-    
+
     // First message detection
     if (conversationHistory.isEmpty || conversationHistory.length <= 2) {
       return 'initial_contact';
     }
-    
+
     // Reporting related
-    if (lowerMessage.contains('report') || 
-        lowerMessage.contains('file') || 
+    if (lowerMessage.contains('report') ||
+        lowerMessage.contains('file') ||
         lowerMessage.contains('complaint')) {
       return 'reporting_guidance';
     }
-    
+
     // Emotional support needed
-    if (lowerMessage.contains('feel') || 
-        lowerMessage.contains('scared') || 
+    if (lowerMessage.contains('feel') ||
+        lowerMessage.contains('scared') ||
         lowerMessage.contains('upset') ||
         lowerMessage.contains('confused')) {
       return 'emotional_support';
     }
-    
+
     // Follow-up conversation
-    if (lowerMessage.contains('update') || 
-        lowerMessage.contains('happened') || 
+    if (lowerMessage.contains('update') ||
+        lowerMessage.contains('happened') ||
         lowerMessage.contains('since')) {
       return 'follow_up_support';
     }
-    
+
     // Default to emotional support
     return 'emotional_support';
   }
