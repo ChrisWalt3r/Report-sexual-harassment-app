@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_styles.dart';
 import '../widgets/bottom_nav_bar.dart';
+import '../services/auth_service.dart';
 import 'home_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -14,14 +15,44 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   int _currentNavIndex = 3;
+  final AuthService _authService = AuthService();
+  
+  // User data
+  Map<String, dynamic>? _userData;
+  bool _isLoading = true;
 
-  final TextEditingController _nameController = TextEditingController(
-    text: 'John Doe',
-  );
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      final user = _authService.currentUser;
+      if (user == null) {
+        throw 'No user is currently signed in';
+      }
+      
+      final data = await _authService.getUserData(user.uid);
+      setState(() {
+        _userData = data;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading profile: $e')),
+        );
+      }
+    }
+  }
 
   @override
   void dispose() {
-    _nameController.dispose();
     super.dispose();
   }
 
@@ -63,46 +94,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
         leadingWidth: 110,
         title: Text('Profile', style: AppStyles.heading3),
         centerTitle: true,
-        actions: [
-          TextButton(
-            onPressed: () {
-              // Handle save
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('Profile saved')));
-            },
-            child: Text(
-              'Save',
-              style: AppStyles.bodyMedium.copyWith(
-                color: AppColors.primaryBlue,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Profile Header
-            _buildProfileHeader(),
-            // Personal Details Section
-            _buildSectionDivider('PERSONAL DETAILS'),
-            _buildPersonalDetailsSection(),
-            // Security Section
-            _buildSectionDivider('SECURITY'),
-            _buildSecuritySection(),
-            // Account Section
-            _buildSectionDivider('ACCOUNT'),
-            _buildAccountSection(),
-            const SizedBox(height: 24),
-            // Quick Exit Button
-            _buildQuickExitButton(),
-            const SizedBox(height: 24),
-          ],
-        ),
-      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _userData == null
+              ? const Center(child: Text('No user data found'))
+              : SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Profile Header
+                      _buildProfileHeader(),
+                      // Personal Details Section
+                      _buildSectionDivider('PERSONAL DETAILS'),
+                      _buildPersonalDetailsSection(),
+                      // Security Section
+                      _buildSectionDivider('SECURITY'),
+                      _buildSecuritySection(),
+                      // Account Section
+                      _buildSectionDivider('ACCOUNT'),
+                      _buildAccountSection(),
+                      const SizedBox(height: 24),
+                      // Quick Exit Button
+                      _buildQuickExitButton(),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
+                ),
       bottomNavigationBar: BottomNavBar(
         currentIndex: _currentNavIndex,
         onTap: (index) {
@@ -198,7 +216,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 16),
           // Name - centered
           Text(
-            'John Doe',
+            _userData?['fullName'] ?? 'No Name',
             style: AppStyles.heading3.copyWith(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -257,7 +275,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               border: Border.all(color: AppColors.borderLight),
             ),
             child: Text(
-              'John Doe',
+              _userData?['fullName'] ?? 'Not provided',
               style: AppStyles.bodyMedium.copyWith(color: AppColors.textDark),
             ),
           ),
@@ -283,7 +301,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    '2023/MUST/001',
+                    _userData?['studentId'] ?? 'Not provided',
                     style: AppStyles.bodyMedium.copyWith(
                       color: AppColors.textGray,
                     ),
@@ -317,7 +335,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               border: Border.all(color: AppColors.borderLight),
             ),
             child: Text(
-              'j.doe@student.must.ac.ug',
+              _userData?['email'] ?? 'Not provided',
               style: AppStyles.bodyMedium.copyWith(color: AppColors.textDark),
             ),
           ),
@@ -339,22 +357,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: AppColors.borderLight),
             ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Faculty of Computing',
-                    style: AppStyles.bodyMedium.copyWith(
-                      color: AppColors.textDark,
-                    ),
-                  ),
-                ),
-                Icon(
-                  Icons.keyboard_arrow_down,
-                  size: 22,
-                  color: AppColors.textLight,
-                ),
-              ],
+            child: Text(
+              _userData?['department'] ?? 'Not provided',
+              style: AppStyles.bodyMedium.copyWith(
+                color: AppColors.textDark,
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          // Phone Number
+          Text(
+            'Phone Number',
+            style: AppStyles.label.copyWith(
+              color: AppColors.textGray,
+              fontSize: 13,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.borderLight),
+            ),
+            child: Text(
+              _userData?['phoneNumber'] ?? 'Not provided',
+              style: AppStyles.bodyMedium.copyWith(color: AppColors.textDark),
             ),
           ),
         ],
