@@ -80,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Enter your university email address and we\'ll send you a link to reset your password.',
+                'Enter your email address and we\'ll send you a link to reset your password.',
                 style: TextStyle(fontSize: 14, height: 1.5),
               ),
               const SizedBox(height: 20),
@@ -89,8 +89,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.done,
                 decoration: InputDecoration(
-                  labelText: 'University Email',
-                  hintText: 'example@std.must.ac.ug',
+                  labelText: 'Email Address',
+                  hintText: 'example@gmail.com',
                   prefixIcon: const Icon(Icons.email_outlined),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -155,8 +155,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     email = result.trim();
-
-    email = result;
 
     // Validate email format
     if (!email.contains('@') || !email.contains('.')) {
@@ -389,6 +387,15 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: AppColors.primary),
+          onPressed: () => Navigator.pop(context),
+          tooltip: 'Back to Welcome',
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -397,7 +404,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 40),
+                const SizedBox(height: 20),
                 
                 // Logo or App Icon
                 Icon(
@@ -435,13 +442,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Email field
                 CustomTextField(
                   controller: _emailController,
-                  label: 'University Email',
-                  hint: 'Enter your university email',
+                  label: 'Email Address',
+                  hint: 'Enter your email address',
                   prefixIcon: Icons.email_outlined,
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your university email';
+                      return 'Please enter your email address';
                     }
                     if (!value.contains('@')) {
                       return 'Please enter a valid email';

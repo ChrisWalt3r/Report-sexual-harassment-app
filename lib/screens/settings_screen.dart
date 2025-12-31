@@ -19,6 +19,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _notificationsEnabled = true;
   int _currentNavIndex = 3;
   final _authService = AuthService();
+  Map<String, dynamic>? _userData;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      final user = _authService.currentUser;
+      if (user != null) {
+        final data = await _authService.getUserData(user.uid);
+        setState(() {
+          _userData = data;
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   void _navigateToProfile() {
     Navigator.push(
@@ -168,14 +197,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Jane Doe',
+                    _isLoading 
+                        ? 'Loading...' 
+                        : _userData?['fullName'] ?? 'User',
                     style: AppStyles.bodyLarge.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Student • Bachelors of IT',
+                    _isLoading
+                        ? 'Loading...'
+                        : 'Student • ${_userData?['department'] ?? 'Not specified'}',
                     style: AppStyles.bodySmall,
                   ),
                 ],
@@ -427,78 +460,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _showChangePasswordDialog() async {
-    final currentPasswordController = TextEditingController();
-    final newPasswordController = TextEditingController();
-    final confirmPasswordController = TextEditingController();
-    bool obscureCurrent = true;
-    bool obscureNew = true;
-    bool obscureConfirm = true;
+    final emailController = TextEditingController();
+    
+    // Pre-fill with current user's email if available
+    if (_userData?['email'] != null) {
+      emailController.text = _userData!['email'];
+    }
 
-    await showDialog(
+    final result = await showDialog<String?>(
       context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
+      builder: (dialogContext) => PopScope(
+        canPop: true,
+        child: AlertDialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          title: const Text('Change Password'),
+          title: Row(
+            children: [
+              Icon(Icons.lock_reset, color: AppColors.primary, size: 28),
+              const SizedBox(width: 12),
+              const Text('Reset Password'),
+            ],
+          ),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TextField(
-                  controller: currentPasswordController,
-                  obscureText: obscureCurrent,
-                  decoration: InputDecoration(
-                    labelText: 'Current Password',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        obscureCurrent ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                      ),
-                      onPressed: () => setDialogState(() => obscureCurrent = !obscureCurrent),
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
+                const Text(
+                  'Enter your email address and we\'ll send you a link to reset your password.',
+                  style: TextStyle(fontSize: 14, height: 1.5),
                 ),
                 const SizedBox(height: 16),
                 TextField(
-                  controller: newPasswordController,
-                  obscureText: obscureNew,
+                  controller: emailController,
+                  keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
-                    labelText: 'New Password',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        obscureNew ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                      ),
-                      onPressed: () => setDialogState(() => obscureNew = !obscureNew),
-                    ),
+                    labelText: 'Email Address',
+                    prefixIcon: const Icon(Icons.email_outlined),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    helperText: 'At least 6 characters',
-                    helperMaxLines: 2,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: confirmPasswordController,
-                  obscureText: obscureConfirm,
-                  decoration: InputDecoration(
-                    labelText: 'Confirm New Password',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        obscureConfirm ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                      ),
-                      onPressed: () => setDialogState(() => obscureConfirm = !obscureConfirm),
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    hintText: 'your.email@gmail.com',
                   ),
                 ),
               ],
@@ -506,118 +509,203 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                currentPasswordController.dispose();
-                newPasswordController.dispose();
-                confirmPasswordController.dispose();
-                Navigator.pop(dialogContext);
-              },
+              onPressed: () => Navigator.pop(dialogContext, null),
               child: const Text('Cancel'),
             ),
             ElevatedButton(
-              onPressed: () async {
-                final currentPassword = currentPasswordController.text;
-                final newPassword = newPasswordController.text;
-                final confirmPassword = confirmPasswordController.text;
-
-                if (currentPassword.isEmpty || newPassword.isEmpty || confirmPassword.isEmpty) {
+              onPressed: () {
+                final email = emailController.text.trim();
+                
+                if (email.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Please fill all fields'),
+                      content: Text('Please enter your email address'),
                       backgroundColor: Colors.orange,
                     ),
                   );
                   return;
                 }
-
-                if (newPassword.length < 6) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Password must be at least 6 characters'),
-                      backgroundColor: Colors.orange,
-                    ),
-                  );
-                  return;
-                }
-
-                if (newPassword != confirmPassword) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('New passwords do not match'),
-                      backgroundColor: Colors.orange,
-                    ),
-                  );
-                  return;
-                }
-
-                currentPasswordController.dispose();
-                newPasswordController.dispose();
-                confirmPasswordController.dispose();
-                Navigator.pop(dialogContext);
-
-                // Show loading
-                showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (context) => const Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                );
-
-                try {
-                  await _authService.changePassword(
-                    currentPassword: currentPassword,
-                    newPassword: newPassword,
-                  );
-
-                  if (mounted) {
-                    Navigator.pop(context); // Close loading
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Password changed successfully!'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  }
-                } catch (e) {
-                  if (mounted) {
-                    Navigator.pop(context); // Close loading
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Error'),
-                        content: Text(e.toString()),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('OK'),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                }
+                
+                Navigator.pop(dialogContext, email);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Change Password'),
+              child: const Text('Send Reset Link'),
             ),
           ],
         ),
       ),
     );
+
+    // Dispose controller now that dialog is closed
+    emailController.dispose();
+
+    if (result != null && mounted) {
+      // Show loading
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => PopScope(
+          canPop: false,
+          child: const Center(
+            child: CircularProgressIndicator(),
+          ),
+        ),
+      );
+
+      try {
+        await _authService.resetPassword(result);
+
+        if (mounted) {
+          Navigator.pop(context); // Close loading
+          
+          // Show success dialog
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.green, size: 28),
+                  const SizedBox(width: 12),
+                  const Text('Email Sent!'),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Password reset link has been sent to:',
+                    style: TextStyle(fontSize: 14),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    result,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.blue.shade200),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.info_outline, size: 16, color: Colors.blue.shade700),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Important:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: Colors.blue.shade900,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '• Check your inbox in 2-5 minutes\n'
+                          '• Look in spam/junk folder if not found\n'
+                          '• Link expires in 1 hour\n'
+                          '• Make sure you registered with this email',
+                          style: TextStyle(fontSize: 12, height: 1.6, color: Colors.blue.shade900),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          Navigator.pop(context); // Close loading
+          
+          // Show error dialog
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Row(
+                children: [
+                  Icon(Icons.error_outline, color: Colors.red, size: 28),
+                  const SizedBox(width: 12),
+                  const Text('Error'),
+                ],
+              ),
+              content: Text(e.toString()),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _showChangePasswordDialog(); // Retry
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                  ),
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          );
+        }
+      }
+    } else {
+      // User cancelled, dispose controller
+      emailController.dispose();
+    }
   }
 
   Future<void> _showDeleteAccountDialog() async {
     final passwordController = TextEditingController();
-    bool obscurePassword = true;
+    
+    // Check if user is signed in with Google
+    final user = _authService.currentUser;
+    bool isGoogleSignIn = false;
+    
+    if (user != null) {
+      for (var provider in user.providerData) {
+        if (provider.providerId == 'google.com') {
+          isGoogleSignIn = true;
+          break;
+        }
+      }
+    }
 
-    final confirmed = await showDialog<bool>(
+    final result = await showDialog<String?>(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
+        builder: (context, setDialogState) {
+          bool obscurePassword = true;
+          return AlertDialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -655,42 +743,46 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   style: TextStyle(fontSize: 13, height: 1.6),
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'Enter your password to confirm:',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: passwordController,
-                  obscureText: obscurePassword,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                if (!isGoogleSignIn) ...[
+                  const Text(
+                    'Enter your password to confirm:',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: passwordController,
+                    obscureText: obscurePassword,
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                        ),
+                        onPressed: () => setDialogState(() => obscurePassword = !obscurePassword),
                       ),
-                      onPressed: () => setDialogState(() => obscurePassword = !obscurePassword),
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
-                ),
+                ] else ...[
+                  const Text(
+                    'You will be asked to sign in with Google to confirm deletion.',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                  ),
+                ],
               ],
             ),
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                passwordController.dispose();
-                Navigator.pop(dialogContext, false);
-              },
+              onPressed: () => Navigator.pop(dialogContext, null),
               child: const Text('Cancel'),
             ),
             ElevatedButton(
               onPressed: () {
-                if (passwordController.text.isEmpty) {
+                if (!isGoogleSignIn && passwordController.text.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Please enter your password'),
@@ -699,7 +791,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   );
                   return;
                 }
-                Navigator.pop(dialogContext, true);
+                Navigator.pop(dialogContext, isGoogleSignIn ? 'google' : passwordController.text);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red[600],
@@ -708,14 +800,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: const Text('Delete Account'),
             ),
           ],
-        ),
+        );
+        },
       ),
     );
 
-    if (confirmed == true && mounted) {
-      final password = passwordController.text;
-      passwordController.dispose();
+    // Dispose controller after dialog is closed
+    passwordController.dispose();
 
+    if (result != null && mounted) {
       // Show loading
       showDialog(
         context: context,
@@ -729,7 +822,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
 
       try {
-        await _authService.deleteAccount(password);
+        await _authService.deleteAccount(result);
 
         if (mounted) {
           Navigator.pop(context); // Close loading
@@ -777,8 +870,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           );
         }
       }
-    } else {
-      passwordController.dispose();
     }
   }
 }

@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/welcome_screen.dart';
 import 'screens/settings_screen.dart';
 import 'services/enhanced_ai_service.dart';
 import 'services/auth_service.dart';
@@ -67,8 +68,9 @@ class ReportHarassmentApp extends StatelessWidget {
           useMaterial3: true,
           fontFamily: 'Roboto',
         ),
-        home: const AuthWrapper(),
+        home: const WelcomeScreen(),
         routes: {
+          '/welcome': (context) => const WelcomeScreen(),
           '/home': (context) => const HomeScreen(),
           '/login': (context) => const LoginScreen(),
           '/settings': (context) => const SettingsScreen(),

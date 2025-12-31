@@ -168,13 +168,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 // Email
                 CustomTextField(
                   controller: _emailController,
-                  label: 'University Email',
-                  hint: 'Enter your university email',
+                  label: 'Email Address',
+                  hint: 'Enter your email address',
                   prefixIcon: Icons.email_outlined,
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your university email';
+                      return 'Please enter your email address';
                     }
                     if (!value.contains('@')) {
                       return 'Please enter a valid email';
@@ -266,8 +266,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     if (value == null || value.isEmpty) {
                       return 'Please enter a password';
                     }
-                    if (value.length < 6) {
-                      return 'Password must be at least 6 characters';
+                    if (value.length < 8) {
+                      return 'Password must be at least 8 characters';
+                    }
+                    // Check if password contains at least one letter
+                    if (!RegExp(r'[a-zA-Z]').hasMatch(value)) {
+                      return 'Password must contain at least one letter';
+                    }
+                    // Check if password contains at least one number
+                    if (!RegExp(r'[0-9]').hasMatch(value)) {
+                      return 'Password must contain at least one number';
                     }
                     return null;
                   },

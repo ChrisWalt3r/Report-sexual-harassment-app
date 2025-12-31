@@ -6,12 +6,6 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
-  
-  // List of allowed university email domains
-  final List<String> _allowedDomains = [
-    '@std.must.ac.ug',
-    '@must.ac.ug',
-  ];
 
   // Get current user
   User? get currentUser => _auth.currentUser;
@@ -115,7 +109,7 @@ class AuthService {
     }
   }
 
-  // Sign in with Google (only university emails allowed)
+  // Sign in with Google
   Future<UserCredential?> signInWithGoogle() async {
     try {
       // Trigger the Google Sign-In flow
@@ -124,17 +118,6 @@ class AuthService {
       if (googleUser == null) {
         // User canceled the sign-in
         throw 'Sign in cancelled';
-      }
-
-      // Check if the email is from allowed university domain
-      bool isUniversityEmail = _allowedDomains.any(
-        (domain) => googleUser.email.toLowerCase().endsWith(domain.toLowerCase())
-      );
-
-      if (!isUniversityEmail) {
-        // Sign out from Google if not a university email
-        await _googleSignIn.signOut();
-        throw 'Only university email addresses (@std.must.ac.ug) are allowed to sign in';
       }
 
       // Obtain the auth details from the request
@@ -248,20 +231,54 @@ class AuthService {
       }
 
       final uid = user.uid;
+      final email = user.email;
+
+      // Check if user signed in with Google or Email
+      bool isGoogleSignIn = false;
+      for (var provider in user.providerData) {
+        if (provider.providerId == 'google.com') {
+          isGoogleSignIn = true;
+          break;
+        }
+      }
 
       // Re-authenticate user before deletion
-      final credential = EmailAuthProvider.credential(
-        email: user.email!,
-        password: password,
-      );
-
-      await user.reauthenticateWithCredential(credential);
+      if (isGoogleSignIn) {
+        // For Google sign-in, re-authenticate with Google
+        try {
+          final googleUser = await _googleSignIn.signIn();
+          if (googleUser == null) {
+            throw 'Google sign-in cancelled';
+          }
+          
+          final googleAuth = await googleUser.authentication;
+          final credential = GoogleAuthProvider.credential(
+            accessToken: googleAuth.accessToken,
+            idToken: googleAuth.idToken,
+          );
+          
+          await user.reauthenticateWithCredential(credential);
+        } catch (e) {
+          throw 'Failed to re-authenticate with Google: ${e.toString()}';
+        }
+      } else {
+        // For email/password, use the provided password
+        if (email == null || email.isEmpty) {
+          throw 'User email not found';
+        }
+        
+        final credential = EmailAuthProvider.credential(
+          email: email,
+          password: password,
+        );
+        
+        await user.reauthenticateWithCredential(credential);
+      }
 
       // Delete user data from Firestore
       await _firestore.collection('users').doc(uid).delete();
 
       // Delete any other user-related data (reports, etc.)
-      // Add more collections as needed
       final reportsSnapshot = await _firestore
           .collection('reports')
           .where('userId', isEqualTo: uid)
@@ -271,8 +288,20 @@ class AuthService {
         await doc.reference.delete();
       }
 
+      // Delete chat messages if any
+      final chatsSnapshot = await _firestore
+          .collection('chats')
+          .where('userId', isEqualTo: uid)
+          .get();
+      
+      for (var doc in chatsSnapshot.docs) {
+        await doc.reference.delete();
+      }
+
       // Sign out from Google if signed in with Google
-      await _googleSignIn.signOut();
+      if (isGoogleSignIn) {
+        await _googleSignIn.signOut();
+      }
 
       // Delete the Firebase Auth account
       await user.delete();
@@ -305,23 +334,42 @@ class AuthService {
       
       print('DEBUG: Attempting to send password reset email to: $email');
       
-      // Send password reset email
-      await _auth.sendPasswordResetEmail(email: email);
+      // Configure action code settings for better email delivery
+      final actionCodeSettings = ActionCodeSettings(
+        url: 'https://sexual-harrasment-management.firebaseapp.com',
+        handleCodeInApp: false,
+        androidPackageName: 'com.must.report_harassment',
+        androidInstallApp: false,
+      );
       
-      print('DEBUG: Password reset email sent successfully');
+      // Send password reset email
+      await _auth.sendPasswordResetEmail(
+        email: email,
+        actionCodeSettings: actionCodeSettings,
+      );
+      
+      print('DEBUG: ✅ Password reset email sent successfully!');
+      print('DEBUG: Email sent to: $email');
+      print('DEBUG: Check:');
+      print('  1. Your inbox (may take 2-10 minutes)');
+      print('  2. Spam/Junk/Promotions folders');
+      print('  3. Make sure you registered with this exact email address');
     } on FirebaseAuthException catch (e) {
-      print('DEBUG: FirebaseAuthException - Code: ${e.code}, Message: ${e.message}');
+      print('DEBUG: ❌ FirebaseAuthException - Code: ${e.code}, Message: ${e.message}');
       
       // Handle specific Firebase errors
       if (e.code == 'user-not-found') {
-        throw 'No account found with this email address.\n\nPlease make sure:\n• You have registered an account\n• The email address is correct\n• You are using your university email';
+        throw 'No account found with this email address.\n\nPlease make sure:\n• You have registered an account\n• The email address is correct';
       }
       if (e.code == 'invalid-email') {
-        throw 'Invalid email format. Please enter a valid university email address.';
+        throw 'Invalid email format. Please enter a valid email address.';
+      }
+      if (e.code == 'too-many-requests') {
+        throw 'Too many password reset attempts. Please try again later.';
       }
       throw _handleAuthException(e);
     } catch (e) {
-      print('DEBUG: General error: $e');
+      print('DEBUG: ❌ General error: $e');
       rethrow;
     }
   }
