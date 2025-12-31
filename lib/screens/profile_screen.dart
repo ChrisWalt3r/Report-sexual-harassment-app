@@ -260,7 +260,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // Full Name
           Text(
             'Full Name',
-            style: AppStyles.label.copyWith(
+            style: AppStyles.bodySmall.copyWith(
               color: AppColors.textGray,
               fontSize: 13,
             ),
@@ -283,7 +283,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // University ID
           Text(
             'University ID',
-            style: AppStyles.label.copyWith(
+            style: AppStyles.bodySmall.copyWith(
               color: AppColors.textGray,
               fontSize: 13,
             ),
@@ -320,7 +320,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // Email Address
           Text(
             'Email Address',
-            style: AppStyles.label.copyWith(
+            style: AppStyles.bodySmall.copyWith(
               color: AppColors.textGray,
               fontSize: 13,
             ),
@@ -367,6 +367,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 20),
           // Phone Number
           Text(
+            'Department/Faculty',
+            style: AppStyles.bodySmall.copyWith(
             'Phone Number',
             style: AppStyles.label.copyWith(
               color: AppColors.textGray,
@@ -446,7 +448,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Text(
               'Delete Account',
               style: AppStyles.bodyMedium.copyWith(
-                color: AppColors.danger,
+                color: const Color(0xFFDC3545),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -491,6 +493,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         },
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.textDark,
+          side: BorderSide(
+            color: AppColors.borderLight,
+            width: 1,
+          ),
           side: const BorderSide(color: AppColors.borderMedium, width: 1),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),

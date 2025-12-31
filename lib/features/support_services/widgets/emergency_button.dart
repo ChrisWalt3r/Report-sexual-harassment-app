@@ -19,11 +19,33 @@ class EmergencyButton extends StatelessWidget {
     this.isCompact = false,
   });
 
-  Future<void> _makePhoneCall() async {
+  Future<void> _makePhoneCall(BuildContext context) async {
     final Uri phoneUri = Uri(scheme: 'tel', path: phoneNumber);
-    if (await canLaunchUrl(phoneUri)) {
-      await launchUrl(phoneUri);
+    try {
+      if (await canLaunchUrl(phoneUri)) {
+        final bool launched = await launchUrl(phoneUri);
+        if (!launched && context.mounted) {
+          _showError(context, 'Unable to place call. Please try again later.');
+        }
+      } else {
+        if (context.mounted) {
+          _showError(context, 'Phone calls are not supported on this device.');
+        }
+      }
+    } catch (_) {
+      if (context.mounted) {
+        _showError(
+          context,
+          'An error occurred while trying to place the call.',
+        );
+      }
     }
+  }
+
+  void _showError(BuildContext context, String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -31,18 +53,18 @@ class EmergencyButton extends StatelessWidget {
     final bgColor = backgroundColor ?? Colors.red[700]!;
 
     if (isCompact) {
-      return _buildCompactButton(bgColor);
+      return _buildCompactButton(context, bgColor);
     }
 
     return _buildFullButton(context, bgColor);
   }
 
-  Widget _buildCompactButton(Color bgColor) {
+  Widget _buildCompactButton(BuildContext context, Color bgColor) {
     return Material(
       color: bgColor,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
-        onTap: _makePhoneCall,
+        onTap: () => _makePhoneCall(context),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -76,7 +98,7 @@ class EmergencyButton extends StatelessWidget {
         elevation: 4,
         shadowColor: bgColor.withOpacity(0.4),
         child: InkWell(
-          onTap: _makePhoneCall,
+          onTap: () => _makePhoneCall(context),
           borderRadius: BorderRadius.circular(16),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
@@ -132,10 +154,7 @@ class EmergencyButton extends StatelessWidget {
 class FloatingEmergencyButton extends StatelessWidget {
   final VoidCallback onPressed;
 
-  const FloatingEmergencyButton({
-    super.key,
-    required this.onPressed,
-  });
+  const FloatingEmergencyButton({super.key, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -145,10 +164,7 @@ class FloatingEmergencyButton extends StatelessWidget {
       icon: const Icon(Icons.emergency, color: Colors.white),
       label: const Text(
         'Emergency',
-        style: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-        ),
+        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
       ),
     );
   }

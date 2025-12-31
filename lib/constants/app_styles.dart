@@ -49,10 +49,10 @@ class AppStyles {
   );
   
   // Label styles
-  static const TextStyle label = TextStyle(
-    fontSize: 12,
+  static TextStyle label = const TextStyle(
+    fontSize: 13,
     fontWeight: FontWeight.w500,
-    color: AppColors.textGray,
+    color: Color(0xFF6B7280),
   );
   
   // Button styles

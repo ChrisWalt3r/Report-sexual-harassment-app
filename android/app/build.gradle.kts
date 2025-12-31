@@ -9,7 +9,6 @@ plugins {
 android {
     namespace = "com.must.report_harassment"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -39,6 +38,8 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+
+    ndkVersion = "27.3.13750724"
 }
 
 flutter {

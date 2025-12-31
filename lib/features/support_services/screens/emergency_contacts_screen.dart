@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/emergency_contact.dart';
 import '../services/support_service.dart';
 import '../widgets/emergency_button.dart';
+import '../constants/emergency_constants.dart';
 
 /// Screen displaying emergency contacts for quick access
 class EmergencyContactsScreen extends StatefulWidget {
@@ -34,8 +35,25 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
 
   Future<void> _makePhoneCall(String phoneNumber) async {
     final Uri phoneUri = Uri(scheme: 'tel', path: phoneNumber);
-    if (await canLaunchUrl(phoneUri)) {
-      await launchUrl(phoneUri);
+    try {
+      if (await canLaunchUrl(phoneUri)) {
+        final bool launched = await launchUrl(phoneUri);
+        if (!launched && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not start phone call.')),
+          );
+        }
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Phone calls are not supported on this device.')),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('An error occurred while trying to place the call.')),
+        );
+      }
     }
   }
 
@@ -60,9 +78,9 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
               children: [
                 _buildUrgentNotice(),
                 const SizedBox(height: 16),
-                const EmergencyButton(
-                  label: 'Call 911 - Immediate Danger',
-                  phoneNumber: '911',
+                EmergencyButton(
+                  label: EmergencyConstants.immediateDangerLabel,
+                  phoneNumber: EmergencyConstants.emergencyNumber,
                 ),
                 const SizedBox(height: 24),
                 ..._contacts.map((c) => _buildContactCard(c)),

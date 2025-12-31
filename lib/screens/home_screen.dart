@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/bottom_nav_bar.dart';
+import '../features/support_services/support_services.dart';
 import '../features/support_services/screens/support_home_screen.dart';
 import 'ai_powered_chat_screen.dart';
 import 'emergency_screen.dart';
@@ -182,6 +183,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
+                        builder: (_) => const SupportHomeScreen(),
                         builder: (context) => const SupportHomeScreen(),
                       ),
                     );

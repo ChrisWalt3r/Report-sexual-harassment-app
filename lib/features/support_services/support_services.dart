@@ -21,3 +21,6 @@ export 'screens/medical_support_screen.dart';
 // Widgets
 export 'widgets/support_card.dart';
 export 'widgets/emergency_button.dart';
+
+// Constants
+export 'constants/emergency_constants.dart';

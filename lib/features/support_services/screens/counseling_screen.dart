@@ -39,17 +39,45 @@ class _CounselingScreenState extends State<CounselingScreen> {
     }
   }
 
+  void _showLaunchError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
   Future<void> _makePhoneCall(String phoneNumber) async {
     final Uri phoneUri = Uri(scheme: 'tel', path: phoneNumber);
-    if (await canLaunchUrl(phoneUri)) {
-      await launchUrl(phoneUri);
+    try {
+      if (await canLaunchUrl(phoneUri)) {
+        final bool launched = await launchUrl(phoneUri);
+        if (!launched) {
+          _showLaunchError('Unable to place call. Please try again later.');
+        }
+      } else {
+        _showLaunchError('Calling is not supported on this device.');
+      }
+    } catch (_) {
+      _showLaunchError('An error occurred while trying to place the call.');
     }
   }
 
   Future<void> _openWebsite(String url) async {
     final Uri websiteUri = Uri.parse(url);
-    if (await canLaunchUrl(websiteUri)) {
-      await launchUrl(websiteUri, mode: LaunchMode.externalApplication);
+    try {
+      if (await canLaunchUrl(websiteUri)) {
+        final bool launched = await launchUrl(
+          websiteUri,
+          mode: LaunchMode.externalApplication,
+        );
+        if (!launched) {
+          _showLaunchError('Unable to open the website. Please try again later.');
+        }
+      } else {
+        _showLaunchError('Unable to open this link on your device.');
+      }
+    } catch (_) {
+      _showLaunchError('An error occurred while trying to open the website.');
     }
   }
 
