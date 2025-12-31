@@ -40,19 +40,18 @@ class AppColors {
   static const Color information = Color(0xFF455A64);
 
   // Icon background colors
-  static const Color iconBlueBg = Color(0xFFE3F2FD);
-  static const Color iconGreenBg = Color(0xFFE8F5E9);
-  static const Color iconRedBg = Color(0xFFFFEBEE);
-  static const Color iconGrayBg = Color(0xFFF5F5F5);
-
-  // Additional colors
-  static const Color avatarOrange = Color(0xFFFF9800);
-  static const Color onlineGreen = Color(0xFF4CAF50);
-  static const Color borderLight = Color(0xFFE0E0E0);
-
-  // Miscellaneous
-  static const Color divider = Color(0xFFBDBDBD);
-  static const Color disabled = Color(0xFF9E9E9E);
-  static const Color danger = Color(0xFFDC3545);
-  static const Color borderMedium = Color(0xFFCCCCCC);
+  static const Color iconBlueBg = Color(0xFFDBEAFE);
+  static const Color iconGreenBg = Color(0xFFD1FAE5);
+  static const Color iconRedBg = Color(0xFFFEE2E2);
+  static const Color iconGrayBg = Color(0xFFF3F4F6);
+  static const Color iconYellowBg = Color(0xFFFEF3C7);
+  
+  // Accent colors
+  static const Color avatarOrange = Color(0xFFFED7AA);
+  static const Color onlineGreen = Color(0xFF10B981);
+  
+  // Aliases for backwards compatibility
+  static const Color primary = primaryBlue;
+  static const Color textPrimary = textDark;
+  static const Color textSecondary = textGray;
 }

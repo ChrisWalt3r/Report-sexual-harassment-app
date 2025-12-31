@@ -16,7 +16,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
   final List<EmergencyContact> _emergencyContacts = [
     EmergencyContact(
       name: 'Campus Security',
-      number: '+255123456789',
+      number: '+256740535992',
       type: 'Security',
       icon: Icons.security,
       color: Colors.blue,
@@ -40,7 +40,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
     ),
     EmergencyContact(
       name: 'Gender Desk Officer',
-      number: '+255123456791',
+      number: '+256740535992',
       type: 'Support',
       icon: Icons.support_agent,
       color: Colors.purple,

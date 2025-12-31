@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_styles.dart';
 import '../widgets/bottom_nav_bar.dart';
+import '../services/auth_service.dart';
 import 'home_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -13,12 +15,44 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   int _currentNavIndex = 3;
+  final AuthService _authService = AuthService();
   
-  final TextEditingController _nameController = TextEditingController(text: 'John Doe');
+  // User data
+  Map<String, dynamic>? _userData;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      final user = _authService.currentUser;
+      if (user == null) {
+        throw 'No user is currently signed in';
+      }
+      
+      final data = await _authService.getUserData(user.uid);
+      setState(() {
+        _userData = data;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading profile: $e')),
+        );
+      }
+    }
+  }
 
   @override
   void dispose() {
-    _nameController.dispose();
     super.dispose();
   }
 
@@ -58,51 +92,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
         leadingWidth: 110,
-        title: Text(
-          'Profile',
-          style: AppStyles.heading3,
-        ),
+        title: Text('Profile', style: AppStyles.heading3),
         centerTitle: true,
-        actions: [
-          TextButton(
-            onPressed: () {
-              // Handle save
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Profile saved')),
-              );
-            },
-            child: Text(
-              'Save',
-              style: AppStyles.bodyMedium.copyWith(
-                color: AppColors.primaryBlue,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Profile Header
-            _buildProfileHeader(),
-            // Personal Details Section
-            _buildSectionDivider('PERSONAL DETAILS'),
-            _buildPersonalDetailsSection(),
-            // Security Section
-            _buildSectionDivider('SECURITY'),
-            _buildSecuritySection(),
-            // Account Section
-            _buildSectionDivider('ACCOUNT'),
-            _buildAccountSection(),
-            const SizedBox(height: 24),
-            // Quick Exit Button
-            _buildQuickExitButton(),
-            const SizedBox(height: 24),
-          ],
-        ),
-      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _userData == null
+              ? const Center(child: Text('No user data found'))
+              : SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Profile Header
+                      _buildProfileHeader(),
+                      // Personal Details Section
+                      _buildSectionDivider('PERSONAL DETAILS'),
+                      _buildPersonalDetailsSection(),
+                      // Security Section
+                      _buildSectionDivider('SECURITY'),
+                      _buildSecuritySection(),
+                      // Account Section
+                      _buildSectionDivider('ACCOUNT'),
+                      _buildAccountSection(),
+                      const SizedBox(height: 24),
+                      // Quick Exit Button
+                      _buildQuickExitButton(),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
+                ),
       bottomNavigationBar: BottomNavBar(
         currentIndex: _currentNavIndex,
         onTap: (index) {
@@ -133,10 +151,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             decoration: BoxDecoration(
               color: AppColors.background,
               borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: AppColors.borderLight,
-                width: 1,
-              ),
+              border: Border.all(color: AppColors.borderLight, width: 1),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -187,10 +202,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   decoration: BoxDecoration(
                     color: AppColors.primaryBlue,
                     shape: BoxShape.circle,
-                    border: Border.all(
-                      color: AppColors.white,
-                      width: 3,
-                    ),
+                    border: Border.all(color: AppColors.white, width: 3),
                   ),
                   child: const Icon(
                     Icons.edit,
@@ -204,7 +216,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 16),
           // Name - centered
           Text(
-            'John Doe',
+            _userData?['fullName'] ?? 'No Name',
             style: AppStyles.heading3.copyWith(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -214,9 +226,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // Role - centered
           Text(
             'Student',
-            style: AppStyles.bodySmall.copyWith(
-              color: AppColors.textGray,
-            ),
+            style: AppStyles.bodySmall.copyWith(color: AppColors.textGray),
           ),
         ],
       ),
@@ -265,10 +275,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               border: Border.all(color: AppColors.borderLight),
             ),
             child: Text(
-              'John Doe',
-              style: AppStyles.bodyMedium.copyWith(
-                color: AppColors.textDark,
-              ),
+              _userData?['fullName'] ?? 'Not provided',
+              style: AppStyles.bodyMedium.copyWith(color: AppColors.textDark),
             ),
           ),
           const SizedBox(height: 20),
@@ -293,27 +301,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    '2023/MUST/001',
+                    _userData?['studentId'] ?? 'Not provided',
                     style: AppStyles.bodyMedium.copyWith(
                       color: AppColors.textGray,
                     ),
                   ),
                 ),
-                Icon(
-                  Icons.lock_outline,
-                  size: 18,
-                  color: AppColors.textLight,
-                ),
+                Icon(Icons.lock_outline, size: 18, color: AppColors.textLight),
               ],
             ),
           ),
           const SizedBox(height: 6),
           Text(
             'Contact administration to correct this ID.',
-            style: TextStyle(
-              fontSize: 12,
-              color: AppColors.textLight,
-            ),
+            style: TextStyle(fontSize: 12, color: AppColors.textLight),
           ),
           const SizedBox(height: 20),
           // Email Address
@@ -334,17 +335,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
               border: Border.all(color: AppColors.borderLight),
             ),
             child: Text(
-              'j.doe@student.must.ac.ug',
-              style: AppStyles.bodyMedium.copyWith(
-                color: AppColors.textDark,
-              ),
+              _userData?['email'] ?? 'Not provided',
+              style: AppStyles.bodyMedium.copyWith(color: AppColors.textDark),
             ),
           ),
           const SizedBox(height: 20),
           // Department/Faculty
           Text(
             'Department/Faculty',
-            style: AppStyles.bodySmall.copyWith(
+            style: AppStyles.label.copyWith(
               color: AppColors.textGray,
               fontSize: 13,
             ),
@@ -358,22 +357,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: AppColors.borderLight),
             ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Faculty of Computing',
-                    style: AppStyles.bodyMedium.copyWith(
-                      color: AppColors.textDark,
-                    ),
-                  ),
-                ),
-                Icon(
-                  Icons.keyboard_arrow_down,
-                  size: 22,
-                  color: AppColors.textLight,
-                ),
-              ],
+            child: Text(
+              _userData?['department'] ?? 'Not provided',
+              style: AppStyles.bodyMedium.copyWith(
+                color: AppColors.textDark,
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          // Phone Number
+          Text(
+            'Department/Faculty',
+            style: AppStyles.bodySmall.copyWith(
+            'Phone Number',
+            style: AppStyles.label.copyWith(
+              color: AppColors.textGray,
+              fontSize: 13,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.borderLight),
+            ),
+            child: Text(
+              _userData?['phoneNumber'] ?? 'Not provided',
+              style: AppStyles.bodyMedium.copyWith(color: AppColors.textDark),
             ),
           ),
         ],
@@ -450,7 +463,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: OutlinedButton(
         onPressed: () {
-          // Handle quick exit
+          showDialog(
+            context: context,
+            builder:
+                (context) => AlertDialog(
+                  title: const Text('Quick Exit'),
+                  content: const Text(
+                    'This will close the app immediately. Are you sure?',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        SystemNavigator.pop();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('Exit Now'),
+                    ),
+                  ],
+                ),
+          );
         },
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.textDark,
@@ -458,6 +497,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             color: AppColors.borderLight,
             width: 1,
           ),
+          side: const BorderSide(color: AppColors.borderMedium, width: 1),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -466,16 +506,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.logout,
-              size: 18,
-            ),
+            const Icon(Icons.logout, size: 18),
             const SizedBox(width: 8),
             Text(
               'Quick Exit App',
-              style: AppStyles.bodyMedium.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
+              style: AppStyles.bodyMedium.copyWith(fontWeight: FontWeight.w500),
             ),
           ],
         ),
