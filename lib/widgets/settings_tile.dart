@@ -142,7 +142,7 @@ class SettingsTileWithSwitch extends StatelessWidget {
       trailing: Switch(
         value: value,
         onChanged: onChanged,
-        activeThumbColor: AppColors.white,
+        activeColor: AppColors.white,
         activeTrackColor: AppColors.success,
         inactiveThumbColor: AppColors.white,
         inactiveTrackColor: AppColors.borderMedium,
