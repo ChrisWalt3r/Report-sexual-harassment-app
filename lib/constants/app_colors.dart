@@ -27,6 +27,10 @@ class AppColors {
   static const Color textGray = Color(0xFF757575);
   static const Color textLight = Color(0xFFA0A0A0);
 
+  // Border colors
+  static const Color borderLight = Color(0xFFE0E0E0);
+  static const Color borderMedium = Color(0xFFBDBDBD);
+
   // Status colors
   static const Color error = Color(0xFFB00020);
   static const Color success = Color(0xFF4CAF50);
@@ -34,6 +38,7 @@ class AppColors {
 
   // Support service colors
   static const Color emergency = Color(0xFFD32F2F);
+  static const Color danger = Color(0xFFD32F2F);
   static const Color counseling = Color(0xFF7B1FA2);
   static const Color legal = Color(0xFF1976D2);
   static const Color medical = Color(0xFF388E3C);
@@ -49,9 +54,4 @@ class AppColors {
   // Accent colors
   static const Color avatarOrange = Color(0xFFFED7AA);
   static const Color onlineGreen = Color(0xFF10B981);
-  
-  // Aliases for backwards compatibility
-  static const Color primary = primaryBlue;
-  static const Color textPrimary = textDark;
-  static const Color textSecondary = textGray;
 }

@@ -1,11 +1,16 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final FirebaseStorage _storage = FirebaseStorage.instance;
 
   // Get current user
   User? get currentUser => _auth.currentUser;
@@ -37,7 +42,7 @@ class AuthService {
     try {
       // Convert student ID to email format
       String email = '$studentId@must.ac.mw';
-      
+
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
@@ -59,10 +64,8 @@ class AuthService {
   }) async {
     try {
       // Create user account
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      UserCredential userCredential = await _auth
+          .createUserWithEmailAndPassword(email: email, password: password);
 
       // Store additional user data in Firestore
       await _firestore.collection('users').doc(userCredential.user!.uid).set({
@@ -95,7 +98,7 @@ class AuthService {
     try {
       // Convert student ID to email format
       String email = '$studentId@must.ac.mw';
-      
+
       return await registerWithEmail(
         email: email,
         password: password,
@@ -114,14 +117,15 @@ class AuthService {
     try {
       // Trigger the Google Sign-In flow
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      
+
       if (googleUser == null) {
         // User canceled the sign-in
         throw 'Sign in cancelled';
       }
 
       // Obtain the auth details from the request
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
 
       // Create a new credential
       final credential = GoogleAuthProvider.credential(
@@ -130,7 +134,9 @@ class AuthService {
       );
 
       // Sign in to Firebase with the Google credential
-      UserCredential userCredential = await _auth.signInWithCredential(credential);
+      UserCredential userCredential = await _auth.signInWithCredential(
+        credential,
+      );
 
       // Check if this is a new user, if so create their profile
       if (userCredential.additionalUserInfo?.isNewUser ?? false) {
@@ -157,7 +163,8 @@ class AuthService {
   // Get user data from Firestore
   Future<Map<String, dynamic>?> getUserData(String uid) async {
     try {
-      DocumentSnapshot doc = await _firestore.collection('users').doc(uid).get();
+      DocumentSnapshot doc =
+          await _firestore.collection('users').doc(uid).get();
       if (doc.exists) {
         return doc.data() as Map<String, dynamic>?;
       }
@@ -196,9 +203,21 @@ class AuthService {
         throw 'No user is currently signed in';
       }
 
+      final hasPasswordProvider = user.providerData.any(
+        (p) => p.providerId == 'password',
+      );
+      if (!hasPasswordProvider) {
+        throw 'This account does not use an email/password sign-in method. Use “Reset Password” instead.';
+      }
+
+      final email = user.email;
+      if (email == null || email.isEmpty) {
+        throw 'User email not found';
+      }
+
       // Re-authenticate user with current password
       final credential = EmailAuthProvider.credential(
-        email: user.email!,
+        email: email,
         password: currentPassword,
       );
 
@@ -217,6 +236,70 @@ class AuthService {
         throw 'For security reasons, please log out and log in again before changing your password';
       }
       throw _handleAuthException(e);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<String> updateProfilePhoto({required XFile imageFile}) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw 'No user is currently signed in';
+      }
+
+      final uid = user.uid;
+      final objectPath =
+          'user_profile_photos/$uid/${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final ref = _storage.ref().child(objectPath);
+
+      UploadTask uploadTask;
+      if (kIsWeb) {
+        final bytes = await imageFile.readAsBytes();
+        uploadTask = ref.putData(
+          bytes,
+          SettableMetadata(contentType: 'image/jpeg'),
+        );
+      } else {
+        uploadTask = ref.putFile(
+          File(imageFile.path),
+          SettableMetadata(contentType: 'image/jpeg'),
+        );
+      }
+
+      final snapshot = await uploadTask;
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+
+      await _firestore.collection('users').doc(uid).update({
+        'photoUrl': downloadUrl,
+        'photoUpdatedAt': FieldValue.serverTimestamp(),
+      });
+
+      await user.updatePhotoURL(downloadUrl);
+      return downloadUrl;
+    } on FirebaseException catch (e) {
+      throw 'Failed to upload profile photo: ${e.message ?? e.code}';
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> removeProfilePhoto() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw 'No user is currently signed in';
+      }
+
+      final uid = user.uid;
+      await _firestore.collection('users').doc(uid).update({
+        'photoUrl': FieldValue.delete(),
+        'photoUpdatedAt': FieldValue.serverTimestamp(),
+      });
+
+      await user.updatePhotoURL(null);
+    } on FirebaseException catch (e) {
+      throw 'Failed to remove profile photo: ${e.message ?? e.code}';
     } catch (e) {
       rethrow;
     }
@@ -250,13 +333,13 @@ class AuthService {
           if (googleUser == null) {
             throw 'Google sign-in cancelled';
           }
-          
+
           final googleAuth = await googleUser.authentication;
           final credential = GoogleAuthProvider.credential(
             accessToken: googleAuth.accessToken,
             idToken: googleAuth.idToken,
           );
-          
+
           await user.reauthenticateWithCredential(credential);
         } catch (e) {
           throw 'Failed to re-authenticate with Google: ${e.toString()}';
@@ -266,12 +349,12 @@ class AuthService {
         if (email == null || email.isEmpty) {
           throw 'User email not found';
         }
-        
+
         final credential = EmailAuthProvider.credential(
           email: email,
           password: password,
         );
-        
+
         await user.reauthenticateWithCredential(credential);
       }
 
@@ -279,21 +362,23 @@ class AuthService {
       await _firestore.collection('users').doc(uid).delete();
 
       // Delete any other user-related data (reports, etc.)
-      final reportsSnapshot = await _firestore
-          .collection('reports')
-          .where('userId', isEqualTo: uid)
-          .get();
-      
+      final reportsSnapshot =
+          await _firestore
+              .collection('reports')
+              .where('userId', isEqualTo: uid)
+              .get();
+
       for (var doc in reportsSnapshot.docs) {
         await doc.reference.delete();
       }
 
       // Delete chat messages if any
-      final chatsSnapshot = await _firestore
-          .collection('chats')
-          .where('userId', isEqualTo: uid)
-          .get();
-      
+      final chatsSnapshot =
+          await _firestore
+              .collection('chats')
+              .where('userId', isEqualTo: uid)
+              .get();
+
       for (var doc in chatsSnapshot.docs) {
         await doc.reference.delete();
       }
@@ -323,17 +408,17 @@ class AuthService {
     try {
       // Validate email format
       email = email.trim().toLowerCase();
-      
+
       if (email.isEmpty) {
         throw 'Email address cannot be empty';
       }
-      
+
       if (!email.contains('@') || !email.contains('.')) {
         throw 'Please enter a valid email address';
       }
-      
+
       print('DEBUG: Attempting to send password reset email to: $email');
-      
+
       // Configure action code settings for better email delivery
       final actionCodeSettings = ActionCodeSettings(
         url: 'https://sexual-harrasment-management.firebaseapp.com',
@@ -341,13 +426,13 @@ class AuthService {
         androidPackageName: 'com.must.report_harassment',
         androidInstallApp: false,
       );
-      
+
       // Send password reset email
       await _auth.sendPasswordResetEmail(
         email: email,
         actionCodeSettings: actionCodeSettings,
       );
-      
+
       print('DEBUG: ✅ Password reset email sent successfully!');
       print('DEBUG: Email sent to: $email');
       print('DEBUG: Check:');
@@ -355,8 +440,10 @@ class AuthService {
       print('  2. Spam/Junk/Promotions folders');
       print('  3. Make sure you registered with this exact email address');
     } on FirebaseAuthException catch (e) {
-      print('DEBUG: ❌ FirebaseAuthException - Code: ${e.code}, Message: ${e.message}');
-      
+      print(
+        'DEBUG: ❌ FirebaseAuthException - Code: ${e.code}, Message: ${e.message}',
+      );
+
       // Handle specific Firebase errors
       if (e.code == 'user-not-found') {
         throw 'No account found with this email address.\n\nPlease make sure:\n• You have registered an account\n• The email address is correct';
