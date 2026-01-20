@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../constants/app_colors.dart';
 import 'report_edit_screen.dart';
 
@@ -19,6 +20,7 @@ class ReportDetailsScreen extends StatefulWidget {
 
 class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -72,6 +74,23 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: () async {
+                      // Verify ownership before allowing edit
+                      final currentUser = _auth.currentUser;
+                      final reportOwnerId =
+                          widget.reportData['userId'] as String?;
+
+                      if (currentUser == null ||
+                          reportOwnerId != currentUser.uid) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'You can only edit your own reports.',
+                            ),
+                          ),
+                        );
+                        return;
+                      }
+
                       final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -163,51 +182,79 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
     if (date == null) return 'N/A';
     if (date is Timestamp) {
       final dateTime = date.toDate();
-      return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
+      return '${dateTime.day.toString().padLeft(2, '0')}/${dateTime.month.toString().padLeft(2, '0')}/${dateTime.year}';
     }
     return 'N/A';
   }
 
   Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'pending':
-        return Colors.amber;
-      case 'investigating':
-        return Colors.blue;
-      case 'resolved':
-        return Colors.green;
-      case 'closed':
-        return Colors.grey;
-      default:
-        return Colors.amber;
-    }
+    const Map<String, Color> statusColors = {
+      'pending': Colors.amber,
+      'investigating': Colors.blue,
+      'resolved': Colors.green,
+      'closed': Colors.grey,
+    };
+
+    return statusColors[status.toLowerCase()] ?? Colors.amber;
   }
 
   void _deleteReport(BuildContext context) {
+    final scaffoldContext = context;
     showDialog(
       context: context,
       builder:
-          (context) => AlertDialog(
+          (dialogContext) => AlertDialog(
             title: const Text('Delete Report?'),
             content: const Text('This action cannot be undone.'),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => Navigator.pop(dialogContext),
                 child: const Text('Cancel'),
               ),
               TextButton(
-                onPressed: () {
-                  _firestore
-                      .collection('reports')
-                      .doc(widget.reportId)
-                      .delete();
-                  Navigator.pop(context);
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Report deleted successfully'),
-                    ),
-                  );
+                onPressed: () async {
+                  Navigator.of(dialogContext).pop();
+                  try {
+                    // Verify ownership before deletion
+                    final currentUser = _auth.currentUser;
+                    final reportOwnerId =
+                        widget.reportData['userId'] as String?;
+
+                    if (currentUser == null ||
+                        reportOwnerId != currentUser.uid) {
+                      ScaffoldMessenger.of(scaffoldContext).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'You can only delete your own reports.',
+                          ),
+                        ),
+                      );
+                      return;
+                    }
+
+                    await _firestore
+                        .collection('reports')
+                        .doc(widget.reportId)
+                        .delete();
+                    if (mounted) {
+                      Navigator.of(scaffoldContext).pop();
+                      ScaffoldMessenger.of(scaffoldContext).showSnackBar(
+                        const SnackBar(
+                          content: Text('Report deleted successfully'),
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(scaffoldContext).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Failed to delete report. Please try again.',
+                          ),
+                        ),
+                      );
+                    }
+                  }
                 },
                 child: const Text(
                   'Delete',
