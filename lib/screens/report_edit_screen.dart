@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../constants/app_colors.dart';
 
 class ReportEditScreen extends StatefulWidget {
@@ -18,6 +19,7 @@ class ReportEditScreen extends StatefulWidget {
 
 class _ReportEditScreenState extends State<ReportEditScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   late TextEditingController _descriptionController;
   late TextEditingController _locationController;
   bool _isSaving = false;
@@ -189,13 +191,36 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
   }
 
   Future<void> _saveChanges() async {
+    final String description = _descriptionController.text.trim();
+    final String location = _locationController.text.trim();
+
+    if (description.isEmpty || location.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Description and location cannot be empty.'),
+        ),
+      );
+      return;
+    }
+
+    // Verify ownership before allowing edit
+    final currentUser = _auth.currentUser;
+    final reportOwnerId = widget.reportData['userId'] as String?;
+
+    if (currentUser == null || reportOwnerId != currentUser.uid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You can only edit your own reports.')),
+      );
+      return;
+    }
+
     setState(() => _isSaving = true);
 
     try {
       await _firestore.collection('reports').doc(widget.reportId).update({
-        'description': _descriptionController.text,
-        'location': _locationController.text,
-        'updatedAt': DateTime.now(),
+        'description': description,
+        'location': location,
+        'updatedAt': FieldValue.serverTimestamp(),
       });
 
       if (mounted) {
@@ -221,7 +246,7 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
     if (date == null) return 'N/A';
     if (date is Timestamp) {
       final dateTime = date.toDate();
-      return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
+      return '${dateTime.day.toString().padLeft(2, '0')}/${dateTime.month.toString().padLeft(2, '0')}/${dateTime.year}';
     }
     return 'N/A';
   }
