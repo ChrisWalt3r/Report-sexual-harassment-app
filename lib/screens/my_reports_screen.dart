@@ -5,6 +5,7 @@ import '../constants/app_colors.dart';
 import '../services/auth_service.dart';
 import 'report_form_screen.dart';
 import 'login_screen.dart';
+import 'report_details_screen.dart';
 
 class MyReportsScreen extends StatefulWidget {
   const MyReportsScreen({super.key});
@@ -194,12 +195,14 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                       alignment: Alignment.centerRight,
                       child: TextButton(
                         onPressed: () {
-                          // TODO: Create report details screen
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Report details screen coming soon',
-                              ),
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => ReportDetailsScreen(
+                                    reportId: reportId,
+                                    reportData: reportData,
+                                  ),
                             ),
                           );
                         },

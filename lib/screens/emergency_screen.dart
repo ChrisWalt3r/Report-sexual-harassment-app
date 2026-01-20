@@ -32,7 +32,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
     ),
     EmergencyContact(
       name: 'Campus Medical Center',
-      number: '+255123456790',
+      number: '+256740470116',
       type: 'Medical',
       icon: Icons.local_hospital,
       color: Colors.green,
