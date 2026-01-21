@@ -187,7 +187,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 
                 // Faculty Dropdown
                 DropdownButtonFormField<String>(
-                  value: _selectedFaculty,
+                  initialValue: _selectedFaculty,
                   decoration: InputDecoration(
                     labelText: 'Faculty',
                     hintText: 'Select your faculty',
