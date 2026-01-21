@@ -30,8 +30,8 @@ A Flutter-based mobile application designed to provide confidential support and 
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/michealamanya/Sexual-harassment-management-application-.git
-cd Sexual-harassment-management-application-
+git clone https://github.com/ChrisWalt3r/Report-sexual-harassment-app.git
+cd Report-sexual-harassment-app
 ```
 
 2. Install dependencies:
