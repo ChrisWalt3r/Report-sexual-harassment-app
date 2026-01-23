@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../features/support_services/support_services.dart';
 import '../features/support_services/screens/support_home_screen.dart';
@@ -7,9 +9,7 @@ import 'emergency_screen.dart';
 import 'settings_screen.dart';
 import 'privacy_screen.dart';
 import 'report_form_screen.dart';
-// SettingsScreen is already imported at line 7, but let's double check content.
-// Actually line 7 is "import 'settings_screen.dart';" in the file view.
-// I will just verify the switch case addition.
+import 'my_reports_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -27,20 +27,23 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: const Color(0xFFF7F7F7),
       appBar: _currentNavIndex == 0 ? _buildHomeAppBar() : null,
       body: _buildBody(),
-      floatingActionButton: _currentNavIndex == 0
-          ? FloatingActionButton.extended(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const ReportFormScreen()),
-                );
-              },
-              backgroundColor: const Color(0xFF2f3293),
-              foregroundColor: Colors.white,
-              icon: const Icon(Icons.add_moderator),
-              label: const Text('Report Incident'),
-            )
-          : null,
+      floatingActionButton:
+          _currentNavIndex == 0
+              ? FloatingActionButton.extended(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ReportFormScreen(),
+                    ),
+                  );
+                },
+                backgroundColor: const Color(0xFF2f3293),
+                foregroundColor: Colors.white,
+                icon: const Icon(Icons.add_moderator),
+                label: const Text('Report Incident'),
+              )
+              : null,
       bottomNavigationBar: BottomNavBar(
         currentIndex: _currentNavIndex,
         onTap: (index) {
@@ -91,12 +94,8 @@ class _HomeScreenState extends State<HomeScreen> {
               color: Colors.white,
               shape: BoxShape.circle,
               border: Border.all(color: Colors.grey.shade200),
-                        ),
-            child: const Icon(
-              Icons.school,
-              color: Color(0xFF2f3293),
-              size: 20,
             ),
+            child: const Icon(Icons.school, color: Color(0xFF2f3293), size: 20),
           ),
           const SizedBox(width: 12),
           const Column(
@@ -223,19 +222,7 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisSpacing: 16,
             childAspectRatio: 1.2,
             children: [
-              _buildServiceCard(
-                context,
-                'My Reports',
-                'Track status of submitted cases',
-                Icons.folder_open,
-                Colors.blue,
-                badge: '2',
-                onTap: () {
-                  setState(() {
-                    _currentNavIndex = 1;
-                  });
-                },
-              ),
+              _buildMyReportsCard(context),
               _buildServiceCard(
                 context,
                 'Support Services',
@@ -328,6 +315,52 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildMyReportsCard(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      return _buildServiceCard(
+        context,
+        'My Reports',
+        'Track status of submitted cases',
+        Icons.folder_open,
+        Colors.blue,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const MyReportsScreen()),
+          );
+        },
+      );
+    }
+
+    return StreamBuilder<QuerySnapshot>(
+      stream:
+          FirebaseFirestore.instance
+              .collection('reports')
+              .where('userId', isEqualTo: user.uid)
+              .snapshots(),
+      builder: (context, snapshot) {
+        final reportCount = snapshot.data?.docs.length ?? 0;
+
+        return _buildServiceCard(
+          context,
+          'My Reports',
+          'Track status of submitted cases',
+          Icons.folder_open,
+          Colors.blue,
+          badge: reportCount > 0 ? reportCount.toString() : null,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const MyReportsScreen()),
+            );
+          },
+        );
+      },
+    );
+  }
+
   Widget _buildServiceCard(
     BuildContext context,
     String title,
@@ -385,7 +418,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: Colors.white,
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
-                        ),
+                      ),
                     ),
                   ),
               ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
+import '../screens/my_reports_screen.dart';
 
 class BottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -30,10 +31,34 @@ class BottomNavBar extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavItem(0, Icons.home_outlined, Icons.home, 'Home'),
-              _buildNavItem(1, Icons.description_outlined, Icons.description, 'My Reports'),
-              _buildNavItem(2, Icons.help_outline, Icons.help, 'Support'),
-              _buildNavItem(3, Icons.settings_outlined, Icons.settings, 'Settings'),
+              _buildNavItem(
+                context,
+                0,
+                Icons.home_outlined,
+                Icons.home,
+                'Home',
+              ),
+              _buildNavItem(
+                context,
+                1,
+                Icons.description_outlined,
+                Icons.description,
+                'My Reports',
+              ),
+              _buildNavItem(
+                context,
+                2,
+                Icons.help_outline,
+                Icons.help,
+                'Support',
+              ),
+              _buildNavItem(
+                context,
+                3,
+                Icons.settings_outlined,
+                Icons.settings,
+                'Settings',
+              ),
             ],
           ),
         ),
@@ -41,11 +66,27 @@ class BottomNavBar extends StatelessWidget {
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, IconData activeIcon, String label) {
+  Widget _buildNavItem(
+    BuildContext context,
+    int index,
+    IconData icon,
+    IconData activeIcon,
+    String label,
+  ) {
     final isSelected = currentIndex == index;
-    
+
     return GestureDetector(
-      onTap: () => onTap(index),
+      onTap: () {
+        if (index == 1) {
+          // My Reports - navigate to My Reports screen
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const MyReportsScreen()),
+          );
+        } else {
+          onTap(index);
+        }
+      },
       behavior: HitTestBehavior.opaque,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
