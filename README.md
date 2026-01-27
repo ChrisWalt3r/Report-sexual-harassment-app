@@ -39,11 +39,43 @@ cd Report-sexual-harassment-app
 flutter pub get
 ```
 
-3. Configure AI Service (optional):
+3. **Configure Firebase** (Required):
+   
+   Firebase credentials are not included in this repository for security reasons. You need to set up your own Firebase project:
+   
+   a. Install Firebase CLI:
+   ```bash
+   npm install -g firebase-tools
+   ```
+   
+   b. Login to Firebase:
+   ```bash
+   firebase login
+   ```
+   
+   c. Install FlutterFire CLI:
+   ```bash
+   dart pub global activate flutterfire_cli
+   ```
+   
+   d. Configure Firebase for this project:
+   ```bash
+   flutterfire configure
+   ```
+   
+   This will:
+   - Prompt you to select or create a Firebase project
+   - Ask which platforms to support (Android, iOS, Web, macOS)
+   - Automatically generate `lib/firebase_options.dart` with your credentials
+   - Generate platform-specific configuration files
+   
+   📖 **See [FIREBASE_SETUP.md](FIREBASE_SETUP.md) for detailed instructions**
+
+4. Configure AI Service (optional):
    - Get an API key from [Hugging Face](https://huggingface.co/)
    - Update the key in `lib/services/enhanced_ai_service.dart`
 
-4. Run the app:
+5. Run the app:
 ```bash
 flutter run
 ```
