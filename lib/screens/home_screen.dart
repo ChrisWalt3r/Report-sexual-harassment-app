@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../features/support_services/support_services.dart';
 import '../features/support_services/screens/support_home_screen.dart';
+import '../services/notification_service.dart';
 import 'ai_powered_chat_screen.dart';
 import 'emergency_screen.dart';
 import 'settings_screen.dart';
 import 'privacy_screen.dart';
 import 'report_form_screen.dart';
 import 'my_reports_screen.dart';
+import 'notifications_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,6 +23,17 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentNavIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize notification service for the logged-in user
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final notificationService = Provider.of<NotificationService>(context, listen: false);
+      notificationService.initialize(user.uid);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,25 +132,51 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       actions: [
-        IconButton(
-          icon: Stack(
-            children: [
-              const Icon(Icons.notifications, color: Colors.black54),
-              Positioned(
-                top: 0,
-                right: 0,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
-                  ),
-                ),
+        Consumer<NotificationService>(
+          builder: (context, notificationService, child) {
+            return IconButton(
+              icon: Stack(
+                children: [
+                  const Icon(Icons.notifications, color: Colors.black54),
+                  if (notificationService.unreadCount > 0)
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        child: Text(
+                          notificationService.unreadCount > 9
+                              ? '9+'
+                              : notificationService.unreadCount.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
               ),
-            ],
-          ),
-          onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const NotificationsScreen(),
+                  ),
+                );
+              },
+            );
+          },
         ),
         IconButton(
           icon: const CircleAvatar(

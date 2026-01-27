@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
+import '../services/notification_service.dart';
 
 class ReportFormScreen extends StatefulWidget {
   const ReportFormScreen({super.key});
@@ -95,7 +97,19 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
       };
 
       // Save to Firestore
-      await _firestore.collection('reports').add(reportData);
+      final reportDoc = await _firestore.collection('reports').add(reportData);
+
+      // Create notification for user
+      if (userId != null && mounted) {
+        final notificationService = Provider.of<NotificationService>(context, listen: false);
+        await notificationService.createNotification(
+          userId: userId,
+          title: 'Report Submitted Successfully',
+          body: 'Your $_selectedCategory report has been submitted. Reference ID: ${reportDoc.id.substring(0, 8)}',
+          type: 'report_submitted',
+          reportId: reportDoc.id,
+        );
+      }
 
       if (mounted) {
         showDialog(

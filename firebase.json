@@ -1,1 +1,28 @@
-{"flutter":{"platforms":{"dart":{"lib/firebase_options.dart":{"projectId":"sexual-harrasment-management","configurations":{"ios":"1:886170592874:ios:b64987ebf1b50a58248c13","macos":"1:886170592874:ios:b64987ebf1b50a58248c13","web":"1:886170592874:web:aea9ce981ddfce36248c13"}}}}}}
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "flutter": {
+    "platforms": {
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "sexual-harrasment-management",
+          "configurations": {
+            "android": "1:886170592874:android:329c7b16fd22f02c248c13",
+            "ios": "1:886170592874:ios:b64987ebf1b50a58248c13",
+            "macos": "1:886170592874:ios:b64987ebf1b50a58248c13",
+            "web": "1:886170592874:web:aea9ce981ddfce36248c13"
+          }
+        }
+      },
+      "android": {
+        "default": {
+          "projectId": "sexual-harrasment-management",
+          "appId": "1:886170592874:android:329c7b16fd22f02c248c13",
+          "fileOutput": "android/app/google-services.json"
+        }
+      }
+    }
+  }
+}
