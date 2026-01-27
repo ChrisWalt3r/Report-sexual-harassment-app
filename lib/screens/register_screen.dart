@@ -187,11 +187,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 
                 // Faculty Dropdown
                 DropdownButtonFormField<String>(
+                  isExpanded: true,
                   initialValue: _selectedFaculty,
                   decoration: InputDecoration(
                     labelText: 'Faculty',
                     hintText: 'Select your faculty',
                     prefixIcon: Icon(Icons.school_outlined, color: AppColors.textSecondary),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(color: Colors.grey[300]!),
@@ -212,9 +214,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       value: faculty,
                       child: Text(
                         faculty,
-                        style: const TextStyle(fontSize: 14),
+                        style: const TextStyle(fontSize: 13),
                         overflow: TextOverflow.ellipsis,
-                        maxLines: 2,
                       ),
                     );
                   }).toList(),

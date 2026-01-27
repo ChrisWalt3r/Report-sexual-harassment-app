@@ -11,7 +11,7 @@ class EmergencyScreen extends StatefulWidget {
 
 class _EmergencyScreenState extends State<EmergencyScreen> {
   int _currentNavIndex = 2;
-  bool _isEmergencyMode = false;
+  bool _isLoading = false;
 
   final List<EmergencyContact> _emergencyContacts = [
     EmergencyContact(
@@ -24,7 +24,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
     ),
     EmergencyContact(
       name: 'Police Emergency',
-      number: '112',
+      number: '999',
       type: 'Police',
       icon: Icons.local_police,
       color: Colors.red,
@@ -57,6 +57,12 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
   ];
 
   Future<void> _makePhoneCall(String phoneNumber) async {
+    if (_isLoading) return;
+    
+    setState(() {
+      _isLoading = true;
+    });
+    
     final Uri launchUri = Uri(
       scheme: 'tel',
       path: phoneNumber,
@@ -73,10 +79,22 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
       if (mounted) {
         _showErrorSnackBar('Error: ${e.toString()}');
       }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
   Future<void> _sendSMS(String phoneNumber, String message) async {
+    if (_isLoading) return;
+    
+    setState(() {
+      _isLoading = true;
+    });
+    
     final Uri launchUri = Uri(
       scheme: 'sms',
       path: phoneNumber,
@@ -94,6 +112,12 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
       if (mounted) {
         _showErrorSnackBar('Error: ${e.toString()}');
       }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -107,9 +131,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
   }
 
   void _activatePanicMode() {
-    setState(() {
-      _isEmergencyMode = true;
-    });
+    if (_isLoading) return;
 
     showDialog(
       context: context,
@@ -141,9 +163,6 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
           ),
           TextButton(
             onPressed: () {
-              setState(() {
-                _isEmergencyMode = false;
-              });
               Navigator.pop(context);
             },
             child: const Text('CANCEL'),
@@ -275,9 +294,22 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
       bottomNavigationBar: BottomNavBar(
         currentIndex: _currentNavIndex,
         onTap: (index) {
-          setState(() {
-            _currentNavIndex = index;
-          });
+          if (index != _currentNavIndex) {
+            switch (index) {
+              case 0:
+                Navigator.pushReplacementNamed(context, '/home');
+                break;
+              case 1:
+                // My Reports - handled in BottomNavBar
+                break;
+              case 2:
+                // Already on Emergency/Support screen
+                break;
+              case 3:
+                Navigator.pushNamed(context, '/settings');
+                break;
+            }
+          }
         },
       ),
     );
