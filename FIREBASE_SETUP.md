@@ -2,6 +2,18 @@
 
 This guide will help you set up Firebase authentication for the Sexual Harassment Management Application.
 
+## ⚠️ Important: Firebase Credentials Not Included
+
+For security reasons, Firebase configuration files containing API keys and credentials are **NOT** included in this repository. Each contributor must set up their own Firebase project.
+
+### Files You Need to Create
+
+After following this guide, you'll generate these files (they are gitignored):
+- `lib/firebase_options.dart`
+- `android/app/google-services.json`
+- `ios/Runner/GoogleService-Info.plist` (if using iOS)
+- `macos/Runner/GoogleService-Info.plist` (if using macOS)
+
 ## Prerequisites
 
 - Flutter SDK installed
