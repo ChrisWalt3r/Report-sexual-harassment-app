@@ -9,6 +9,7 @@ import 'screens/welcome_screen.dart';
 import 'screens/settings_screen.dart';
 import 'services/enhanced_ai_service.dart';
 import 'services/auth_service.dart';
+import 'services/notification_service.dart';
 import 'constants/app_colors.dart';
 
 void main() async {
@@ -45,6 +46,7 @@ class ReportHarassmentApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => EnhancedAIService()),
+        ChangeNotifierProvider(create: (_) => NotificationService()),
       ],
       child: MaterialApp(
         title: 'Report Harassment',
