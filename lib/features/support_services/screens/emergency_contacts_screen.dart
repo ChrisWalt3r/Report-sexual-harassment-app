@@ -26,9 +26,10 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
 
   Future<void> _loadContacts() async {
     final contacts = await _supportService.getEmergencyContacts();
-    contacts.sort((a, b) => a.priority.compareTo(b.priority));
+    final sortedContacts = List<EmergencyContact>.from(contacts);
+    sortedContacts.sort((a, b) => a.priority.compareTo(b.priority));
     setState(() {
-      _contacts = contacts;
+      _contacts = sortedContacts;
       _isLoading = false;
     });
   }
