@@ -17,7 +17,7 @@ cd Report-sexual-harassment-app
 flutter pub get
 ```
 
-### 3. **IMPORTANT: Set Up Firebase** 🔥
+### 3. **IMPORTANT: Set Up Firebase**
 
 Firebase credentials are **NOT** included in this repository for security. You must create your own Firebase project:
 

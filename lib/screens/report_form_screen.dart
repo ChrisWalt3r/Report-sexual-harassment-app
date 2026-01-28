@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:io';
 import '../services/notification_service.dart';
 
 class ReportFormScreen extends StatefulWidget {
@@ -17,10 +20,18 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
   final _locationController = TextEditingController();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
+  final ImagePicker _imagePicker = ImagePicker();
+
   String _selectedCategory = 'Harassment';
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
   bool _isSubmitting = false;
+  String _reportType = 'text'; // 'text', 'image', 'video'
+
+  File? _selectedImage;
+  File? _selectedVideo;
+  bool _isRecordingAudio = false;
 
   final List<String> _categories = [
     'Harassment',
@@ -59,53 +70,120 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     }
   }
 
+  Future<void> _pickImage() async {
+    final pickedFile = await _imagePicker.pickImage(
+      source: ImageSource.gallery,
+    );
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
+  }
+
+  Future<void> _pickVideo() async {
+    final pickedFile = await _imagePicker.pickVideo(
+      source: ImageSource.gallery,
+    );
+    if (pickedFile != null) {
+      setState(() {
+        _selectedVideo = File(pickedFile.path);
+      });
+    }
+  }
+
+  Future<String?> _uploadFile(File file, String fileType) async {
+    try {
+      final userId = _auth.currentUser?.uid ?? 'anonymous';
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final fileName = '$fileType/$userId/$timestamp';
+
+      final uploadTask = _storage.ref().child(fileName).putFile(file);
+      final snapshot = await uploadTask;
+      return await snapshot.ref.getDownloadURL();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error uploading file: $e')));
+      }
+      return null;
+    }
+  }
+
   Future<void> _submitReport() async {
-    if (!_formKey.currentState!.validate() ||
-        _selectedDate == null ||
-        _selectedTime == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all required fields')),
-      );
+    // Validate based on report type
+    if (_reportType == 'text') {
+      if (!_formKey.currentState!.validate() ||
+          _selectedDate == null ||
+          _selectedTime == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please fill all required fields')),
+        );
+        return;
+      }
+    } else if (_reportType == 'image' && _selectedImage == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select an image')));
+      return;
+    } else if (_reportType == 'video' && _selectedVideo == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a video')));
       return;
     }
 
     setState(() => _isSubmitting = true);
 
     try {
-      // Combine date and time
       final dateTime = DateTime(
-        _selectedDate!.year,
-        _selectedDate!.month,
-        _selectedDate!.day,
-        _selectedTime!.hour,
-        _selectedTime!.minute,
+        _selectedDate?.year ?? DateTime.now().year,
+        _selectedDate?.month ?? DateTime.now().month,
+        _selectedDate?.day ?? DateTime.now().day,
+        _selectedTime?.hour ?? DateTime.now().hour,
+        _selectedTime?.minute ?? DateTime.now().minute,
       );
 
-      // Get current user ID (null for anonymous reports)
       final userId = _auth.currentUser?.uid;
 
-      // Create report object
+      // Upload media files if present
+      String? imageUrl;
+      String? videoUrl;
+
+      if (_selectedImage != null) {
+        imageUrl = await _uploadFile(_selectedImage!, 'images');
+      }
+      if (_selectedVideo != null) {
+        videoUrl = await _uploadFile(_selectedVideo!, 'videos');
+      }
+
       final reportData = {
         'category': _selectedCategory,
+        'reportType': _reportType,
         'date': Timestamp.fromDate(dateTime),
         'location': _locationController.text.trim(),
         'description': _descriptionController.text.trim(),
         'status': 'Pending',
-        'userId': userId, // Will be null for anonymous reports
+        'userId': userId,
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
+        if (imageUrl != null) 'imageUrl': imageUrl,
+        if (videoUrl != null) 'videoUrl': videoUrl,
       };
 
-      // Save to Firestore
       final reportDoc = await _firestore.collection('reports').add(reportData);
 
-      // Create notification for user
       if (userId != null && mounted) {
-        final notificationService = Provider.of<NotificationService>(context, listen: false);
+        final notificationService = Provider.of<NotificationService>(
+          context,
+          listen: false,
+        );
         await notificationService.createNotification(
           userId: userId,
           title: 'Report Submitted Successfully',
-          body: 'Your $_selectedCategory report has been submitted. Reference ID: ${reportDoc.id.substring(0, 8)}',
+          body:
+              'Your $_selectedCategory report has been submitted. Reference ID: ${reportDoc.id.substring(0, 8)}',
           type: 'report_submitted',
           reportId: reportDoc.id,
         );
@@ -125,8 +203,8 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                 actions: [
                   TextButton(
                     onPressed: () {
-                      Navigator.pop(context); // Close dialog
-                      Navigator.pop(context); // Close form screen
+                      Navigator.pop(context);
+                      Navigator.pop(context);
                     },
                     child: const Text('Done'),
                   ),
@@ -151,6 +229,317 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     }
   }
 
+  Widget _buildTypeSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'How do you want to report? *',
+          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(child: _buildTypeCard('text', Icons.text_fields, 'Text')),
+            const SizedBox(width: 8),
+            Expanded(child: _buildTypeCard('image', Icons.image, 'Image')),
+            const SizedBox(width: 8),
+            Expanded(child: _buildTypeCard('video', Icons.videocam, 'Video')),
+          ],
+        ),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+
+  Widget _buildTypeCard(String type, IconData icon, String label) {
+    final isSelected = _reportType == type;
+    return GestureDetector(
+      onTap: () => setState(() => _reportType = type),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: isSelected ? const Color(0xFF2f3293) : Colors.grey.shade300,
+            width: isSelected ? 2 : 1,
+          ),
+          borderRadius: BorderRadius.circular(8),
+          color:
+              isSelected
+                  ? const Color(0xFF2f3293).withOpacity(0.1)
+                  : Colors.white,
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              color:
+                  isSelected ? const Color(0xFF2f3293) : Colors.grey.shade600,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color:
+                    isSelected ? const Color(0xFF2f3293) : Colors.grey.shade600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextForm() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Category *', style: TextStyle(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          value: _selectedCategory,
+          items:
+              _categories
+                  .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
+                  .toList(),
+          onChanged:
+              (value) => setState(
+                () => _selectedCategory = value ?? _selectedCategory,
+              ),
+          decoration: InputDecoration(
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+        ),
+        const SizedBox(height: 20),
+        const Text(
+          'Date of Incident *',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: () => _selectDate(context),
+          child: InputDecorator(
+            decoration: InputDecoration(
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Text(
+              _selectedDate == null
+                  ? 'Select date'
+                  : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+        const Text(
+          'Time of Incident *',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: () => _selectTime(context),
+          child: InputDecorator(
+            decoration: InputDecoration(
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Text(
+              _selectedTime == null
+                  ? 'Select time'
+                  : '${_selectedTime!.hour}:${_selectedTime!.minute.toString().padLeft(2, '0')}',
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+        const Text('Location *', style: TextStyle(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: _locationController,
+          validator:
+              (value) => value?.isEmpty ?? true ? 'Location is required' : null,
+          decoration: InputDecoration(
+            hintText: 'Where did this happen?',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+        ),
+        const SizedBox(height: 20),
+        const Text(
+          'Description of Incident *',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: _descriptionController,
+          validator:
+              (value) =>
+                  value?.isEmpty ?? true ? 'Description is required' : null,
+          maxLines: 5,
+          decoration: InputDecoration(
+            hintText: 'Please provide details about the incident...',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildImageForm() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Category *', style: TextStyle(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          value: _selectedCategory,
+          items:
+              _categories
+                  .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
+                  .toList(),
+          onChanged:
+              (value) => setState(
+                () => _selectedCategory = value ?? _selectedCategory,
+              ),
+          decoration: InputDecoration(
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+        ),
+        const SizedBox(height: 20),
+        const Text('Location *', style: TextStyle(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: _locationController,
+          validator:
+              (value) => value?.isEmpty ?? true ? 'Location is required' : null,
+          decoration: InputDecoration(
+            hintText: 'Where did this happen?',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+        ),
+        const SizedBox(height: 20),
+        _selectedImage != null
+            ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.file(
+                    _selectedImage!,
+                    height: 200,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _pickImage,
+                    icon: const Icon(Icons.photo_library),
+                    label: const Text('Change Image'),
+                  ),
+                ),
+              ],
+            )
+            : SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _pickImage,
+                icon: const Icon(Icons.photo_library),
+                label: const Text('Select Image'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+              ),
+            ),
+      ],
+    );
+  }
+
+  Widget _buildVideoForm() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Category *', style: TextStyle(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          value: _selectedCategory,
+          items:
+              _categories
+                  .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
+                  .toList(),
+          onChanged:
+              (value) => setState(
+                () => _selectedCategory = value ?? _selectedCategory,
+              ),
+          decoration: InputDecoration(
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+        ),
+        const SizedBox(height: 20),
+        const Text('Location *', style: TextStyle(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: _locationController,
+          validator:
+              (value) => value?.isEmpty ?? true ? 'Location is required' : null,
+          decoration: InputDecoration(
+            hintText: 'Where did this happen?',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+        ),
+        const SizedBox(height: 20),
+        _selectedVideo != null
+            ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  height: 200,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.videocam, size: 48),
+                        SizedBox(height: 8),
+                        Text('Video Selected'),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _pickVideo,
+                    icon: const Icon(Icons.video_library),
+                    label: const Text('Change Video'),
+                  ),
+                ),
+              ],
+            )
+            : SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _pickVideo,
+                icon: const Icon(Icons.video_library),
+                label: const Text('Select Video'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+              ),
+            ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -168,7 +557,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Submit Your Report Anonymously',
+                'Submit Your Report',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -181,118 +570,11 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                 style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
               ),
               const SizedBox(height: 32),
-              // Category dropdown
-              const Text(
-                'Category *',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                value: _selectedCategory,
-                items:
-                    _categories
-                        .map(
-                          (cat) =>
-                              DropdownMenuItem(value: cat, child: Text(cat)),
-                        )
-                        .toList(),
-                onChanged:
-                    (value) => setState(
-                      () => _selectedCategory = value ?? _selectedCategory,
-                    ),
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              // Date picker
-              const Text(
-                'Date of Incident *',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
-              InkWell(
-                onTap: () => _selectDate(context),
-                child: InputDecorator(
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: Text(
-                    _selectedDate == null
-                        ? 'Select date'
-                        : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              // Time picker
-              const Text(
-                'Time of Incident *',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
-              InkWell(
-                onTap: () => _selectTime(context),
-                child: InputDecorator(
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: Text(
-                    _selectedTime == null
-                        ? 'Select time'
-                        : '${_selectedTime!.hour}:${_selectedTime!.minute.toString().padLeft(2, '0')}',
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              // Location field
-              const Text(
-                'Location *',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _locationController,
-                validator:
-                    (value) =>
-                        value?.isEmpty ?? true ? 'Location is required' : null,
-                decoration: InputDecoration(
-                  hintText: 'Where did this happen?',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              // Description field
-              const Text(
-                'Description of Incident *',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _descriptionController,
-                validator:
-                    (value) =>
-                        value?.isEmpty ?? true
-                            ? 'Description is required'
-                            : null,
-                maxLines: 5,
-                decoration: InputDecoration(
-                  hintText: 'Please provide details about the incident...',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
+              _buildTypeSelector(),
+              if (_reportType == 'text') _buildTextForm(),
+              if (_reportType == 'image') _buildImageForm(),
+              if (_reportType == 'video') _buildVideoForm(),
               const SizedBox(height: 32),
-              // Submit button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(

@@ -48,7 +48,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
     ),
     EmergencyContact(
       name: 'Counseling Services',
-      number: '+255123456792',
+      number: '+256740535992',
       type: 'Counseling',
       icon: Icons.psychology,
       color: Colors.orange,
