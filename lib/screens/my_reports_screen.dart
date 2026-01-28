@@ -67,6 +67,17 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
           return _buildUserReportsView(context, user.uid);
         },
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ReportFormScreen()),
+          );
+        },
+        backgroundColor: AppColors.primaryBlue,
+        foregroundColor: Colors.white,
+        child: const Icon(Icons.add),
+      ),
     );
   }
 
