@@ -1584,7 +1584,7 @@ Health information protection includes HIPAA-like protections, health data encry
 
 **Support:**
 - Technical Support:
-- Emergency Hotline: +256740535992
+- Emergency Hotline: +256
 - Campus Security: +256
 
 ### 13.5 Document Revision History
