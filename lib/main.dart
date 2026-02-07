@@ -7,9 +7,11 @@ import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/settings_screen.dart';
+import 'screens/security_wrapper.dart';
 import 'services/enhanced_ai_service.dart';
 import 'services/auth_service.dart';
 import 'services/notification_service.dart';
+import 'services/security_service.dart';
 import 'constants/app_colors.dart';
 
 void main() async {
@@ -47,6 +49,7 @@ class ReportHarassmentApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => EnhancedAIService()),
         ChangeNotifierProvider(create: (_) => NotificationService()),
+        ChangeNotifierProvider(create: (_) => SecurityService()),
       ],
       child: MaterialApp(
         title: 'Report Harassment',
@@ -70,7 +73,7 @@ class ReportHarassmentApp extends StatelessWidget {
           useMaterial3: true,
           fontFamily: 'Roboto',
         ),
-        home: const WelcomeScreen(),
+        home: const SecurityWrapper(),
         routes: {
           '/welcome': (context) => const WelcomeScreen(),
           '/home': (context) => const HomeScreen(),
