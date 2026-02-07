@@ -119,6 +119,7 @@ class SettingsTileWithSwitch extends StatelessWidget {
   final Color iconBackgroundColor;
   final Color iconColor;
   final String title;
+  final String? subtitle;
   final bool value;
   final ValueChanged<bool> onChanged;
 
@@ -128,24 +129,74 @@ class SettingsTileWithSwitch extends StatelessWidget {
     required this.iconBackgroundColor,
     this.iconColor = AppColors.textDark,
     required this.title,
+    this.subtitle,
     required this.value,
     required this.onChanged,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SettingsTile(
-      icon: icon,
-      iconBackgroundColor: iconBackgroundColor,
-      iconColor: iconColor,
-      title: title,
-      trailing: Switch(
-        value: value,
-        onChanged: onChanged,
-        activeThumbColor: AppColors.white,
-        activeTrackColor: AppColors.success,
-        inactiveThumbColor: AppColors.white,
-        inactiveTrackColor: AppColors.borderMedium,
+    return InkWell(
+      onTap: null,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: const BoxDecoration(
+          color: AppColors.white,
+          border: Border(
+            bottom: BorderSide(
+              color: AppColors.borderLight,
+              width: 0.5,
+            ),
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: iconBackgroundColor,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                icon,
+                color: iconColor,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: AppStyles.bodyLarge.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle!,
+                      style: AppStyles.bodySmall.copyWith(
+                        color: AppColors.textGray,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            Switch(
+              value: value,
+              onChanged: onChanged,
+              activeThumbColor: AppColors.white,
+              activeTrackColor: AppColors.success,
+              inactiveThumbColor: AppColors.white,
+              inactiveTrackColor: AppColors.borderMedium,
+            ),
+          ],
+        ),
       ),
     );
   }
