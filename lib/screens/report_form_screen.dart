@@ -31,7 +31,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
 
   File? _selectedImage;
   File? _selectedVideo;
-  bool _isRecordingAudio = false;
+  final bool _isRecordingAudio = false;
 
   final List<String> _categories = [
     'Harassment',
@@ -299,7 +299,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
         const Text('Category *', style: TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: _selectedCategory,
+          initialValue: _selectedCategory,
           items:
               _categories
                   .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
@@ -394,7 +394,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
         const Text('Category *', style: TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: _selectedCategory,
+          initialValue: _selectedCategory,
           items:
               _categories
                   .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
@@ -466,7 +466,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
         const Text('Category *', style: TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: _selectedCategory,
+          initialValue: _selectedCategory,
           items:
               _categories
                   .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))

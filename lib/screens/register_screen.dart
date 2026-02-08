@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:report_harassment/constants/app_colors.dart';
 import 'package:report_harassment/services/auth_service.dart';
 import 'package:report_harassment/widgets/custom_text_field.dart';
-import 'package:report_harassment/screens/home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
