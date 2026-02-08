@@ -10,7 +10,7 @@ class EmergencyScreen extends StatefulWidget {
 }
 
 class _EmergencyScreenState extends State<EmergencyScreen> {
-  int _currentNavIndex = 2;
+  final int _currentNavIndex = 2;
   bool _isLoading = false;
 
   final List<EmergencyContact> _emergencyContacts = [
