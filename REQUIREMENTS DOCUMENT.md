@@ -7,25 +7,152 @@
 **Status:** Active Development  
 **Target Institution:** Mbarara University of Science and Technology (MUST) Campus
 
+---
+
+## TABLE OF CONTENTS
+
+1. [EXECUTIVE SUMMARY AND PRODUCT VISION](#1-executive-summary-and-product-vision)
+   - 1.1 Product Vision Statement
+   - 1.2 Core Product Goal and Supporting Objectives
+   - 1.3 Target User Demographics and Personas
+   - 1.4 Market Context and Competitive Positioning
+
+2. [BUSINESS REQUIREMENTS AND SUCCESS CRITERIA](#2-business-requirements-and-success-criteria)
+   - 2.1 Business Objectives and Institutional Goals
+   - 2.2 Key Performance Indicators (KPIs) and Success Metrics
+   - 2.3 Compliance and Regulatory Requirements
+   - 2.4 Risk Assessment and Mitigation Strategies
+
+3. [DETAILED FUNCTIONAL REQUIREMENTS](#3-detailed-functional-requirements)
+   - 3.1 User Authentication and Account Management System
+   - 3.2 Incident Reporting System
+   - 3.3 Report Tracking and Management
+   - 3.4 Notifications System
+   - 3.5 Emergency Services and Safety Features
+   - 3.6 Support Services and Resources
+   - 3.7 Settings and Preferences
+   - 3.8 Navigation and User Interface
+
+4. [NON-FUNCTIONAL REQUIREMENTS](#4-non-functional-requirements)
+   - 4.1 Performance Requirements
+   - 4.2 Security Requirements
+   - 4.3 Reliability and Availability
+   - 4.4 Scalability Requirements
+   - 4.5 Usability Requirements
+   - 4.6 Compatibility Requirements
+   - 4.7 Maintainability Requirements
+   - 4.8 Localization and Internationalization
+
+5. [TECHNICAL ARCHITECTURE AND SPECIFICATIONS](#5-technical-architecture-and-specifications)
+   - 5.1 Technology Stack
+   - 5.2 Data Architecture
+   - 5.3 API Architecture
+   - 5.4 File Storage Architecture
+   - 5.5 Push Notification Architecture
+   - 5.6 AI Integration Architecture
+
+6. [USER INTERFACE AND EXPERIENCE DESIGN](#6-user-interface-and-experience-design)
+   - 6.1 Design System
+   - 6.2 Screen Designs and User Flows
+   - 6.3 Interaction Design
+   - 6.4 Responsive Design
+
+7. [TESTING AND QUALITY ASSURANCE](#7-testing-and-quality-assurance)
+   - 7.1 Testing Strategy
+   - 7.2 Quality Assurance Process
+   - 7.3 Test Cases and Scenarios
+
+8. [DEPLOYMENT AND RELEASE MANAGEMENT](#8-deployment-and-release-management)
+   - 8.1 Deployment Strategy
+   - 8.2 App Store Submission
+   - 8.3 Version Management
+   - 8.4 Rollback Procedures
+   - 8.5 Monitoring and Analytics
+
+9. [MAINTENANCE AND SUPPORT](#9-maintenance-and-support)
+   - 9.1 Ongoing Maintenance
+   - 9.2 User Support
+   - 9.3 System Administration
+   - 9.4 Backup and Disaster Recovery
+
+10. [FUTURE ENHANCEMENTS AND ROADMAP](#10-future-enhancements-and-roadmap)
+    - 10.1 Phase 2 Features (6-12 months)
+    - 10.2 Continuous Improvement
+    - 10.3 Long-term Vision
+
+11. [PROJECT MANAGEMENT AND GOVERNANCE](#11-project-management-and-governance)
+    - 11.1 Project Organization
+    - 11.2 Project Timeline
+    - 11.3 Risk Management
+    - 11.4 Communication Plan
+    - 11.5 Budget and Resources
+
+12. [LEGAL AND COMPLIANCE](#12-legal-and-compliance)
+    - 12.1 Terms of Service
+    - 12.2 Privacy Policy
+    - 12.3 Content Policy
+    - 12.4 Compliance Requirements
+
+13. [APPENDICES](#13-appendices)
+    - 13.1 Glossary of Terms
+    - 13.2 Acronyms and Abbreviations
+    - 13.3 Reference Documents
+    - 13.4 Contact Information
+    - 13.5 Document Revision History
+    - 13.6 Approval Signatures
+
+---
+
 ## 1. EXECUTIVE SUMMARY AND PRODUCT VISION
 
 ### 1.1 Product Vision Statement
 Report Safely is a comprehensive mobile application designed specifically for Mbarara University of Science and Technology (MUST) Campus to provide a secure, confidential, and accessible platform for reporting sexual harassment incidents. The application empowers students, faculty, and staff to speak up against harassment while maintaining their privacy and safety. It combines incident reporting, AI-powered support, emergency services, counseling resources, and real-time tracking in a single, user-friendly interface.
 
-### 1.2 Core Product Goals and Objectives
-The application aims to achieve the following primary objectives:
+### 1.2 Core Product Goal and Supporting Objectives
 
-**Safety and Confidentiality:** Provide a completely secure environment where users can report incidents without fear of exposure or retaliation. All data is encrypted end-to-end, and users have full control over their anonymity preferences.
+**Primary Goal:**
+To create a safe, accessible, and confidential digital platform that empowers the MUST Campus community to report sexual harassment incidents, access immediate support, and receive timely assistance while maintaining complete control over their privacy and safety throughout the entire reporting and resolution process.
 
-**Accessibility:** Make reporting as simple and accessible as possible by offering multiple reporting methods including text descriptions, image uploads, video evidence, and voice recordings. The app is available 24/7 on both iOS and Android platforms.
+**Supporting Objectives:**
 
-**Support and Resources:** Connect users with comprehensive support services including counseling, medical assistance, legal aid, and peer support groups. The AI-powered chat feature provides immediate emotional support and guidance.
+The following objectives work together to achieve the primary goal:
 
-**Emergency Response:** Enable instant access to campus security, police, medical services, and designated support officers through one-tap emergency features and panic buttons.
+**Objective 1: Ensure Safety and Confidentiality**
+- Provide a completely secure environment where users can report incidents without fear of exposure or retaliation
+- Implement end-to-end encryption for all sensitive data
+- Give users full control over their anonymity preferences
+- Maintain strict access controls and audit trails for all report handling
 
-**Transparency and Tracking:** Allow users to track the status of their reports in real-time, receive notifications about case progress, and maintain a complete history of all communications.
+**Objective 2: Maximize Accessibility**
+- Make reporting as simple and accessible as possible through multiple reporting methods (text, image, video, voice)
+- Ensure 24/7 availability on both iOS and Android platforms
+- Support users with varying levels of technical proficiency
+- Provide offline functionality for critical features
+- Ensure accessibility compliance for users with disabilities
 
-**Prevention and Education:** Provide educational resources, safety tips, and awareness materials to help prevent harassment and empower the campus community.
+**Objective 3: Provide Comprehensive Support and Resources**
+- Connect users with counseling, medical assistance, legal aid, and peer support groups
+- Offer AI-powered chat for immediate emotional support and guidance
+- Maintain an up-to-date directory of campus and community support services
+- Provide educational resources and self-help materials
+
+**Objective 4: Enable Rapid Emergency Response**
+- Provide instant access to campus security, police, medical services, and designated support officers
+- Implement one-tap emergency features and panic buttons
+- Enable automatic location sharing during emergencies
+- Facilitate quick communication with emergency contacts
+
+**Objective 5: Maintain Transparency and Enable Tracking**
+- Allow users to track report status in real-time
+- Send timely notifications about case progress
+- Maintain complete communication history
+- Provide clear information about the reporting and resolution process
+
+**Objective 6: Support Prevention and Education**
+- Offer educational resources about harassment types and prevention
+- Provide safety tips and awareness materials
+- Empower bystanders with intervention strategies
+- Foster a culture of accountability and support on campus
 
 ### 1.3 Target User Demographics and Personas
 
