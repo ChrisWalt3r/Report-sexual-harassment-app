@@ -7,7 +7,6 @@
 **Status:** Active Development  
 **Target Institution:** Mbarara University of Science and Technology (MUST) Campus
 
----
 
 ## TABLE OF CONTENTS
 
@@ -101,7 +100,7 @@
     - 13.5 Document Revision History
     - 13.6 Approval Signatures
 
----
+
 
 ## 1. EXECUTIVE SUMMARY AND PRODUCT VISION
 
