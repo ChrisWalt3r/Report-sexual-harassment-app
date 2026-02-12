@@ -10,7 +10,6 @@ import 'ai_powered_chat_screen.dart';
 import 'emergency_screen.dart';
 import 'settings_screen.dart';
 import 'privacy_screen.dart';
-import 'report_form_screen.dart';
 import 'my_reports_screen.dart';
 import 'notifications_screen.dart';
 
@@ -23,6 +22,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentNavIndex = 0;
+  final List<int> _tabHistory = [0];
 
   @override
   void initState() {
@@ -35,9 +35,27 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  bool _handleBackPress() {
+    if (_tabHistory.length > 1) {
+      _tabHistory.removeLast();
+      setState(() {
+        _currentNavIndex = _tabHistory.last;
+      });
+      return false; // Don't pop the route
+    }
+    return true; // Allow exiting (will be handled by SecurityWrapper)
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: _tabHistory.length <= 1,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          _handleBackPress();
+        }
+      },
+      child: Scaffold(
       backgroundColor: const Color(0xFFF7F7F7),
       appBar: _currentNavIndex == 0 ? _buildHomeAppBar() : null,
       body: _buildBody(),
@@ -48,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const ReportFormScreen(),
+                      builder: (context) => const MyReportsScreen(),
                     ),
                   );
                 },
@@ -62,9 +80,13 @@ class _HomeScreenState extends State<HomeScreen> {
         currentIndex: _currentNavIndex,
         onTap: (index) {
           setState(() {
+            if (_currentNavIndex != index) {
+              _tabHistory.add(index);
+            }
             _currentNavIndex = index;
           });
         },
+      ),
       ),
     );
   }
@@ -74,8 +96,8 @@ class _HomeScreenState extends State<HomeScreen> {
       case 0:
         return _buildDashboard();
       case 1:
-        // Using ReportFormScreen as placeholder for "My Reports"
-        return const ReportFormScreen();
+        // Using MyReportsScreen as placeholder for "My Reports"
+        return const MyReportsScreen();
       case 2:
         return const SupportHomeScreen();
       case 3:

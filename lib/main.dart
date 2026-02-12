@@ -17,19 +17,10 @@ import 'constants/app_colors.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize Firebase only if not already initialized
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-  } catch (e) {
-    // Firebase already initialized
-    if (e.toString().contains('duplicate-app')) {
-      // This is fine, app is already initialized
-    } else {
-      rethrow;
-    }
-  }
+  // Initialize Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(

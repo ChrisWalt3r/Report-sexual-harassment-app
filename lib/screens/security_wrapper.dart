@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../services/security_service.dart';
 import '../services/auth_service.dart';
@@ -86,6 +87,28 @@ class _SecurityWrapperState extends State<SecurityWrapper> with WidgetsBindingOb
     }
   }
 
+  Future<bool> _showExitConfirmation() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Exit App'),
+        content: const Text('Are you sure you want to exit?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Exit'),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final authService = AuthService();
@@ -100,32 +123,50 @@ class _SecurityWrapperState extends State<SecurityWrapper> with WidgetsBindingOb
       );
     }
 
-    return StreamBuilder(
-      stream: authService.authStateChanges,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        
+        // Check if there are routes to pop back to
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+          return;
         }
-
-        // User is not logged in - show welcome screen
-        if (!snapshot.hasData) {
-          return const WelcomeScreen();
+        
+        // At root screen - show exit confirmation
+        final shouldExit = await _showExitConfirmation();
+        if (shouldExit && context.mounted) {
+          SystemNavigator.pop();
         }
-
-        // User is logged in - check PIN protection
-        if (securityService.isPinEnabled && !_isPinVerified) {
-          return PinVerificationScreen(
-            onVerified: _onPinVerified,
-          );
-        }
-
-        // User is logged in and PIN is verified (or not required)
-        return const HomeScreen();
       },
+      child: StreamBuilder(
+        stream: authService.authStateChanges,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(
+              body: Center(
+                child: CircularProgressIndicator(),
+              ),
+            );
+          }
+
+          // User is not logged in - show welcome screen
+          if (!snapshot.hasData) {
+            return const WelcomeScreen();
+          }
+
+          // User is logged in - check PIN protection
+          if (securityService.isPinEnabled && !_isPinVerified) {
+            return PinVerificationScreen(
+              onVerified: _onPinVerified,
+            );
+          }
+
+          // User is logged in and PIN is verified (or not required)
+          return const HomeScreen();
+        },
+      ),
     );
   }
 }

@@ -1,11 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:provider/provider.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
-import '../services/notification_service.dart';
+
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ReportFormScreen extends StatefulWidget {
   const ReportFormScreen({super.key});
@@ -18,27 +17,18 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _descriptionController = TextEditingController();
   final _locationController = TextEditingController();
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
-  final ImagePicker _imagePicker = ImagePicker();
-
-  String _selectedCategory = 'Harassment';
   DateTime? _selectedDate;
-  TimeOfDay? _selectedTime;
-  bool _isSubmitting = false;
-  String _reportType = 'text'; // 'text', 'image', 'video'
+  String? _selectedIncidentType;
+  bool _isUploading = false;
+  final List<File> _selectedImages = [];
+  final List<File> _selectedVideos = [];
 
-  File? _selectedImage;
-  File? _selectedVideo;
-  final bool _isRecordingAudio = false;
-
-  final List<String> _categories = [
-    'Harassment',
-    'Discrimination',
-    'Unwanted Advances',
-    'Verbal Abuse',
-    'Other',
+  final List<Map<String, dynamic>> _incidentTypes = [
+    {'name': 'Verbal Harassment', 'icon': Icons.record_voice_over},
+    {'name': 'Physical Harassment', 'icon': Icons.front_hand},
+    {'name': 'Online Harassment', 'icon': Icons.computer},
+    {'name': 'Stalking', 'icon': Icons.visibility},
+    {'name': 'Other', 'icon': Icons.more_horiz},
   ];
 
   @override
@@ -48,576 +38,725 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     super.dispose();
   }
 
-  Future<void> _selectDate(BuildContext context) async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now().subtract(const Duration(days: 365)),
-      lastDate: DateTime.now(),
-    );
-    if (picked != null) {
-      setState(() => _selectedDate = picked);
-    }
-  }
-
-  Future<void> _selectTime(BuildContext context) async {
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-    if (picked != null) {
-      setState(() => _selectedTime = picked);
-    }
-  }
-
-  Future<void> _pickImage() async {
-    final pickedFile = await _imagePicker.pickImage(
-      source: ImageSource.gallery,
-    );
-    if (pickedFile != null) {
-      setState(() {
-        _selectedImage = File(pickedFile.path);
-      });
-    }
+  Future<void> _pickImages() async {
+    final ImagePicker picker = ImagePicker();
+    final List<XFile> images = await picker.pickMultiImage();
+    setState(() {
+      _selectedImages.addAll(images.map((xfile) => File(xfile.path)));
+    });
   }
 
   Future<void> _pickVideo() async {
-    final pickedFile = await _imagePicker.pickVideo(
-      source: ImageSource.gallery,
-    );
-    if (pickedFile != null) {
+    final ImagePicker picker = ImagePicker();
+    final XFile? video = await picker.pickVideo(source: ImageSource.gallery);
+    if (video != null) {
       setState(() {
-        _selectedVideo = File(pickedFile.path);
+        _selectedVideos.add(File(video.path));
       });
     }
   }
 
-  Future<String?> _uploadFile(File file, String fileType) async {
-    try {
-      final userId = _auth.currentUser?.uid ?? 'anonymous';
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final fileName = '$fileType/$userId/$timestamp';
-
-      final uploadTask = _storage.ref().child(fileName).putFile(file);
-      final snapshot = await uploadTask;
-      return await snapshot.ref.getDownloadURL();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error uploading file: $e')));
-      }
-      return null;
+  Future<void> _selectDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: Colors.blue[700]!,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Colors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedDate = picked;
+      });
     }
+  }
+
+  void _removeImage(int index) {
+    setState(() {
+      _selectedImages.removeAt(index);
+    });
+  }
+
+  void _removeVideo(int index) {
+    setState(() {
+      _selectedVideos.removeAt(index);
+    });
+  }
+
+  Future<List<String>> _uploadFiles(List<File> files, String folder) async {
+    List<String> urls = [];
+    final storage = FirebaseStorage.instance;
+    
+    for (var file in files) {
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${file.path.split('/').last}';
+      final ref = storage.ref().child('reports/$folder/$fileName');
+      
+      await ref.putFile(file);
+      final url = await ref.getDownloadURL();
+      urls.add(url);
+    }
+    
+    return urls;
   }
 
   Future<void> _submitReport() async {
-    // Validate based on report type
-    if (_reportType == 'text') {
-      if (!_formKey.currentState!.validate() ||
-          _selectedDate == null ||
-          _selectedTime == null) {
+    if (_formKey.currentState!.validate()) {
+      if (_selectedIncidentType == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please fill all required fields')),
+          const SnackBar(
+            content: Text('Please select an incident type'),
+            backgroundColor: Colors.orange,
+          ),
         );
         return;
       }
-    } else if (_reportType == 'image' && _selectedImage == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please select an image')));
-      return;
-    } else if (_reportType == 'video' && _selectedVideo == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please select a video')));
-      return;
+
+      setState(() {
+        _isUploading = true;
+      });
+
+      try {
+        List<String> imageUrls = [];
+        if (_selectedImages.isNotEmpty) {
+          imageUrls = await _uploadFiles(_selectedImages, 'images');
+        }
+
+        List<String> videoUrls = [];
+        if (_selectedVideos.isNotEmpty) {
+          videoUrls = await _uploadFiles(_selectedVideos, 'videos');
+        }
+
+        // Get current user ID
+        final user = FirebaseAuth.instance.currentUser;
+
+        await FirebaseFirestore.instance.collection('reports').add({
+          'userId': user?.uid, // Add userId for filtering
+          'description': _descriptionController.text,
+          'location': _locationController.text,
+          'date': _selectedDate?.toIso8601String(),
+          'incidentType': _selectedIncidentType,
+          'category': _selectedIncidentType, // Add category (same as incidentType)
+          'imageUrls': imageUrls,
+          'videoUrls': videoUrls,
+          'timestamp': FieldValue.serverTimestamp(),
+          'createdAt': FieldValue.serverTimestamp(), // Add createdAt for ordering
+          'status': 'pending',
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Report submitted successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.pop(context);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error submitting report: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isUploading = false;
+          });
+        }
+      }
     }
-
-    setState(() => _isSubmitting = true);
-
-    try {
-      final dateTime = DateTime(
-        _selectedDate?.year ?? DateTime.now().year,
-        _selectedDate?.month ?? DateTime.now().month,
-        _selectedDate?.day ?? DateTime.now().day,
-        _selectedTime?.hour ?? DateTime.now().hour,
-        _selectedTime?.minute ?? DateTime.now().minute,
-      );
-
-      final userId = _auth.currentUser?.uid;
-
-      // Upload media files if present
-      String? imageUrl;
-      String? videoUrl;
-
-      if (_selectedImage != null) {
-        imageUrl = await _uploadFile(_selectedImage!, 'images');
-      }
-      if (_selectedVideo != null) {
-        videoUrl = await _uploadFile(_selectedVideo!, 'videos');
-      }
-
-      final reportData = {
-        'category': _selectedCategory,
-        'reportType': _reportType,
-        'date': Timestamp.fromDate(dateTime),
-        'location': _locationController.text.trim(),
-        'description': _descriptionController.text.trim(),
-        'status': 'Pending',
-        'userId': userId,
-        'createdAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-        if (imageUrl != null) 'imageUrl': imageUrl,
-        if (videoUrl != null) 'videoUrl': videoUrl,
-      };
-
-      final reportDoc = await _firestore.collection('reports').add(reportData);
-
-      if (userId != null && mounted) {
-        final notificationService = Provider.of<NotificationService>(
-          context,
-          listen: false,
-        );
-        await notificationService.createNotification(
-          userId: userId,
-          title: 'Report Submitted Successfully',
-          body:
-              'Your $_selectedCategory report has been submitted. Reference ID: ${reportDoc.id.substring(0, 8)}',
-          type: 'report_submitted',
-          reportId: reportDoc.id,
-        );
-      }
-
-      if (mounted) {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder:
-              (context) => AlertDialog(
-                title: const Text('Report Submitted'),
-                content: const Text(
-                  'Your report has been submitted successfully.\n\n'
-                  'We take all reports seriously and will investigate accordingly.',
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Done'),
-                  ),
-                ],
-              ),
-        );
-      }
-    } on FirebaseException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: ${e.message}')));
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
-      }
-    } finally {
-      setState(() => _isSubmitting = false);
-    }
-  }
-
-  Widget _buildTypeSelector() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'How do you want to report? *',
-          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(child: _buildTypeCard('text', Icons.text_fields, 'Text')),
-            const SizedBox(width: 8),
-            Expanded(child: _buildTypeCard('image', Icons.image, 'Image')),
-            const SizedBox(width: 8),
-            Expanded(child: _buildTypeCard('video', Icons.videocam, 'Video')),
-          ],
-        ),
-        const SizedBox(height: 24),
-      ],
-    );
-  }
-
-  Widget _buildTypeCard(String type, IconData icon, String label) {
-    final isSelected = _reportType == type;
-    return GestureDetector(
-      onTap: () => setState(() => _reportType = type),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: isSelected ? const Color(0xFF2f3293) : Colors.grey.shade300,
-            width: isSelected ? 2 : 1,
-          ),
-          borderRadius: BorderRadius.circular(8),
-          color:
-              isSelected
-                  ? const Color(0xFF2f3293).withOpacity(0.1)
-                  : Colors.white,
-        ),
-        child: Column(
-          children: [
-            Icon(
-              icon,
-              color:
-                  isSelected ? const Color(0xFF2f3293) : Colors.grey.shade600,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color:
-                    isSelected ? const Color(0xFF2f3293) : Colors.grey.shade600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTextForm() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Category *', style: TextStyle(fontWeight: FontWeight.w600)),
-        const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          initialValue: _selectedCategory,
-          items:
-              _categories
-                  .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
-                  .toList(),
-          onChanged:
-              (value) => setState(
-                () => _selectedCategory = value ?? _selectedCategory,
-              ),
-          decoration: InputDecoration(
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          ),
-        ),
-        const SizedBox(height: 20),
-        const Text(
-          'Date of Incident *',
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-        InkWell(
-          onTap: () => _selectDate(context),
-          child: InputDecorator(
-            decoration: InputDecoration(
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: Text(
-              _selectedDate == null
-                  ? 'Select date'
-                  : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
-            ),
-          ),
-        ),
-        const SizedBox(height: 20),
-        const Text(
-          'Time of Incident *',
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-        InkWell(
-          onTap: () => _selectTime(context),
-          child: InputDecorator(
-            decoration: InputDecoration(
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: Text(
-              _selectedTime == null
-                  ? 'Select time'
-                  : '${_selectedTime!.hour}:${_selectedTime!.minute.toString().padLeft(2, '0')}',
-            ),
-          ),
-        ),
-        const SizedBox(height: 20),
-        const Text('Location *', style: TextStyle(fontWeight: FontWeight.w600)),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: _locationController,
-          validator:
-              (value) => value?.isEmpty ?? true ? 'Location is required' : null,
-          decoration: InputDecoration(
-            hintText: 'Where did this happen?',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          ),
-        ),
-        const SizedBox(height: 20),
-        const Text(
-          'Description of Incident *',
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: _descriptionController,
-          validator:
-              (value) =>
-                  value?.isEmpty ?? true ? 'Description is required' : null,
-          maxLines: 5,
-          decoration: InputDecoration(
-            hintText: 'Please provide details about the incident...',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildImageForm() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Category *', style: TextStyle(fontWeight: FontWeight.w600)),
-        const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          initialValue: _selectedCategory,
-          items:
-              _categories
-                  .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
-                  .toList(),
-          onChanged:
-              (value) => setState(
-                () => _selectedCategory = value ?? _selectedCategory,
-              ),
-          decoration: InputDecoration(
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          ),
-        ),
-        const SizedBox(height: 20),
-        const Text('Location *', style: TextStyle(fontWeight: FontWeight.w600)),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: _locationController,
-          validator:
-              (value) => value?.isEmpty ?? true ? 'Location is required' : null,
-          decoration: InputDecoration(
-            hintText: 'Where did this happen?',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          ),
-        ),
-        const SizedBox(height: 20),
-        _selectedImage != null
-            ? Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.file(
-                    _selectedImage!,
-                    height: 200,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: _pickImage,
-                    icon: const Icon(Icons.photo_library),
-                    label: const Text('Change Image'),
-                  ),
-                ),
-              ],
-            )
-            : SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _pickImage,
-                icon: const Icon(Icons.photo_library),
-                label: const Text('Select Image'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-              ),
-            ),
-      ],
-    );
-  }
-
-  Widget _buildVideoForm() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Category *', style: TextStyle(fontWeight: FontWeight.w600)),
-        const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          initialValue: _selectedCategory,
-          items:
-              _categories
-                  .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
-                  .toList(),
-          onChanged:
-              (value) => setState(
-                () => _selectedCategory = value ?? _selectedCategory,
-              ),
-          decoration: InputDecoration(
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          ),
-        ),
-        const SizedBox(height: 20),
-        const Text('Location *', style: TextStyle(fontWeight: FontWeight.w600)),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: _locationController,
-          validator:
-              (value) => value?.isEmpty ?? true ? 'Location is required' : null,
-          decoration: InputDecoration(
-            hintText: 'Where did this happen?',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          ),
-        ),
-        const SizedBox(height: 20),
-        _selectedVideo != null
-            ? Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  height: 200,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.videocam, size: 48),
-                        SizedBox(height: 8),
-                        Text('Video Selected'),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: _pickVideo,
-                    icon: const Icon(Icons.video_library),
-                    label: const Text('Change Video'),
-                  ),
-                ),
-              ],
-            )
-            : SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _pickVideo,
-                icon: const Icon(Icons.video_library),
-                label: const Text('Select Video'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-              ),
-            ),
-      ],
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: const Text('Report Incident'),
+        title: const Text(
+          'Report Incident',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
-        backgroundColor: const Color(0xFF2f3293),
+        backgroundColor: Colors.blue[700],
         foregroundColor: Colors.white,
+        elevation: 0,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Submit Your Report',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Your identity will be kept confidential',
-                style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-              ),
-              const SizedBox(height: 32),
-              _buildTypeSelector(),
-              if (_reportType == 'text') _buildTextForm(),
-              if (_reportType == 'image') _buildImageForm(),
-              if (_reportType == 'video') _buildVideoForm(),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isSubmitting ? null : _submitReport,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2f3293),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    disabledBackgroundColor: Colors.grey.shade400,
+      body: _isUploading
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.blue.withOpacity(0.2),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        CircularProgressIndicator(
+                          color: Colors.blue[700],
+                          strokeWidth: 3,
+                        ),
+                        const SizedBox(height: 20),
+                        const Text(
+                          'Uploading your report...',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Please wait',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  child:
-                      _isSubmitting
-                          ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white,
+                ],
+              ),
+            )
+          : SingleChildScrollView(
+              child: Column(
+                children: [
+                  // Header gradient
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Colors.blue[700]!, Colors.blue[500]!],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(30),
+                        bottomRight: Radius.circular(30),
+                      ),
+                    ),
+                    child: const Column(
+                      children: [
+                        Icon(
+                          Icons.security,
+                          color: Colors.white,
+                          size: 40,
+                        ),
+                        SizedBox(height: 10),
+                        Text(
+                          'Your voice matters',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'All reports are confidential',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Incident Type Section
+                          _buildSectionTitle('Type of Incident', Icons.category),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 10,
+                            runSpacing: 10,
+                            children: _incidentTypes.map((type) {
+                              final isSelected = _selectedIncidentType == type['name'];
+                              return GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _selectedIncidentType = type['name'];
+                                  });
+                                },
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? Colors.blue[700]
+                                        : Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? Colors.blue[700]!
+                                          : Colors.grey[300]!,
+                                      width: 2,
+                                    ),
+                                    boxShadow: isSelected
+                                        ? [
+                                            BoxShadow(
+                                              color: Colors.blue.withOpacity(0.3),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 4),
+                                            ),
+                                          ]
+                                        : null,
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        type['icon'],
+                                        size: 20,
+                                        color: isSelected
+                                            ? Colors.white
+                                            : Colors.grey[600],
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        type['name'],
+                                        style: TextStyle(
+                                          color: isSelected
+                                              ? Colors.white
+                                              : Colors.grey[800],
+                                          fontWeight: isSelected
+                                              ? FontWeight.bold
+                                              : FontWeight.normal,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                          
+                          const SizedBox(height: 24),
+                          
+                          // Description Section
+                          _buildSectionTitle('Description', Icons.description),
+                          const SizedBox(height: 12),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.1),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: TextFormField(
+                              controller: _descriptionController,
+                              decoration: InputDecoration(
+                                hintText: 'Describe what happened...',
+                                hintStyle: TextStyle(color: Colors.grey[400]),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
+                                filled: true,
+                                fillColor: Colors.white,
+                                contentPadding: const EdgeInsets.all(16),
+                              ),
+                              maxLines: 5,
+                              validator: (value) =>
+                                  value?.isEmpty ?? true ? 'Please enter description' : null,
+                            ),
+                          ),
+                          
+                          const SizedBox(height: 24),
+                          
+                          // Location & Date Row
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _buildSectionTitle('Location', Icons.location_on),
+                                    const SizedBox(height: 12),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(12),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.grey.withOpacity(0.1),
+                                            blurRadius: 10,
+                                            offset: const Offset(0, 4),
+                                          ),
+                                        ],
+                                      ),
+                                      child: TextFormField(
+                                        controller: _locationController,
+                                        decoration: InputDecoration(
+                                          hintText: 'Where?',
+                                          hintStyle: TextStyle(color: Colors.grey[400]),
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(12),
+                                            borderSide: BorderSide.none,
+                                          ),
+                                          filled: true,
+                                          fillColor: Colors.white,
+                                          prefixIcon: Icon(
+                                            Icons.place,
+                                            color: Colors.grey[400],
+                                          ),
+                                        ),
+                                        validator: (value) =>
+                                            value?.isEmpty ?? true ? 'Required' : null,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          
+                          const SizedBox(height: 24),
+                          
+                          // Date Section
+                          _buildSectionTitle('Date of Incident', Icons.calendar_month),
+                          const SizedBox(height: 12),
+                          GestureDetector(
+                            onTap: _selectDate,
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.1),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Icon(
+                                      Icons.calendar_today,
+                                      color: Colors.blue[700],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Text(
+                                    _selectedDate == null
+                                        ? 'Select date'
+                                        : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: _selectedDate == null
+                                          ? Colors.grey[400]
+                                          : Colors.black87,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Icon(
+                                    Icons.arrow_forward_ios,
+                                    size: 16,
+                                    color: Colors.grey[400],
+                                  ),
+                                ],
                               ),
                             ),
-                          )
-                          : const Text(
-                            'Submit Report',
-                            style: TextStyle(fontSize: 16),
                           ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF2f3293),
-                    side: const BorderSide(color: Color(0xFF2f3293)),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                          
+                          const SizedBox(height: 24),
+                          
+                          // Media Section
+                          _buildSectionTitle('Evidence (Optional)', Icons.attach_file),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildMediaButton(
+                                  icon: Icons.photo_library,
+                                  label: 'Add Photos',
+                                  onTap: _pickImages,
+                                  count: _selectedImages.length,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _buildMediaButton(
+                                  icon: Icons.videocam,
+                                  label: 'Add Videos',
+                                  onTap: _pickVideo,
+                                  count: _selectedVideos.length,
+                                ),
+                              ),
+                            ],
+                          ),
+                          
+                          // Selected Images Preview
+                          if (_selectedImages.isNotEmpty) ... [
+                            const SizedBox(height: 16),
+                            SizedBox(
+                              height: 100,
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: _selectedImages.length,
+                                itemBuilder: (context, index) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 10),
+                                    child: Stack(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(12),
+                                          child: Image.file(
+                                            _selectedImages[index],
+                                            width: 100,
+                                            height: 100,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 4,
+                                          right: 4,
+                                          child: GestureDetector(
+                                            onTap: () => _removeImage(index),
+                                            child: Container(
+                                              padding: const EdgeInsets.all(4),
+                                              decoration: const BoxDecoration(
+                                                color: Colors.red,
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: const Icon(
+                                                Icons.close,
+                                                color: Colors.white,
+                                                size: 16,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                          
+                          // Selected Videos Preview
+                          if (_selectedVideos.isNotEmpty) ... [
+                            const SizedBox(height: 16),
+                            ...List.generate(_selectedVideos.length, (index) {
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 8),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.blue.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Icon(
+                                        Icons.videocam,
+                                        color: Colors.blue[700],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        'Video ${index + 1}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      onPressed: () => _removeVideo(index),
+                                      icon: const Icon(
+                                        Icons.delete_outline,
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }),
+                          ],
+                          
+                          const SizedBox(height: 32),
+                          
+                          // Submit Button
+                          SizedBox(
+                            width: double.infinity,
+                            height: 56,
+                            child: ElevatedButton(
+                              onPressed: _submitReport,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue[700],
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                elevation: 4,
+                                shadowColor: Colors.blue.withOpacity(0.4),
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.send_rounded),
+                                  SizedBox(width: 10),
+                                  Text(
+                                    'Submit Report',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          
+                          const SizedBox(height: 20),
+                        ],
+                      ),
+                    ),
                   ),
-                  child: const Text('Cancel'),
-                ),
+                ],
               ),
-            ],
+            ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: Colors.blue[700]),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMediaButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    required int count,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: count > 0 ? Colors.blue[700]! : Colors.grey[300]!,
+            width: 2,
+            style: BorderStyle.solid,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Stack(
+              children: [
+                Icon(
+                  icon,
+                  size: 32,
+                  color: count > 0 ? Colors.blue[700] : Colors.grey[400],
+                ),
+                if (count > 0)
+                  Positioned(
+                    right: -8,
+                    top: -8,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.blue[700],
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(
+                        '$count',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: count > 0 ? Colors.blue[700] : Colors.grey[600],
+                fontWeight: count > 0 ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ],
         ),
       ),
     );

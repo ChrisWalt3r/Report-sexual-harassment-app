@@ -53,7 +53,7 @@ dependencies:
   cloud_firestore: ^5.5.2
   google_sign_in: ^6.2.1
   image_picker: ^1.2.1
-  firebase_storage: ^12.4.10
+  firebase_storage: 12.4.10
   firebase_messaging: ^15.1.5
 
 dev_dependencies:
