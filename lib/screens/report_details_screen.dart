@@ -494,23 +494,40 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
           ),
           const SizedBox(height: 12),
           ...videoUrls.asMap().entries.map((entry) {
+            final isPending = entry.value.startsWith('video_pending:');
+            final videoName = isPending 
+                ? entry.value.replaceFirst('video_pending:', '')
+                : 'Video ${entry.key + 1}';
+            
             return Container(
               margin: const EdgeInsets.only(bottom: 10),
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: Colors.purple.withOpacity(0.05),
+                color: isPending 
+                    ? Colors.orange.withOpacity(0.05)
+                    : Colors.purple.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.purple.withOpacity(0.2)),
+                border: Border.all(
+                  color: isPending 
+                      ? Colors.orange.withOpacity(0.3)
+                      : Colors.purple.withOpacity(0.2),
+                ),
               ),
               child: Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: Colors.purple.withOpacity(0.1),
+                      color: isPending 
+                          ? Colors.orange.withOpacity(0.1)
+                          : Colors.purple.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.play_circle_fill, color: Colors.purple, size: 24),
+                    child: Icon(
+                      isPending ? Icons.videocam_off : Icons.play_circle_fill, 
+                      color: isPending ? Colors.orange : Colors.purple, 
+                      size: 24,
+                    ),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -518,34 +535,53 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Video ${entry.key + 1}',
+                          isPending ? videoName : 'Video ${entry.key + 1}',
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Tap to view',
+                          isPending ? 'Stored locally (not uploaded)' : 'Tap to view',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey[500],
+                            color: isPending ? Colors.orange[700] : Colors.grey[500],
                           ),
                         ),
                       ],
                     ),
                   ),
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () => _openVideoUrl(entry.value),
-                      borderRadius: BorderRadius.circular(8),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        child: const Icon(Icons.open_in_new, color: Colors.purple, size: 20),
+                  if (!isPending)
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => _openVideoUrl(entry.value),
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: const Icon(Icons.open_in_new, color: Colors.purple, size: 20),
+                        ),
+                      ),
+                    )
+                  else
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        'Local',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.orange[700],
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
             );
@@ -661,13 +697,36 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
   }
 
   Future<void> _openVideoUrl(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
+    // Check if this is a pending video (ImgBB doesn't support video uploads)
+    if (url.startsWith('video_pending:')) {
+      final filename = url.replaceFirst('video_pending:', '');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open video')),
+          SnackBar(
+            content: Text('Video "$filename" is stored locally and cannot be previewed online.'),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+      return;
+    }
+    
+    // Try to open valid video URLs
+    try {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not open video')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid video URL')),
         );
       }
     }

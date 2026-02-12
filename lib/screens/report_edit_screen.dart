@@ -3,9 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import '../constants/app_colors.dart';
+import '../services/imgbb_service.dart';
+import '../services/cloudinary_service.dart';
 
 class ReportEditScreen extends StatefulWidget {
   final String reportId;
@@ -555,16 +556,16 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
     setState(() => _isSaving = true);
 
     try {
-      // Upload new images
+      // Upload new images to ImgBB
       List<String> newImageUrls = [];
       if (_newImages.isNotEmpty) {
-        newImageUrls = await _uploadFiles(_newImages, 'images');
+        newImageUrls = await _uploadImages(_newImages);
       }
 
-      // Upload new videos
+      // Upload new videos (placeholder for now)
       List<String> newVideoUrls = [];
       if (_newVideos.isNotEmpty) {
-        newVideoUrls = await _uploadFiles(_newVideos, 'videos');
+        newVideoUrls = await _uploadVideos(_newVideos);
       }
 
       // Combine existing (minus removed) with new URLs
@@ -652,17 +653,29 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
     });
   }
 
-  Future<List<String>> _uploadFiles(List<File> files, String folder) async {
+  /// Upload images to ImgBB
+  Future<List<String>> _uploadImages(List<File> files) async {
     List<String> urls = [];
-    final storage = FirebaseStorage.instance;
     
     for (var file in files) {
-      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${file.path.split(Platform.pathSeparator).last}';
-      final ref = storage.ref().child('reports/$folder/$fileName');
-      
-      await ref.putFile(file);
-      final url = await ref.getDownloadURL();
-      urls.add(url);
+      final url = await ImgbbService.uploadImage(file.path);
+      if (url != null) {
+        urls.add(url);
+      }
+    }
+    
+    return urls;
+  }
+
+  /// Upload videos to Cloudinary
+  Future<List<String>> _uploadVideos(List<File> files) async {
+    List<String> urls = [];
+    
+    for (var file in files) {
+      final url = await CloudinaryService.uploadVideo(file.path);
+      if (url != null) {
+        urls.add(url);
+      }
     }
     
     return urls;

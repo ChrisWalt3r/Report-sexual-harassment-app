@@ -3,8 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../services/imgbb_service.dart';
+import '../services/cloudinary_service.dart';
 
 class ReportFormScreen extends StatefulWidget {
   const ReportFormScreen({super.key});
@@ -95,17 +96,29 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     });
   }
 
-  Future<List<String>> _uploadFiles(List<File> files, String folder) async {
+  /// Upload images to ImgBB
+  Future<List<String>> _uploadImages(List<File> files) async {
     List<String> urls = [];
-    final storage = FirebaseStorage.instance;
     
     for (var file in files) {
-      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${file.path.split('/').last}';
-      final ref = storage.ref().child('reports/$folder/$fileName');
-      
-      await ref.putFile(file);
-      final url = await ref.getDownloadURL();
-      urls.add(url);
+      final url = await ImgbbService.uploadImage(file.path);
+      if (url != null) {
+        urls.add(url);
+      }
+    }
+    
+    return urls;
+  }
+
+  /// Upload videos to Cloudinary
+  Future<List<String>> _uploadVideos(List<File> files) async {
+    List<String> urls = [];
+    
+    for (var file in files) {
+      final url = await CloudinaryService.uploadVideo(file.path);
+      if (url != null) {
+        urls.add(url);
+      }
     }
     
     return urls;
@@ -130,12 +143,12 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
       try {
         List<String> imageUrls = [];
         if (_selectedImages.isNotEmpty) {
-          imageUrls = await _uploadFiles(_selectedImages, 'images');
+          imageUrls = await _uploadImages(_selectedImages);
         }
 
         List<String> videoUrls = [];
         if (_selectedVideos.isNotEmpty) {
-          videoUrls = await _uploadFiles(_selectedVideos, 'videos');
+          videoUrls = await _uploadVideos(_selectedVideos);
         }
 
         // Get current user ID
