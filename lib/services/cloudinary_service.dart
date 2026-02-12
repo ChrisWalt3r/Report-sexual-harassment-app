@@ -1,17 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import '../config/api_keys.dart';
 
 /// Service for uploading videos to Cloudinary
 /// Sign up at https://cloudinary.com and create an unsigned upload preset
 class CloudinaryService {
-  // TODO: Replace with your Cloudinary credentials
-  // 1. Sign up at https://cloudinary.com
-  // 2. Go to Settings > Upload > Upload presets
-  // 3. Create an "Unsigned" upload preset
-  // 4. Copy your cloud name and preset name below
-  static const String _cloudName = 'dc7td9rfj'; // Replace with your cloud name
-  static const String _uploadPreset = 'report_videos'; // Replace with your unsigned preset name
+  static const String _cloudName = ApiKeys.cloudinaryCloudName;
+  static const String _uploadPreset = ApiKeys.cloudinaryUploadPreset;
   
   static const String _uploadUrl = 'https://api.cloudinary.com/v1_1';
 

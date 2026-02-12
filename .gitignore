@@ -48,6 +48,9 @@ app.*.map.json
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
 ios/firebase_app_id_file.json
+
+# API Keys (keep api_keys.dart.example for reference)
+lib/config/api_keys.dart
 macos/Runner/GoogleService-Info.plist
 macos/firebase_app_id_file.json
 lib/firebase_options.dart

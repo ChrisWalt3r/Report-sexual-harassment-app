@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import '../config/api_keys.dart';
 
 /// Service for uploading images to ImgBB
 /// Note: ImgBB only supports images (JPG, PNG, GIF, BMP, WEBP)
 /// For videos, we'll need to use a different approach or store video URLs
 class ImgbbService {
-  static const String _apiKey = 'c2ca0d8f346fb8c2bad8caa88d061ce3';
+  static const String _apiKey = ApiKeys.imgbbApiKey;
   static const String _uploadUrl = 'https://api.imgbb.com/1/upload';
 
   /// Supported image extensions
