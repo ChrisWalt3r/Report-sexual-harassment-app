@@ -51,6 +51,10 @@ ios/firebase_app_id_file.json
 
 # API Keys (keep api_keys.dart.example for reference)
 lib/config/api_keys.dart
+
+# Keystore signing credentials
+android/key.properties
+*.jks
 macos/Runner/GoogleService-Info.plist
 macos/firebase_app_id_file.json
 lib/firebase_options.dart
