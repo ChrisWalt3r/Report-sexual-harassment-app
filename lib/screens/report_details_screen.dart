@@ -659,21 +659,35 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
           ),
         ),
         const SizedBox(width: 12),
-        Container(
-          height: 54,
-          width: 54,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            color: Colors.red.withOpacity(0.1),
-            border: Border.all(color: Colors.red.withOpacity(0.3), width: 2),
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
+        Tooltip(
+          message: _isPending ? '' : 'Only pending reports can be deleted',
+          child: Container(
+            height: 54,
+            width: 54,
+            decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
-              onTap: _isDeleting ? null : () => _deleteReport(context),
-              child: const Center(
-                child: Icon(Icons.delete_outline_rounded, color: Colors.red, size: 24),
+              color: _isPending
+                  ? Colors.red.withOpacity(0.1)
+                  : Colors.grey.withOpacity(0.1),
+              border: Border.all(
+                color: _isPending
+                    ? Colors.red.withOpacity(0.3)
+                    : Colors.grey.withOpacity(0.3),
+                width: 2,
+              ),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: (_isDeleting || !_isPending) ? null : () => _deleteReport(context),
+                child: Center(
+                  child: Icon(
+                    _isPending ? Icons.delete_outline_rounded : Icons.lock_rounded,
+                    color: _isPending ? Colors.red : Colors.grey,
+                    size: 24,
+                  ),
+                ),
               ),
             ),
           ),
