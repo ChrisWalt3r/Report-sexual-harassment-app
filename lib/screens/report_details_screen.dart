@@ -591,47 +591,68 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
     );
   }
 
+  bool get _isPending {
+    final status = (widget.reportData['status'] ?? 'pending').toString().toLowerCase();
+    return status == 'pending';
+  }
+
   Widget _buildActionButtons() {
     return Row(
       children: [
         Expanded(
-          child: Container(
-            height: 54,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              gradient: LinearGradient(
-                colors: [
-                  AppColors.primaryBlue,
-                  AppColors.primaryBlue.withOpacity(0.8),
-                ],
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primaryBlue.withOpacity(0.4),
-                  blurRadius: 12,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
+          child: Tooltip(
+            message: _isPending ? '' : 'Only pending reports can be edited',
+            child: Container(
+              height: 54,
+              decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                onTap: _isDeleting ? null : _navigateToEdit,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(Icons.edit_rounded, color: Colors.white, size: 20),
-                    SizedBox(width: 8),
-                    Text(
-                      'Edit Report',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                gradient: _isPending
+                    ? LinearGradient(
+                        colors: [
+                          AppColors.primaryBlue,
+                          AppColors.primaryBlue.withOpacity(0.8),
+                        ],
+                      )
+                    : LinearGradient(
+                        colors: [
+                          Colors.grey[400]!,
+                          Colors.grey[300]!,
+                        ],
                       ),
-                    ),
-                  ],
+                boxShadow: _isPending
+                    ? [
+                        BoxShadow(
+                          color: AppColors.primaryBlue.withOpacity(0.4),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        ),
+                      ]
+                    : [],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: (_isDeleting || !_isPending) ? null : _navigateToEdit,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        _isPending ? Icons.edit_rounded : Icons.lock_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _isPending ? 'Edit Report' : 'Editing Locked',
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -733,6 +754,17 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
   }
 
   Future<void> _navigateToEdit() async {
+    // Verify the report is still pending before allowing edit
+    if (!_isPending) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Only pending reports can be edited.'),
+          backgroundColor: Colors.orange[700],
+        ),
+      );
+      return;
+    }
+
     // Verify ownership before allowing edit
     final currentUser = _auth.currentUser;
     final reportOwnerId = widget.reportData['userId'] as String?;
