@@ -1,23 +1,28 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class AIConfig {
-  // Hugging Face Models Configuration - Using instruction-following models
+  // Groq API Configuration - Using Llama 3 models
+  static String get groqApiKey => dotenv.env['GROQ_API_KEY'] ?? '';
+  static const String groqApiUrl = 'https://api.groq.com/openai/v1/chat/completions';
+
   static final Map<String, ModelConfig> availableModels = {
     'primary': ModelConfig(
-      name: 'mistralai/Mistral-7B-Instruct-v0.2',
-      description: 'Instruction-following model - best for guided responses',
+      name: 'llama-3.3-70b-versatile',
+      description: 'Llama 3.3 70B - best for complex reasoning and empathetic responses',
       maxTokens: 200,
       temperature: 0.7,
       topP: 0.9,
     ),
     'empathetic': ModelConfig(
-      name: 'HuggingFaceH4/zephyr-7b-beta',
-      description: 'Helpful assistant model with empathetic responses',
+      name: 'llama-3.1-8b-instant',
+      description: 'Llama 3.1 8B - fast responses with empathy',
       maxTokens: 200,
       temperature: 0.6,
       topP: 0.85,
     ),
     'supportive': ModelConfig(
-      name: 'google/flan-t5-large',
-      description: 'Text-to-text model good at following instructions',
+      name: 'llama-3.1-8b-instant',
+      description: 'Llama 3.1 8B - supportive and trauma-informed responses',
       maxTokens: 150,
       temperature: 0.5,
       topP: 0.9,
@@ -199,12 +204,9 @@ class ModelConfig {
 
   Map<String, dynamic> toApiParameters() {
     return {
-      'max_length': maxTokens,
+      'max_tokens': maxTokens,
       'temperature': temperature,
-      'do_sample': true,
       'top_p': topP,
-      'repetition_penalty': 1.1,
-      'pad_token_id': 50256, // For GPT models
     };
   }
 }

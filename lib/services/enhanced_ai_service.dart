@@ -18,15 +18,6 @@ class EnhancedAIService extends ChangeNotifier {
   bool _isAgentTyping = false;
   String _currentScenario = 'initial_contact';
 
-  // Configuration
-  static const String _huggingFaceApiUrl =
-      'https://api-inference.huggingface.co/models';
-  // API key loaded from environment variable - run with: flutter run --dart-define=HF_API_KEY=your_key
-  static const String _apiKey = String.fromEnvironment(
-    'HF_API_KEY',
-    defaultValue: '',
-  );
-
   // Getters
   List<ChatMessage> get messages => List.unmodifiable(_messages);
   Stream<ChatMessage> get messageStream => _messageController.stream;
@@ -167,11 +158,11 @@ Welcome message:''';
                 .join('\n')
             : _conversationHistory.join('\n');
 
-    // Instruction-style prompt for Mistral/Zephyr models
+    // Simplified prompt for Llama 3 via Groq
     final fullPrompt =
-        '''<s>[INST] You are a professional sexual harassment support counselor at MUST University in Uganda. You ONLY discuss topics related to:
+        '''You are a professional sexual harassment support counselor at MUST University in Uganda. You ONLY discuss topics related to:
 - Sexual harassment and assault
-- Stalking and unwanted attention  
+- Stalking and unwanted attention
 - Personal safety and security concerns
 - Emotional support for victims
 - Reporting options and resources
@@ -185,7 +176,7 @@ $conversationContext
 
 User says: "$userMessage"
 
-Respond with empathy in 1-2 sentences. Be supportive and trauma-informed. [/INST]''';
+Respond with empathy in 1-2 sentences. Be supportive and trauma-informed.''';
 
     // Try multiple models for best response
     for (final modelKey in ['primary', 'empathetic', 'supportive']) {
@@ -349,19 +340,27 @@ Respond with empathy in 1-2 sentences. Be supportive and trauma-informed. [/INST
 
   Future<String> _callAIModel(String modelKey, String prompt) async {
     final modelConfig = AIConfig.availableModels[modelKey]!;
-    final url = Uri.parse('$_huggingFaceApiUrl/${modelConfig.name}');
 
     final response = await http
         .post(
-          url,
+          Uri.parse(AIConfig.groqApiUrl),
           headers: {
-            'Authorization': 'Bearer $_apiKey',
+            'Authorization': 'Bearer ${AIConfig.groqApiKey}',
             'Content-Type': 'application/json',
           },
           body: jsonEncode({
-            'inputs': prompt,
-            'parameters': modelConfig.toApiParameters(),
-            'options': {'wait_for_model': true, 'use_cache': false},
+            'model': modelConfig.name,
+            'messages': [
+              {
+                'role': 'system',
+                'content':
+                    'You are a professional sexual harassment support counselor at MUST University in Uganda. Provide empathetic, trauma-informed responses.'
+              },
+              {'role': 'user', 'content': prompt}
+            ],
+            'max_tokens': modelConfig.maxTokens,
+            'temperature': modelConfig.temperature,
+            'top_p': modelConfig.topP,
           }),
         )
         .timeout(const Duration(seconds: 30));
@@ -369,13 +368,20 @@ Respond with empathy in 1-2 sentences. Be supportive and trauma-informed. [/INST
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
 
-      if (data is List && data.isNotEmpty) {
-        return data[0]['generated_text'] ?? '';
-      } else if (data is Map && data.containsKey('generated_text')) {
-        return data['generated_text'] ?? '';
+      if (data is Map &&
+          data.containsKey('choices') &&
+          data['choices'] is List &&
+          (data['choices'] as List).isNotEmpty) {
+        final choice = data['choices'][0];
+        if (choice is Map &&
+            choice.containsKey('message') &&
+            choice['message'] is Map) {
+          final message = choice['message'] as Map;
+          return message['content']?.toString() ?? '';
+        }
       }
     } else if (response.statusCode == 503) {
-      // Model loading, wait and retry once
+      // Service temporarily unavailable, wait and retry once
       await Future.delayed(const Duration(seconds: 10));
       return _callAIModel(modelKey, prompt);
     }
