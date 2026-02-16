@@ -20,7 +20,7 @@ void main() async {
     // Create super admin account
     final admin = await adminAuth.createAdmin(
       email: 'admin@must.ac.ug',
-      password: 'ChangeThisPassword123!',
+      password: '12345678',
       fullName: 'System Administrator',
       role: AdminRole.superAdmin,
     );
@@ -28,7 +28,7 @@ void main() async {
     print('✅ Success! Super admin account created.\n');
     print('Admin Details:');
     print('  Email: admin@must.ac.ug');
-    print('  Password: ChangeThisPassword123!');
+    print('  Password: 12345678');
     print('  Role: Super Admin');
     print('  UID: ${admin.uid}\n');
     

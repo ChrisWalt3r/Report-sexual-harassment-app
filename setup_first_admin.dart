@@ -2,9 +2,9 @@
 // Usage: dart run setup_first_admin.dart
 
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
-import 'services/admin_auth_service.dart';
-import 'models/admin_user.dart';
+import 'package:report_harassment/firebase_options.dart';
+import 'package:report_harassment/services/admin_auth_service.dart';
+import 'package:report_harassment/models/admin_user.dart';
 
 void main() async {
   print('🔧 Setting up first super admin...\n');
