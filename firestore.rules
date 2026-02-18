@@ -13,12 +13,14 @@ service cloud.firestore {
     
     // Reports collection
     match /reports/{reportId} {
-      // Anyone authenticated can create a report
-      allow create: if request.auth != null;
-      // Users can read their own reports
-      allow read: if request.auth != null && 
+      // Anyone (including anonymous/unauthenticated) can create a report
+      allow create: if true;
+      // Users can read their own reports, OR unauthenticated users can read via trackingToken
+      allow read: if (request.auth != null && 
                      (resource.data.userId == request.auth.uid || 
-                      resource.data.reporterEmail == request.auth.token.email);
+                      resource.data.reporterEmail == request.auth.token.email))
+                  || (resource.data.trackingToken != null && 
+                      resource.data.trackingToken is string);
       // Users can update their own reports (for editing)
       allow update: if request.auth != null && resource.data.userId == request.auth.uid;
       // Only allow deletion by the owner
