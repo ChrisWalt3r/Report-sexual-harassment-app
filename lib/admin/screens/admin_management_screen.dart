@@ -66,7 +66,7 @@ class _AdminManagementScreenState extends State<AdminManagementScreen> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<AdminRole>(
-                  value: selectedRole,
+                  initialValue: selectedRole,
                   decoration: const InputDecoration(
                     labelText: 'Role',
                     prefixIcon: Icon(Icons.admin_panel_settings),
@@ -164,7 +164,7 @@ class _AdminManagementScreenState extends State<AdminManagementScreen> {
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<AdminRole>(
-                value: selectedRole,
+                initialValue: selectedRole,
                 decoration: const InputDecoration(
                   labelText: 'Role',
                   prefixIcon: Icon(Icons.admin_panel_settings),
