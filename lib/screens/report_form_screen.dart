@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import '../services/imgbb_service.dart';
 import '../services/cloudinary_service.dart';
 
@@ -21,6 +22,8 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
   DateTime? _selectedDate;
   String? _selectedIncidentType;
   bool _isUploading = false;
+  double _uploadProgress = 0.0;
+  String _uploadStatus = '';
   final List<File> _selectedImages = [];
   final List<File> _selectedVideos = [];
 
@@ -136,20 +139,62 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
         return;
       }
 
+      // Check internet connectivity
+      final connectivityResult = await Connectivity().checkConnectivity();
+      if (connectivityResult.contains(ConnectivityResult.none)) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.wifi_off, color: Colors.white),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text('Internet connection required to submit report'),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 4),
+            ),
+          );
+        }
+        return;
+      }
+
       setState(() {
         _isUploading = true;
+        _uploadProgress = 0.0;
+        _uploadStatus = 'Preparing upload...';
       });
 
       try {
         List<String> imageUrls = [];
         if (_selectedImages.isNotEmpty) {
+          setState(() {
+            _uploadStatus = 'Uploading images...';
+          });
           imageUrls = await _uploadImages(_selectedImages);
+          setState(() {
+            _uploadProgress = 0.4;
+          });
         }
 
         List<String> videoUrls = [];
         if (_selectedVideos.isNotEmpty) {
+          setState(() {
+            _uploadStatus = 'Uploading videos...';
+          });
           videoUrls = await _uploadVideos(_selectedVideos);
+          setState(() {
+            _uploadProgress = 0.7;
+          });
         }
+
+        setState(() {
+          _uploadStatus = 'Submitting report...';
+          _uploadProgress = 0.85;
+        });
 
         // Get current user ID
         final user = FirebaseAuth.instance.currentUser;
@@ -166,6 +211,11 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
           'timestamp': FieldValue.serverTimestamp(),
           'createdAt': FieldValue.serverTimestamp(), // Add createdAt for ordering
           'status': 'pending',
+        });
+
+        setState(() {
+          _uploadProgress = 1.0;
+          _uploadStatus = 'Upload complete!';
         });
 
         if (mounted) {
@@ -190,6 +240,8 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
         if (mounted) {
           setState(() {
             _isUploading = false;
+            _uploadProgress = 0.0;
+            _uploadStatus = '';
           });
         }
       }
@@ -216,7 +268,8 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(32),
+                    margin: const EdgeInsets.symmetric(horizontal: 24),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
@@ -230,25 +283,45 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                     ),
                     child: Column(
                       children: [
-                        CircularProgressIndicator(
-                          color: Colors.blue[700],
-                          strokeWidth: 3,
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            SizedBox(
+                              width: 100,
+                              height: 100,
+                              child: CircularProgressIndicator(
+                                value: _uploadProgress,
+                                color: Colors.blue[700],
+                                strokeWidth: 8,
+                                backgroundColor: Colors.grey[200],
+                              ),
+                            ),
+                            Text(
+                              '${(_uploadProgress * 100).toInt()}%',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue[700],
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 24),
                         const Text(
                           'Uploading your report...',
                           style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 12),
                         Text(
-                          'Please wait',
+                          _uploadStatus,
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.grey[600],
                           ),
+                          textAlign: TextAlign.center,
                         ),
                       ],
                     ),
