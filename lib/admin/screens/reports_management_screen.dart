@@ -45,19 +45,29 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
     super.dispose();
   }
 
-  Future<void> _updateReportStatus(String reportId, String newStatus) async {
+  Future<void> _updateReportStatus(String reportId, String newStatus, {String? resolutionMessage}) async {
     try {
       // Get the report to find the userId
       final reportDoc =
           await _firestore.collection('reports').doc(reportId).get();
       final reportData = reportDoc.data();
 
-      // Update report status
-      await _firestore.collection('reports').doc(reportId).update({
+      // Build update data
+      final Map<String, dynamic> updateData = {
         'status': newStatus,
         'updatedAt': FieldValue.serverTimestamp(),
         'updatedBy': widget.admin.uid,
-      });
+      };
+
+      // Add resolution details if provided
+      if (resolutionMessage != null && resolutionMessage.isNotEmpty) {
+        updateData['resolutionMessage'] = resolutionMessage;
+        updateData['resolvedAt'] = FieldValue.serverTimestamp();
+        updateData['resolvedBy'] = widget.admin.uid;
+      }
+
+      // Update report status
+      await _firestore.collection('reports').doc(reportId).update(updateData);
 
       // Send notification to reporter (only if not anonymous)
       if (reportData != null &&
@@ -79,8 +89,9 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                 'Your report is being investigated. We will keep you updated.';
             break;
           case 'resolved':
-            notificationBody =
-                'Your report has been resolved. Thank you for reporting.';
+            notificationBody = resolutionMessage != null && resolutionMessage.isNotEmpty
+                ? 'Your report has been resolved. Resolution: $resolutionMessage'
+                : 'Your report has been resolved. Thank you for reporting.';
             break;
           case 'closed':
             notificationBody = 'Your report has been closed.';
@@ -106,6 +117,8 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
             'status': newStatus,
             'reportId': reportId,
             'updatedBy': widget.admin.uid,
+            if (resolutionMessage != null && resolutionMessage.isNotEmpty)
+              'resolutionMessage': resolutionMessage,
           },
         });
       }
@@ -121,6 +134,97 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
           context,
         ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
       }
+    }
+  }
+
+  Future<void> _showResolutionDialog(String reportId) async {
+    final resolutionController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    final result = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.green.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.check_circle_outline, color: Colors.green, size: 24),
+            ),
+            const SizedBox(width: 12),
+            const Text('Resolve Report'),
+          ],
+        ),
+        content: SizedBox(
+          width: MediaQuery.of(context).size.width * 0.6,
+          child: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Provide a resolution summary for the reporter. This message will be visible to the person who submitted the report.',
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600], height: 1.4),
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: resolutionController,
+                  maxLines: 5,
+                  maxLength: 1000,
+                  decoration: InputDecoration(
+                    hintText: 'e.g., The incident has been investigated and appropriate disciplinary action has been taken...',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey[50],
+                    labelText: 'Resolution Message',
+                    alignLabelWithHint: true,
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please provide a resolution message';
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, null),
+            child: Text('Cancel', style: TextStyle(color: Colors.grey[600])),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.pop(context, resolutionController.text.trim());
+              }
+            },
+            icon: const Icon(Icons.check, size: 18),
+            label: const Text('Resolve'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    resolutionController.dispose();
+
+    if (result != null) {
+      await _updateReportStatus(reportId, 'resolved', resolutionMessage: result);
     }
   }
 
@@ -338,6 +442,64 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                 const SizedBox(height: 20),
                               ],
 
+                              // Resolution Message (if resolved)
+                              if (data['resolutionMessage'] != null &&
+                                  (data['resolutionMessage'] as String).isNotEmpty) ...[
+                                _buildDetailSection('Resolution', [
+                                  Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green[50],
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: Colors.green[200]!,
+                                      ),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Icon(Icons.task_alt_rounded,
+                                                color: Colors.green[700], size: 18),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              'Resolution Message',
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.green[700],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          data['resolutionMessage'],
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            height: 1.5,
+                                          ),
+                                        ),
+                                        if (data['resolvedAt'] != null) ...[
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'Resolved on ${DateFormat('MMM dd, yyyy hh:mm a').format((data['resolvedAt'] as Timestamp).toDate())}',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey[600],
+                                              fontStyle: FontStyle.italic,
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                ]),
+                                const SizedBox(height: 20),
+                              ],
+
                               // Status Update Section
                               if (widget.admin.canManageReports()) ...[
                                 const Divider(),
@@ -364,11 +526,18 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                                   isCurrentStatus
                                                       ? null
                                                       : () {
-                                                        _updateReportStatus(
-                                                          reportDoc.id,
-                                                          entry.key,
-                                                        );
-                                                        Navigator.pop(context);
+                                                        if (entry.key == 'resolved') {
+                                                          Navigator.pop(context);
+                                                          _showResolutionDialog(
+                                                            reportDoc.id,
+                                                          );
+                                                        } else {
+                                                          _updateReportStatus(
+                                                            reportDoc.id,
+                                                            entry.key,
+                                                          );
+                                                          Navigator.pop(context);
+                                                        }
                                                       },
                                               style: ElevatedButton.styleFrom(
                                                 backgroundColor:

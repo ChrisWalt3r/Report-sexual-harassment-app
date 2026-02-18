@@ -62,6 +62,18 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                 _buildStatusBanner(widget.reportData['status'] ?? 'Pending'),
                 
                 const SizedBox(height: 16),
+
+                // Resolution Message Card (shown when report is resolved)
+                if (widget.reportData['resolutionMessage'] != null &&
+                    (widget.reportData['resolutionMessage'] as String).isNotEmpty)
+                  _buildResolutionCard(
+                    widget.reportData['resolutionMessage'],
+                    widget.reportData['resolvedAt'],
+                  ),
+
+                if (widget.reportData['resolutionMessage'] != null &&
+                    (widget.reportData['resolutionMessage'] as String).isNotEmpty)
+                  const SizedBox(height: 16),
                 
                 // Report Info Card
                 _buildSectionCard(
@@ -268,6 +280,95 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                   ),
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildResolutionCard(String resolutionMessage, dynamic resolvedAt) {
+    String resolvedDate = '';
+    if (resolvedAt != null && resolvedAt is Timestamp) {
+      final dt = resolvedAt.toDate();
+      resolvedDate = '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.green.withOpacity(0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.green.withOpacity(0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.green.withOpacity(0.08),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.task_alt_rounded,
+                    color: Colors.green,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Resolution',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[800],
+                        ),
+                      ),
+                      if (resolvedDate.isNotEmpty)
+                        Text(
+                          'Resolved on $resolvedDate',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              resolutionMessage,
+              style: TextStyle(
+                fontSize: 15,
+                color: Colors.grey[800],
+                height: 1.5,
+              ),
             ),
           ),
         ],
