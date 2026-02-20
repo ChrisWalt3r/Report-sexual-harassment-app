@@ -6,7 +6,8 @@ import 'dart:convert';
 import '../../constants/app_colors.dart';
 
 class DataExportScreen extends StatefulWidget {
-  const DataExportScreen({super.key});
+  final bool embedded;
+  const DataExportScreen({super.key, this.embedded = false});
 
   @override
   State<DataExportScreen> createState() => _DataExportScreenState();
@@ -243,13 +244,8 @@ class _DataExportScreenState extends State<DataExportScreen> {
     return field.replaceAll('\n', ' ').replaceAll('\r', ' ');
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Data Export & Management'),
-      ),
-      body: SingleChildScrollView(
+  Widget _buildBody() {
+    return SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -301,7 +297,7 @@ class _DataExportScreenState extends State<DataExportScreen> {
               title: 'Export Reports',
               description: 'Download all reports as CSV file',
               icon: Icons.description,
-              color: Colors.blue,
+              color: AppColors.mustBlue,
               onPressed: _isExporting ? null : _exportReportsToCSV,
             ),
             const SizedBox(height: 16),
@@ -311,7 +307,7 @@ class _DataExportScreenState extends State<DataExportScreen> {
               title: 'Export Users',
               description: 'Download all user data as CSV file',
               icon: Icons.people,
-              color: Colors.green,
+              color: AppColors.mustGreen,
               onPressed: _isExporting ? null : _exportUsersToCSV,
             ),
             const SizedBox(height: 16),
@@ -321,7 +317,7 @@ class _DataExportScreenState extends State<DataExportScreen> {
               title: 'Export Analytics',
               description: 'Download analytics summary as JSON file',
               icon: Icons.analytics,
-              color: Colors.orange,
+              color: AppColors.mustGold,
               onPressed: _isExporting ? null : _exportAnalyticsToJSON,
             ),
             const SizedBox(height: 32),
@@ -371,7 +367,27 @@ class _DataExportScreenState extends State<DataExportScreen> {
             ),
           ],
         ),
+      );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.embedded) return _buildBody();
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Data Export & Management', style: TextStyle(fontWeight: FontWeight.bold)),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
+            ),
+          ),
+        ),
+        foregroundColor: Colors.white,
+        elevation: 0,
       ),
+      body: _buildBody(),
     );
   }
 
@@ -481,7 +497,7 @@ class _DataExportScreenState extends State<DataExportScreen> {
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          Icon(icon, color: AppColors.primaryBlue, size: 20),
+          Icon(icon, color: AppColors.mustBlue, size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -494,7 +510,7 @@ class _DataExportScreenState extends State<DataExportScreen> {
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: AppColors.primaryBlue,
+              color: AppColors.mustGold,
             ),
           ),
         ],

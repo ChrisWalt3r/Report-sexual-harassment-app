@@ -7,6 +7,7 @@ import 'legal_guidance_screen.dart';
 import 'emergency_contacts_screen.dart';
 import 'medical_support_screen.dart';
 import '../constants/emergency_constants.dart';
+import '../../../constants/app_colors.dart';
 
 /// Main hub for all support services
 /// Designed with victim-centered, trauma-informed approach
@@ -60,12 +61,12 @@ class _SupportHomeScreenState extends State<SupportHomeScreen> {
         ),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: const Color(0xFF2f3293),
+        backgroundColor: AppColors.mustBlue,
         foregroundColor: Colors.white,
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF3949AB), Color(0xFF2f3293)],
+              colors: [AppColors.mustBlueMedium, AppColors.mustBlue],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -126,8 +127,8 @@ class _SupportHomeScreenState extends State<SupportHomeScreen> {
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [
-            Color(0xFF3949AB),
-            Color(0xFF2f3293),
+            AppColors.mustBlueMedium,
+            AppColors.mustBlue,
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -135,7 +136,7 @@ class _SupportHomeScreenState extends State<SupportHomeScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF2f3293).withOpacity(0.3),
+            color: AppColors.mustBlue.withOpacity(0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -210,10 +211,10 @@ class _SupportHomeScreenState extends State<SupportHomeScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFF2f3293).withOpacity(0.1),
+              color: AppColors.mustBlue.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: const Color(0xFF2f3293), size: 20),
+            child: Icon(icon, color: AppColors.mustBlue, size: 20),
           ),
           const SizedBox(width: 12),
           Text(
@@ -235,8 +236,8 @@ class _SupportHomeScreenState extends State<SupportHomeScreen> {
         title: 'Counseling',
         subtitle: 'Talk to a professional',
         icon: Icons.psychology_rounded,
-        color: Colors.purple,
-        gradient: [Colors.purple.shade400, Colors.purple.shade600],
+        color: AppColors.mustBlue,
+        gradient: [AppColors.mustBlueMedium, AppColors.mustBlue],
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const CounselingScreen()),
@@ -246,8 +247,8 @@ class _SupportHomeScreenState extends State<SupportHomeScreen> {
         title: 'Legal Guidance',
         subtitle: 'Know your rights',
         icon: Icons.gavel_rounded,
-        color: Colors.indigo,
-        gradient: [Colors.indigo.shade400, Colors.indigo.shade600],
+        color: AppColors.mustGold,
+        gradient: [AppColors.mustGoldLight, AppColors.mustGold],
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const LegalGuidanceScreen()),
@@ -268,8 +269,8 @@ class _SupportHomeScreenState extends State<SupportHomeScreen> {
         title: 'Medical',
         subtitle: 'Health services',
         icon: Icons.local_hospital_rounded,
-        color: Colors.blue,
-        gradient: [Colors.blue.shade400, Colors.blue.shade600],
+        color: AppColors.mustGreen,
+        gradient: [AppColors.mustGreenLight, AppColors.mustGreen],
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const MedicalSupportScreen()),
@@ -416,10 +417,10 @@ class _SupportHomeScreenState extends State<SupportHomeScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.amber.withOpacity(0.15),
+                    color: AppColors.mustGold.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(Icons.lightbulb_rounded, color: Colors.amber[700], size: 20),
+                  child: const Icon(Icons.lightbulb_rounded, color: AppColors.mustGold, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Text(
@@ -435,19 +436,19 @@ class _SupportHomeScreenState extends State<SupportHomeScreen> {
             const SizedBox(height: 16),
             _buildTipItem(
               icon: Icons.check_circle_rounded,
-              color: Colors.green,
+              color: AppColors.mustGreen,
               text: 'It\'s not your fault',
             ),
             const SizedBox(height: 12),
             _buildTipItem(
               icon: Icons.schedule_rounded,
-              color: Colors.blue,
+              color: AppColors.mustBlue,
               text: 'Take your time - there\'s no rush',
             ),
             const SizedBox(height: 12),
             _buildTipItem(
               icon: Icons.people_rounded,
-              color: Colors.purple,
+              color: AppColors.mustGold,
               text: 'You deserve support and care',
             ),
           ],
@@ -497,10 +498,10 @@ class _SupportHomeScreenState extends State<SupportHomeScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF2f3293).withOpacity(0.1),
+              color: AppColors.mustBlue.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.shield_rounded, color: Color(0xFF2f3293), size: 28),
+            child: const Icon(Icons.shield_rounded, color: AppColors.mustBlue, size: 28),
           ),
           const SizedBox(width: 16),
           Expanded(

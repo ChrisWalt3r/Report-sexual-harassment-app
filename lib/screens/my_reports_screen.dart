@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../constants/app_colors.dart';
@@ -55,13 +54,13 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        backgroundColor: AppColors.primaryBlue,
+        backgroundColor: AppColors.mustBlue,
         foregroundColor: Colors.white,
         elevation: 0,
         flexibleSpace: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [AppColors.primaryBlue, AppColors.primaryBlue.withOpacity(0.8)],
+              colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -74,7 +73,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
           if (authSnapshot.connectionState == ConnectionState.waiting) {
             return Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryBlue),
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.mustBlue),
               ),
             );
           }
@@ -90,13 +89,13 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
       ),
       floatingActionButton: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [AppColors.primaryBlue, AppColors.primaryBlue.withOpacity(0.8)],
+          gradient: const LinearGradient(
+            colors: [AppColors.mustGold, AppColors.mustGoldLight],
           ),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primaryBlue.withOpacity(0.4),
+              color: AppColors.mustGold.withOpacity(0.4),
               blurRadius: 12,
               offset: const Offset(0, 6),
             ),
@@ -110,7 +109,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
             );
           },
           backgroundColor: Colors.transparent,
-          foregroundColor: Colors.white,
+          foregroundColor: AppColors.mustBlue,
           elevation: 0,
           child: const Icon(Icons.add_rounded, size: 28),
         ),
@@ -155,7 +154,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                     hintStyle: TextStyle(color: Colors.grey[400]),
                     prefixIcon: Icon(
                       Icons.search_rounded,
-                      color: AppColors.primaryBlue,
+                      color: AppColors.mustBlue,
                     ),
                     suffixIcon:
                         _searchQuery.isNotEmpty
@@ -206,7 +205,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return Center(
                   child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryBlue),
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.mustBlue),
                   ),
                 );
               }
@@ -321,7 +320,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                 Icon(
                   Icons.sort_rounded,
                   size: 16,
-                  color: AppColors.primaryBlue,
+                  color: AppColors.mustBlue,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -441,8 +440,8 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      AppColors.primaryBlue.withOpacity(0.1),
-                      AppColors.primaryBlue.withOpacity(0.05),
+                      AppColors.mustBlue.withOpacity(0.1),
+                      AppColors.mustBlue.withOpacity(0.05),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -452,7 +451,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                 child: Icon(
                   hasFilters ? Icons.search_off_rounded : Icons.description_outlined,
                   size: 64,
-                  color: AppColors.primaryBlue,
+                  color: AppColors.mustBlue,
                 ),
               ),
               const SizedBox(height: 28),
@@ -489,8 +488,8 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                   icon: const Icon(Icons.clear_all_rounded),
                   label: const Text('Clear Filters'),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.primaryBlue,
-                    side: BorderSide(color: AppColors.primaryBlue),
+                    foregroundColor: AppColors.mustBlue,
+                    side: BorderSide(color: AppColors.mustBlue),
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
@@ -500,12 +499,12 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [AppColors.primaryBlue, AppColors.primaryBlue.withOpacity(0.8)],
+                    colors: [AppColors.mustBlue, AppColors.mustBlue.withOpacity(0.8)],
                   ),
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primaryBlue.withOpacity(0.4),
+                      color: AppColors.mustBlue.withOpacity(0.4),
                       blurRadius: 12,
                       offset: const Offset(0, 6),
                     ),
@@ -718,7 +717,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                     // View Details Button
                     Container(
                       decoration: BoxDecoration(
-                        color: AppColors.primaryBlue.withOpacity(0.1),
+                        color: AppColors.mustBlue.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Material(
@@ -746,14 +745,14 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                                   style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600,
-                                    color: AppColors.primaryBlue,
+                                    color: AppColors.mustBlue,
                                   ),
                                 ),
                                 const SizedBox(width: 4),
                                 Icon(
                                   Icons.arrow_forward_rounded,
                                   size: 16,
-                                  color: AppColors.primaryBlue,
+                                  color: AppColors.mustBlue,
                                 ),
                               ],
                             ),
@@ -859,12 +858,12 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                 width: double.infinity,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [AppColors.primaryBlue, AppColors.primaryBlue.withOpacity(0.8)],
+                    colors: [AppColors.mustBlue, AppColors.mustBlue.withOpacity(0.8)],
                   ),
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primaryBlue.withOpacity(0.4),
+                      color: AppColors.mustBlue.withOpacity(0.4),
                       blurRadius: 12,
                       offset: const Offset(0, 6),
                     ),
@@ -912,8 +911,8 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                   icon: const Icon(Icons.shield_outlined),
                   label: const Text('Submit Anonymous Report'),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.primaryBlue,
-                    side: BorderSide(color: AppColors.primaryBlue.withOpacity(0.5)),
+                    foregroundColor: AppColors.mustBlue,
+                    side: BorderSide(color: AppColors.mustBlue.withOpacity(0.5)),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
@@ -959,7 +958,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                     Icon(
                       Icons.vpn_key_rounded,
                       size: 36,
-                      color: AppColors.primaryBlue.withOpacity(0.7),
+                      color: AppColors.mustBlue.withOpacity(0.7),
                     ),
                     const SizedBox(height: 12),
                     Text(
@@ -1005,7 +1004,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                           ),
                           prefixIcon: Icon(
                             Icons.search_rounded,
-                            color: AppColors.primaryBlue,
+                            color: AppColors.mustBlue,
                           ),
                           border: InputBorder.none,
                           contentPadding: const EdgeInsets.symmetric(
@@ -1032,7 +1031,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                             : const Icon(Icons.track_changes_rounded),
                         label: Text(_isLookingUp ? 'Looking up...' : 'Track Report'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryBlue,
+                          backgroundColor: AppColors.mustBlue,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
@@ -1283,7 +1282,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                   child: ElevatedButton(
                     onPressed: () => Navigator.pop(context),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryBlue,
+                      backgroundColor: AppColors.mustBlue,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
@@ -1315,7 +1314,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
       child: Row(
         crossAxisAlignment: isMultiLine ? CrossAxisAlignment.start : CrossAxisAlignment.center,
         children: [
-          Icon(icon, size: 18, color: AppColors.primaryBlue),
+          Icon(icon, size: 18, color: AppColors.mustBlue),
           const SizedBox(width: 12),
           Expanded(
             child: Column(

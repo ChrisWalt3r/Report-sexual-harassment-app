@@ -6,7 +6,8 @@ import '../../services/admin_auth_service.dart';
 import '../../constants/app_colors.dart';
 
 class AdminManagementScreen extends StatefulWidget {
-  const AdminManagementScreen({super.key});
+  final bool embedded;
+  const AdminManagementScreen({super.key, this.embedded = false});
 
   @override
   State<AdminManagementScreen> createState() => _AdminManagementScreenState();
@@ -289,9 +290,230 @@ class _AdminManagementScreenState extends State<AdminManagementScreen> {
       builder: (context, adminSnapshot) {
         final currentAdmin = adminSnapshot.data;
 
+        final body = Column(
+          children: [
+            // Search bar (for embedded mode, placed in body instead of AppBar bottom)
+            if (widget.embedded)
+              Container(
+                padding: const EdgeInsets.all(12),
+                color: Colors.white,
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search admins...',
+                    prefixIcon: const Icon(Icons.search),
+                    filled: true,
+                    fillColor: Colors.grey[50],
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[300]!)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.mustBlue, width: 2)),
+                  ),
+                  onChanged: (value) => setState(() => _searchQuery = value.toLowerCase()),
+                ),
+              ),
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: _firestore.collection('admins').snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  }
+
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  var admins = snapshot.data!.docs
+                      .map((doc) => AdminUser.fromFirestore(doc))
+                      .where((admin) {
+                        if (_searchQuery.isEmpty) return true;
+                        return admin.email.toLowerCase().contains(_searchQuery) ||
+                            admin.fullName.toLowerCase().contains(_searchQuery);
+                      })
+                      .toList();
+
+                  if (admins.isEmpty) {
+                    return const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.admin_panel_settings, size: 64, color: Colors.grey),
+                          SizedBox(height: 16),
+                          Text('No admins found', style: TextStyle(color: Colors.grey)),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: admins.length,
+                    itemBuilder: (context, index) {
+                      final admin = admins[index];
+                      final isCurrentUser = admin.uid == currentAdmin?.uid;
+
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: admin.isActive
+                                ? AppColors.mustBlue
+                                : Colors.grey,
+                            child: Text(
+                              admin.fullName[0].toUpperCase(),
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                          ),
+                          title: Row(
+                            children: [
+                              Text(admin.fullName),
+                              if (isCurrentUser) ...[
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.mustGold.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Text(
+                                    'You',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: AppColors.mustGold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(admin.email),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: _getRoleColor(admin.role).withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      admin.role.displayName,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: _getRoleColor(admin.role),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: admin.isActive
+                                          ? Colors.green.shade100
+                                          : Colors.red.shade100,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      admin.isActive ? 'Active' : 'Inactive',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: admin.isActive
+                                            ? Colors.green.shade700
+                                            : Colors.red.shade700,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          trailing: currentAdmin?.canManageUsers() == true
+                              ? PopupMenuButton(
+                                  itemBuilder: (context) => [
+                                    const PopupMenuItem(
+                                      value: 'edit',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.edit, size: 20),
+                                          SizedBox(width: 8),
+                                          Text('Edit'),
+                                        ],
+                                      ),
+                                    ),
+                                    if (!isCurrentUser)
+                                      const PopupMenuItem(
+                                        value: 'delete',
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.delete, size: 20, color: Colors.red),
+                                            SizedBox(width: 8),
+                                            Text('Delete', style: TextStyle(color: Colors.red)),
+                                          ],
+                                        ),
+                                      ),
+                                  ],
+                                  onSelected: (value) {
+                                    if (value == 'edit') {
+                                      _showEditAdminDialog(admin);
+                                    } else if (value == 'delete') {
+                                      _showDeleteAdminDialog(admin);
+                                    }
+                                  },
+                                )
+                              : null,
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+
+        if (widget.embedded) {
+          return Stack(
+            children: [
+              body,
+              if (currentAdmin?.role == AdminRole.superAdmin)
+                Positioned(
+                  bottom: 16,
+                  right: 16,
+                  child: FloatingActionButton.extended(
+                    onPressed: _showCreateAdminDialog,
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add Admin'),
+                    backgroundColor: AppColors.mustGold,
+                    foregroundColor: AppColors.mustBlue,
+                  ),
+                ),
+            ],
+          );
+        }
+
         return Scaffold(
       appBar: AppBar(
-        title: const Text('Admin Management'),
+        title: const Text('Admin Management', style: TextStyle(fontWeight: FontWeight.bold)),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
+            ),
+          ),
+        ),
+        foregroundColor: Colors.white,
+        elevation: 0,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: Padding(
@@ -315,178 +537,14 @@ class _AdminManagementScreenState extends State<AdminManagementScreen> {
           ),
         ),
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: _firestore.collection('admins').snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          var admins = snapshot.data!.docs
-              .map((doc) => AdminUser.fromFirestore(doc))
-              .where((admin) {
-                if (_searchQuery.isEmpty) return true;
-                return admin.email.toLowerCase().contains(_searchQuery) ||
-                    admin.fullName.toLowerCase().contains(_searchQuery);
-              })
-              .toList();
-
-          if (admins.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.admin_panel_settings, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text('No admins found', style: TextStyle(color: Colors.grey)),
-                ],
-              ),
-            );
-          }
-
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: admins.length,
-            itemBuilder: (context, index) {
-              final admin = admins[index];
-              final isCurrentUser = admin.uid == currentAdmin?.uid;
-
-              return Card(
-                margin: const EdgeInsets.only(bottom: 12),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: admin.isActive
-                        ? AppColors.primaryBlue
-                        : Colors.grey,
-                    child: Text(
-                      admin.fullName[0].toUpperCase(),
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                  ),
-                  title: Row(
-                    children: [
-                      Text(admin.fullName),
-                      if (isCurrentUser) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.shade100,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Text(
-                            'You',
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: Colors.blue,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(admin.email),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _getRoleColor(admin.role).withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              admin.role.displayName,
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: _getRoleColor(admin.role),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: admin.isActive
-                                  ? Colors.green.shade100
-                                  : Colors.red.shade100,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              admin.isActive ? 'Active' : 'Inactive',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: admin.isActive
-                                    ? Colors.green.shade700
-                                    : Colors.red.shade700,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  trailing: currentAdmin?.canManageUsers() == true
-                      ? PopupMenuButton(
-                          itemBuilder: (context) => [
-                            const PopupMenuItem(
-                              value: 'edit',
-                              child: Row(
-                                children: [
-                                  Icon(Icons.edit, size: 20),
-                                  SizedBox(width: 8),
-                                  Text('Edit'),
-                                ],
-                              ),
-                            ),
-                            if (!isCurrentUser)
-                              const PopupMenuItem(
-                                value: 'delete',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.delete, size: 20, color: Colors.red),
-                                    SizedBox(width: 8),
-                                    Text('Delete', style: TextStyle(color: Colors.red)),
-                                  ],
-                                ),
-                              ),
-                          ],
-                          onSelected: (value) {
-                            if (value == 'edit') {
-                              _showEditAdminDialog(admin);
-                            } else if (value == 'delete') {
-                              _showDeleteAdminDialog(admin);
-                            }
-                          },
-                        )
-                      : null,
-                ),
-              );
-            },
-          );
-        },
-      ),
+      body: body,
       floatingActionButton: currentAdmin?.role == AdminRole.superAdmin
           ? FloatingActionButton.extended(
               onPressed: _showCreateAdminDialog,
               icon: const Icon(Icons.add),
               label: const Text('Add Admin'),
+              backgroundColor: AppColors.mustGold,
+              foregroundColor: AppColors.mustBlue,
             )
           : null,
         );
@@ -497,11 +555,11 @@ class _AdminManagementScreenState extends State<AdminManagementScreen> {
   Color _getRoleColor(AdminRole role) {
     switch (role) {
       case AdminRole.superAdmin:
-        return Colors.red;
+        return AppColors.mustGold;
       case AdminRole.reviewer:
-        return Colors.orange;
+        return AppColors.mustGreen;
       case AdminRole.moderator:
-        return Colors.blue;
+        return AppColors.mustBlue;
     }
   }
 }

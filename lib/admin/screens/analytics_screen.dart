@@ -5,7 +5,8 @@ import 'package:intl/intl.dart';
 import '../../constants/app_colors.dart';
 
 class AnalyticsScreen extends StatefulWidget {
-  const AnalyticsScreen({super.key});
+  final bool embedded;
+  const AnalyticsScreen({super.key, this.embedded = false});
 
   @override
   State<AnalyticsScreen> createState() => _AnalyticsScreenState();
@@ -148,20 +149,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Analytics Dashboard'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadAnalytics,
-            tooltip: 'Refresh Analytics',
-          ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
+    final body = _isLoading
+        ? const Center(child: CircularProgressIndicator())
+        : RefreshIndicator(
               onRefresh: _loadAnalytics,
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
@@ -198,7 +188,31 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   ],
                 ),
               ),
+            );
+
+    if (widget.embedded) return body;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Analytics Dashboard', style: TextStyle(fontWeight: FontWeight.bold)),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
             ),
+          ),
+        ),
+        foregroundColor: Colors.white,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _loadAnalytics,
+            tooltip: 'Refresh Analytics',
+          ),
+        ],
+      ),
+      body: body,
     );
   }
 
@@ -218,25 +232,25 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               'Total Reports',
               _totalReports.toString(),
               Icons.report,
-              Colors.blue,
+              AppColors.mustBlue,
             ),
             _buildMetricCard(
               'Total Users',
               _totalUsers.toString(),
               Icons.people,
-              Colors.green,
+              AppColors.mustGreen,
             ),
             _buildMetricCard(
               'Active Users',
               _activeUsers.toString(),
               Icons.verified_user,
-              Colors.orange,
+              AppColors.mustGold,
             ),
             _buildMetricCard(
               'Avg Response Time',
               '${_avgResponseTime.toStringAsFixed(1)}h',
               Icons.timer,
-              Colors.purple,
+              AppColors.mustBlueMedium,
             ),
           ],
         );
@@ -445,12 +459,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                         return FlSpot(entry.key.toDouble(), entry.value.value.toDouble());
                       }).toList(),
                       isCurved: true,
-                      color: AppColors.primaryBlue,
+                      color: AppColors.mustBlue,
                       barWidth: 3,
                       dotData: const FlDotData(show: true),
                       belowBarData: BarAreaData(
                         show: true,
-                        color: AppColors.primaryBlue.withOpacity(0.2),
+                        color: AppColors.mustBlue.withOpacity(0.2),
                       ),
                     ),
                   ],
@@ -543,7 +557,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: AppColors.primaryBlue,
+              color: AppColors.mustBlue,
             ),
           ),
         ],
@@ -608,12 +622,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   Color _getChartColor(int index) {
     final colors = [
-      Colors.blue,
-      Colors.green,
-      Colors.orange,
-      Colors.purple,
-      Colors.red,
-      Colors.teal,
+      AppColors.mustBlue,
+      AppColors.mustGold,
+      AppColors.mustGreen,
+      AppColors.mustBlueMedium,
+      AppColors.mustGreenLight,
+      AppColors.mustGoldLight,
       Colors.pink,
       Colors.amber,
     ];
@@ -623,13 +637,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'submitted':
-        return Colors.blue;
+        return AppColors.mustBlue;
       case 'under_review':
-        return Colors.orange;
+        return AppColors.mustGold;
       case 'investigating':
-        return Colors.purple;
+        return AppColors.mustBlueMedium;
       case 'resolved':
-        return Colors.green;
+        return AppColors.mustGreen;
       case 'closed':
         return Colors.grey;
       default:

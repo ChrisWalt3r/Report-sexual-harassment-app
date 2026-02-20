@@ -41,7 +41,7 @@ class AuthService {
   }) async {
     try {
       // Convert student ID to email format
-      String email = '$studentId@must.ac.mw';
+      String email = '$studentId@must.ac.ug';
 
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
@@ -61,6 +61,9 @@ class AuthService {
     required String studentId,
     required String department,
     required String phoneNumber,
+    String role = '',
+    String studyLevel = '',
+    String facultyDepartment = '',
   }) async {
     try {
       // Create user account
@@ -74,6 +77,9 @@ class AuthService {
         'studentId': studentId,
         'department': department,
         'phoneNumber': phoneNumber,
+        'role': role,
+        'studyLevel': studyLevel,
+        'facultyDepartment': facultyDepartment,
         'createdAt': FieldValue.serverTimestamp(),
         'isVerified': false,
       });
@@ -97,7 +103,7 @@ class AuthService {
   }) async {
     try {
       // Convert student ID to email format
-      String email = '$studentId@must.ac.mw';
+      String email = '$studentId@must.ac.ug';
 
       return await registerWithEmail(
         email: email,

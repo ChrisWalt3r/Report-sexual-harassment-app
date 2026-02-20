@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../constants/app_colors.dart';
 
 /// A reusable card widget for displaying support service information
 /// Designed with trauma-informed principles - calm colors, clear actions
@@ -151,7 +152,7 @@ class ServiceTag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tagColor = color ?? Colors.blue;
+    final tagColor = color ?? AppColors.mustBlue;
     
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),

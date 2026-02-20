@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
+import '../constants/app_colors.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../features/support_services/support_services.dart';
 import '../features/support_services/screens/support_home_screen.dart';
@@ -14,7 +15,8 @@ import 'my_reports_screen.dart';
 import 'notifications_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final Map<String, dynamic>? anonymousInfo;
+  const HomeScreen({super.key, this.anonymousInfo});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -56,26 +58,9 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       },
       child: Scaffold(
-      backgroundColor: const Color(0xFFF7F7F7),
+      backgroundColor: const Color(0xFFF5F6FA),
       appBar: _currentNavIndex == 0 ? _buildHomeAppBar() : null,
       body: _buildBody(),
-      floatingActionButton:
-          _currentNavIndex == 0
-              ? FloatingActionButton.extended(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const MyReportsScreen(),
-                    ),
-                  );
-                },
-                backgroundColor: const Color(0xFF2f3293),
-                foregroundColor: Colors.white,
-                icon: const Icon(Icons.add_moderator),
-                label: const Text('Report Incident'),
-              )
-              : null,
       bottomNavigationBar: BottomNavBar(
         currentIndex: _currentNavIndex,
         onTap: (index) {
@@ -119,35 +104,35 @@ class _HomeScreenState extends State<HomeScreen> {
   // Helper method to keep build method clean, replacing the conditional in build()
   PreferredSizeWidget _buildHomeAppBar() {
     return AppBar(
-      backgroundColor: Colors.white,
-      elevation: 1,
+      backgroundColor: AppColors.mustBlue,
+      elevation: 0,
       title: Row(
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.grey.shade200),
+              border: Border.all(color: AppColors.mustGold, width: 1.5),
             ),
-            child: const Icon(Icons.school, color: Color(0xFF2f3293), size: 20),
+            child: const Icon(Icons.shield_outlined, color: AppColors.mustBlue, size: 18),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
           const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Report Safely',
+                'SafeReport',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 17,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF2f3293),
+                  color: Colors.white,
                 ),
               ),
               Text(
                 'MUST Campus',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+                style: TextStyle(fontSize: 11, color: Colors.white70),
               ),
             ],
           ),
@@ -159,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
             return IconButton(
               icon: Stack(
                 children: [
-                  const Icon(Icons.notifications, color: Colors.black54),
+                  const Icon(Icons.notifications_outlined, color: Colors.white),
                   if (notificationService.unreadCount > 0)
                     Positioned(
                       top: 0,
@@ -203,8 +188,8 @@ class _HomeScreenState extends State<HomeScreen> {
         IconButton(
           icon: const CircleAvatar(
             radius: 16,
-            backgroundColor: Colors.blue,
-            child: Icon(Icons.person, color: Colors.white, size: 16),
+            backgroundColor: AppColors.mustGold,
+            child: Icon(Icons.person, color: AppColors.mustBlue, size: 16),
           ),
           onPressed: () {
             setState(() {
@@ -222,17 +207,66 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Prominent Report Incident Button
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MyReportsScreen(),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.mustGold,
+                foregroundColor: AppColors.mustBlue,
+                elevation: 3,
+                shadowColor: AppColors.mustGold.withOpacity(0.4),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add_moderator, size: 22),
+                  SizedBox(width: 10),
+                  Text(
+                    'Report Incident',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
           // Hero Banner
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF2f3293), Color(0xFF4c5ed9)],
+                colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.mustBlue.withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -240,7 +274,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const Text(
                   'Your safety is our priority.',
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: 22,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -248,9 +282,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 8),
                 const Text(
                   'Speak Up. We are here to listen. All reports are confidential.',
-                  style: TextStyle(fontSize: 14, color: Colors.white70),
+                  style: TextStyle(fontSize: 13, color: Colors.white70),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
                 ElevatedButton(
                   onPressed: () {
                     Navigator.push(
@@ -261,8 +295,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white.withValues(alpha: 0.2),
+                    backgroundColor: Colors.white.withOpacity(0.2),
                     foregroundColor: Colors.white,
+                    elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -290,7 +325,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 'Support Services',
                 'Counseling & Medical',
                 Icons.health_and_safety,
-                Colors.green,
+                AppColors.mustGreen,
                 onTap: () {
                   setState(() {
                     _currentNavIndex = 2;
@@ -317,7 +352,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 'Chat Support',
                 'Talk to an agent',
                 Icons.chat,
-                Colors.purple,
+                AppColors.mustBlueMedium,
                 badge: 'Live',
                 onTap: () {
                   Navigator.push(
@@ -338,13 +373,13 @@ class _HomeScreenState extends State<HomeScreen> {
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.blue.shade50,
+              color: AppColors.mustBlue.withOpacity(0.06),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.blue.shade100),
+              border: Border.all(color: AppColors.mustBlue.withOpacity(0.15)),
             ),
             child: Row(
               children: [
-                Icon(Icons.info, color: Colors.blue.shade600),
+                Icon(Icons.info_outline, color: AppColors.mustBlue),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -355,7 +390,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: Colors.blue.shade700,
+                          color: AppColors.mustBlue,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -363,7 +398,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         'You can submit reports anonymously. Your identity will remain hidden unless you choose to reveal it.',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.blue.shade600,
+                          color: AppColors.mustBlueMedium,
                         ),
                       ),
                     ],
@@ -386,7 +421,7 @@ class _HomeScreenState extends State<HomeScreen> {
         'My Reports',
         'Track status of submitted cases',
         Icons.folder_open,
-        Colors.blue,
+        AppColors.mustBlue,
         onTap: () {
           Navigator.push(
             context,
@@ -410,7 +445,7 @@ class _HomeScreenState extends State<HomeScreen> {
           'My Reports',
           'Track status of submitted cases',
           Icons.folder_open,
-          Colors.blue,
+          AppColors.mustBlue,
           badge: reportCount > 0 ? reportCount.toString() : null,
           onTap: () {
             Navigator.push(

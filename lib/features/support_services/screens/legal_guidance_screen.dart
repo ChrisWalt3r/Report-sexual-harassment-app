@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/legal_resource.dart';
 import '../services/support_service.dart';
+import '../../../constants/app_colors.dart';
 
 /// Screen displaying legal resources and guidance
 class LegalGuidanceScreen extends StatefulWidget {
@@ -97,12 +98,12 @@ class _LegalGuidanceScreenState extends State<LegalGuidanceScreen> {
         ),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.indigo[600],
+        backgroundColor: AppColors.mustBlue,
         foregroundColor: Colors.white,
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.indigo[600]!, Colors.indigo[400]!],
+              colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -160,14 +161,14 @@ class _LegalGuidanceScreenState extends State<LegalGuidanceScreen> {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.indigo[400]!, Colors.indigo[600]!],
+          colors: [AppColors.mustBlueMedium, AppColors.mustBlue],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.indigo.withOpacity(0.3),
+            color: AppColors.mustBlue.withOpacity(0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -219,7 +220,7 @@ class _LegalGuidanceScreenState extends State<LegalGuidanceScreen> {
             icon: Icons.monetization_on_rounded,
             title: 'Free',
             subtitle: 'Consults',
-            color: Colors.green,
+            color: AppColors.mustGreen,
           ),
         ),
         const SizedBox(width: 12),
@@ -228,7 +229,7 @@ class _LegalGuidanceScreenState extends State<LegalGuidanceScreen> {
             icon: Icons.security_rounded,
             title: 'Protected',
             subtitle: 'By Law',
-            color: Colors.indigo,
+            color: AppColors.mustBlue,
           ),
         ),
         const SizedBox(width: 12),
@@ -237,7 +238,7 @@ class _LegalGuidanceScreenState extends State<LegalGuidanceScreen> {
             icon: Icons.support_agent_rounded,
             title: 'Expert',
             subtitle: 'Advice',
-            color: Colors.orange,
+            color: AppColors.mustGold,
           ),
         ),
       ],
@@ -301,10 +302,10 @@ class _LegalGuidanceScreenState extends State<LegalGuidanceScreen> {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.indigo.withOpacity(0.1),
+            color: AppColors.mustBlue.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, color: Colors.indigo[600], size: 20),
+          child: Icon(icon, color: AppColors.mustBlue, size: 20),
         ),
         const SizedBox(width: 12),
         Text(
@@ -346,7 +347,7 @@ class _LegalGuidanceScreenState extends State<LegalGuidanceScreen> {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.indigo[50]!, Colors.white],
+                    colors: [AppColors.mustBlue.withOpacity(0.06), Colors.white],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -358,7 +359,7 @@ class _LegalGuidanceScreenState extends State<LegalGuidanceScreen> {
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [Colors.indigo[400]!, Colors.indigo[600]!],
+                          colors: [AppColors.mustBlueMedium, AppColors.mustBlue],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
@@ -388,7 +389,7 @@ class _LegalGuidanceScreenState extends State<LegalGuidanceScreen> {
                             spacing: 6,
                             runSpacing: 4,
                             children: [
-                              _buildMiniTag(resource.resourceType.displayName, Colors.indigo),
+                              _buildMiniTag(resource.resourceType.displayName, AppColors.mustBlue),
                               if (resource.providesFreeConsultation)
                                 _buildMiniTag('Free Consultation', Colors.green),
                             ],
@@ -443,11 +444,11 @@ class _LegalGuidanceScreenState extends State<LegalGuidanceScreen> {
                           Expanded(
                             child: OutlinedButton.icon(
                               onPressed: () => _openWebsite(resource.website!),
-                              icon: Icon(Icons.language_rounded, size: 18, color: Colors.indigo[600]),
-                              label: Text('Learn More', style: TextStyle(color: Colors.indigo[600])),
+                              icon: Icon(Icons.language_rounded, size: 18, color: AppColors.mustBlue),
+                              label: Text('Learn More', style: TextStyle(color: AppColors.mustBlue)),
                               style: OutlinedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(vertical: 12),
-                                side: BorderSide(color: Colors.indigo[300]!),
+                                side: BorderSide(color: AppColors.mustBlue.withOpacity(0.4)),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -489,7 +490,7 @@ class _LegalGuidanceScreenState extends State<LegalGuidanceScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.indigo[50]!, Colors.white],
+          colors: [AppColors.mustBlue.withOpacity(0.06), Colors.white],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -501,10 +502,10 @@ class _LegalGuidanceScreenState extends State<LegalGuidanceScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.indigo.withOpacity(0.1),
+              color: AppColors.mustBlue.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(Icons.info_rounded, color: Colors.indigo[600], size: 28),
+            child: Icon(Icons.info_rounded, color: AppColors.mustBlue, size: 28),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -574,7 +575,7 @@ class _LegalGuidanceScreenState extends State<LegalGuidanceScreen> {
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [Colors.indigo[400]!, Colors.indigo[600]!],
+                          colors: [AppColors.mustBlueMedium, AppColors.mustBlue],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
@@ -602,13 +603,13 @@ class _LegalGuidanceScreenState extends State<LegalGuidanceScreen> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: Colors.indigo.withOpacity(0.1),
+                              color: AppColors.mustBlue.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
                               resource.resourceType.displayName,
                               style: TextStyle(
-                                color: Colors.indigo[600],
+                                color: AppColors.mustBlue,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -702,11 +703,11 @@ class _LegalGuidanceScreenState extends State<LegalGuidanceScreen> {
                             Navigator.pop(context);
                             _openWebsite(resource.website!);
                           },
-                          icon: Icon(Icons.language_rounded, color: Colors.indigo[600]),
-                          label: Text('Website', style: TextStyle(color: Colors.indigo[600])),
+                          icon: Icon(Icons.language_rounded, color: AppColors.mustBlue),
+                          label: Text('Website', style: TextStyle(color: AppColors.mustBlue)),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 14),
-                            side: BorderSide(color: Colors.indigo[300]!),
+                            side: BorderSide(color: AppColors.mustBlue.withOpacity(0.4)),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),

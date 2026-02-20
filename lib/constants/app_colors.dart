@@ -54,4 +54,12 @@ class AppColors {
   // Accent colors
   static const Color avatarOrange = Color(0xFFFED7AA);
   static const Color onlineGreen = Color(0xFF10B981);
+
+  // MUST (Mbarara University) brand colors
+  static const Color mustGold = Color(0xFFD4A843);
+  static const Color mustGoldLight = Color(0xFFFFD54F);
+  static const Color mustBlue = Color(0xFF003366);
+  static const Color mustBlueMedium = Color(0xFF1A4D80);
+  static const Color mustGreen = Color(0xFF006633);
+  static const Color mustGreenLight = Color(0xFF1B8A4E);
 }

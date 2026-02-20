@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/emergency_contact.dart';
 import '../services/support_service.dart';
 import '../constants/emergency_constants.dart';
+import '../../../constants/app_colors.dart';
 
 /// Screen displaying emergency contacts for quick access
 class EmergencyContactsScreen extends StatefulWidget {
@@ -74,12 +75,12 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
         ),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.red[600],
+        backgroundColor: AppColors.mustBlue,
         foregroundColor: Colors.white,
         flexibleSpace: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.red[700]!, Colors.red[500]!],
+              colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -109,15 +110,15 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.red[500]!, Colors.red[700]!],
+        gradient: const LinearGradient(
+          colors: [AppColors.mustBlueMedium, AppColors.mustBlue],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.red.withOpacity(0.3),
+            color: AppColors.mustBlue.withOpacity(0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -239,7 +240,7 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
                 icon: Icons.speed_rounded,
                 title: 'Fast',
                 subtitle: 'Response',
-                color: Colors.orange,
+                color: AppColors.mustGold,
               ),
             ),
             const SizedBox(width: 12),
@@ -248,7 +249,7 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
                 icon: Icons.access_time_filled_rounded,
                 title: '24/7',
                 subtitle: 'Available',
-                color: Colors.green,
+                color: AppColors.mustGreen,
               ),
             ),
             const SizedBox(width: 12),
@@ -257,7 +258,7 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
                 icon: Icons.location_on_rounded,
                 title: 'Local',
                 subtitle: 'Services',
-                color: Colors.blue,
+                color: AppColors.mustBlue,
               ),
             ),
           ],
@@ -323,10 +324,10 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.red.withOpacity(0.1),
+            color: AppColors.mustBlue.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, color: Colors.red[600], size: 20),
+          child: Icon(icon, color: AppColors.mustBlue, size: 20),
         ),
         const SizedBox(width: 12),
         Text(
@@ -445,7 +446,7 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.red[50]!, Colors.white],
+          colors: [AppColors.mustBlue.withOpacity(0.06), Colors.white],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -457,10 +458,10 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.red.withOpacity(0.1),
+              color: AppColors.mustGold.withOpacity(0.15),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(Icons.tips_and_updates_rounded, color: Colors.red[600], size: 28),
+            child: const Icon(Icons.tips_and_updates_rounded, color: AppColors.mustGold, size: 28),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -493,12 +494,12 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
 
   Color _getCategoryColor(EmergencyCategory category) {
     switch (category) {
-      case EmergencyCategory.police: return Colors.blue;
-      case EmergencyCategory.medical: return Colors.red;
-      case EmergencyCategory.crisisHotline: return Colors.purple;
-      case EmergencyCategory.womenShelter: return Colors.pink;
-      case EmergencyCategory.legalAid: return Colors.indigo;
-      case EmergencyCategory.general: return Colors.grey;
+      case EmergencyCategory.police: return AppColors.mustBlue;
+      case EmergencyCategory.medical: return AppColors.mustGreen;
+      case EmergencyCategory.crisisHotline: return AppColors.mustGold;
+      case EmergencyCategory.womenShelter: return AppColors.mustGold;
+      case EmergencyCategory.legalAid: return AppColors.mustBlue;
+      case EmergencyCategory.general: return AppColors.mustBlueMedium;
     }
   }
 

@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../constants/app_colors.dart';
 import '../../models/admin_user.dart';
 
 class ReportsManagementScreen extends StatefulWidget {
   final AdminUser admin;
+  final bool embedded;
 
-  const ReportsManagementScreen({super.key, required this.admin});
+  const ReportsManagementScreen({super.key, required this.admin, this.embedded = false});
 
   @override
   State<ReportsManagementScreen> createState() =>
@@ -19,6 +21,9 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
   final _searchController = TextEditingController();
   String _searchQuery = '';
   String _selectedStatus = 'all';
+  String _selectedFaculty = 'all';
+  bool _anonymousOnly = false;
+  DateTimeRange? _dateRange;
 
   final Map<String, String> _statusLabels = {
     'all': 'All Reports',
@@ -31,11 +36,11 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
   };
 
   final Map<String, Color> _statusColors = {
-    'pending': Colors.yellow,
-    'submitted': Colors.blue,
-    'under_review': Colors.orange,
-    'investigating': Colors.purple,
-    'resolved': Colors.green,
+    'pending': Colors.orange,
+    'submitted': AppColors.mustBlue,
+    'under_review': AppColors.mustGold,
+    'investigating': AppColors.mustBlueMedium,
+    'resolved': AppColors.mustGreen,
     'closed': Colors.grey,
   };
 
@@ -268,9 +273,11 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                       // Header
                       Container(
                         padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryBlue,
-                          borderRadius: const BorderRadius.only(
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
+                          ),
+                          borderRadius: BorderRadius.only(
                             topLeft: Radius.circular(12),
                             topRight: Radius.circular(12),
                           ),
@@ -329,6 +336,8 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                   'Anonymous Report',
                                   (data['isAnonymous'] == true) ? 'Yes' : 'No',
                                 ),
+                                if (data['isAnonymous'] == true && data['trackingToken'] != null)
+                                  _buildTokenRow(data['trackingToken']),
                               ]),
                               const SizedBox(height: 20),
 
@@ -430,17 +439,189 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                               ]),
                               const SizedBox(height: 20),
 
-                              if (data['evidenceUrls'] != null &&
-                                  (data['evidenceUrls'] as List)
-                                      .isNotEmpty) ...[
-                                _buildDetailSection('Evidence', [
-                                  Text(
-                                    '${(data['evidenceUrls'] as List).length} file(s) attached',
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
-                                ]),
-                                const SizedBox(height: 20),
-                              ],
+                              // Evidence section - always show
+                              Builder(builder: (context) {
+                                final imageUrls = _getListFromData(data, 'imageUrls');
+                                final videoUrls = _getListFromData(data, 'videoUrls');
+                                final hasEvidence = imageUrls.isNotEmpty || videoUrls.isNotEmpty;
+
+                                if (!hasEvidence) {
+                                  return _buildDetailSection('Evidence', [
+                                    Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[50],
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(color: Colors.grey[200]!),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.folder_off, color: Colors.grey[400], size: 24),
+                                          const SizedBox(width: 12),
+                                          Text('No evidence files were submitted with this report',
+                                              style: TextStyle(color: Colors.grey[500], fontSize: 14)),
+                                        ],
+                                      ),
+                                    ),
+                                  ]);
+                                }
+
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Photo Evidence
+                                    if (imageUrls.isNotEmpty) ...[
+                                      _buildDetailSection('Photo Evidence (${imageUrls.length})', [
+                                        SizedBox(
+                                          height: 180,
+                                          child: ListView.builder(
+                                            scrollDirection: Axis.horizontal,
+                                            itemCount: imageUrls.length,
+                                            itemBuilder: (context, imgIndex) {
+                                              final url = imageUrls[imgIndex];
+                                              return Padding(
+                                                padding: const EdgeInsets.only(right: 10),
+                                                child: GestureDetector(
+                                                  onTap: () => _showFullImage(context, url, imgIndex + 1),
+                                                  child: ClipRRect(
+                                                    borderRadius: BorderRadius.circular(10),
+                                                    child: Stack(
+                                                      children: [
+                                                        Image.network(
+                                                          url,
+                                                          width: 160,
+                                                          height: 180,
+                                                          fit: BoxFit.cover,
+                                                          loadingBuilder: (context, child, progress) {
+                                                            if (progress == null) return child;
+                                                            return Container(
+                                                              width: 160, height: 180,
+                                                              color: Colors.grey[100],
+                                                              child: Center(
+                                                                child: CircularProgressIndicator(
+                                                                  value: progress.expectedTotalBytes != null
+                                                                      ? progress.cumulativeBytesLoaded / progress.expectedTotalBytes!
+                                                                      : null,
+                                                                  strokeWidth: 2,
+                                                                  color: AppColors.mustGold,
+                                                                ),
+                                                              ),
+                                                            );
+                                                          },
+                                                          errorBuilder: (context, error, stack) => Container(
+                                                            width: 160, height: 180,
+                                                            color: Colors.grey[200],
+                                                            child: Column(
+                                                              mainAxisAlignment: MainAxisAlignment.center,
+                                                              children: [
+                                                                Icon(Icons.broken_image, color: Colors.grey[400], size: 36),
+                                                                const SizedBox(height: 4),
+                                                                Text('Load failed', style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+                                                                const SizedBox(height: 4),
+                                                                InkWell(
+                                                                  onTap: () async {
+                                                                    final uri = Uri.parse(url);
+                                                                    if (await canLaunchUrl(uri)) {
+                                                                      await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                                                    }
+                                                                  },
+                                                                  child: Text('Open link', style: TextStyle(fontSize: 11, color: AppColors.mustBlue, decoration: TextDecoration.underline)),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        Positioned(
+                                                          bottom: 0, left: 0, right: 0,
+                                                          child: Container(
+                                                            padding: const EdgeInsets.symmetric(vertical: 4),
+                                                            decoration: const BoxDecoration(
+                                                              gradient: LinearGradient(
+                                                                begin: Alignment.bottomCenter,
+                                                                end: Alignment.topCenter,
+                                                                colors: [Colors.black54, Colors.transparent],
+                                                              ),
+                                                            ),
+                                                            child: Row(
+                                                              mainAxisAlignment: MainAxisAlignment.center,
+                                                              children: [
+                                                                Icon(Icons.zoom_in, size: 14, color: Colors.white70),
+                                                                const SizedBox(width: 4),
+                                                                Text('Tap to view', style: TextStyle(fontSize: 10, color: Colors.white70)),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      ]),
+                                      const SizedBox(height: 20),
+                                    ],
+
+                                    // Video Evidence
+                                    if (videoUrls.isNotEmpty) ...[
+                                      _buildDetailSection('Video Evidence (${videoUrls.length})', [
+                                        ...videoUrls.asMap().entries.map((entry) {
+                                          final videoUrl = entry.value;
+                                          final videoNum = entry.key + 1;
+                                          return Padding(
+                                            padding: const EdgeInsets.only(bottom: 8),
+                                            child: InkWell(
+                                              onTap: () async {
+                                                final uri = Uri.parse(videoUrl);
+                                                if (await canLaunchUrl(uri)) {
+                                                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                                }
+                                              },
+                                              borderRadius: BorderRadius.circular(10),
+                                              child: Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                                decoration: BoxDecoration(
+                                                  color: AppColors.mustBlue.withOpacity(0.05),
+                                                  borderRadius: BorderRadius.circular(10),
+                                                  border: Border.all(color: AppColors.mustBlue.withOpacity(0.2)),
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    Container(
+                                                      padding: const EdgeInsets.all(8),
+                                                      decoration: BoxDecoration(
+                                                        color: AppColors.mustBlue.withOpacity(0.1),
+                                                        borderRadius: BorderRadius.circular(8),
+                                                      ),
+                                                      child: const Icon(Icons.videocam, color: AppColors.mustBlue, size: 22),
+                                                    ),
+                                                    const SizedBox(width: 12),
+                                                    Expanded(
+                                                      child: Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        children: [
+                                                          Text('Video $videoNum', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                                                          const SizedBox(height: 2),
+                                                          Text('Tap to open in browser', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    Icon(Icons.open_in_new, color: AppColors.mustBlue.withOpacity(0.6), size: 20),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        }),
+                                      ]),
+                                      const SizedBox(height: 20),
+                                    ],
+                                  ],
+                                );
+                              }),
 
                               // Resolution Message (if resolved)
                               if (data['resolutionMessage'] != null &&
@@ -601,233 +782,474 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Reports Management'),
-        backgroundColor: AppColors.primaryBlue,
-        foregroundColor: Colors.white,
-      ),
-      body: Column(
+  Widget _buildTokenRow(String token) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Filters
-          Container(
-            padding: const EdgeInsets.all(16),
-            color: Colors.white,
-            child: Column(
-              children: [
-                // Search Bar
-                TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Search by report ID, type, or location...',
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[100],
-                  ),
-                  onChanged: (value) {
-                    setState(() {
-                      _searchQuery = value.toLowerCase();
-                    });
-                  },
-                ),
-                const SizedBox(height: 12),
-
-                // Status Filter
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children:
-                        _statusLabels.entries.map((entry) {
-                          final isSelected = _selectedStatus == entry.key;
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: FilterChip(
-                              label: Text(entry.value),
-                              selected: isSelected,
-                              onSelected: (selected) {
-                                setState(() {
-                                  _selectedStatus = entry.key;
-                                });
-                              },
-                              backgroundColor: Colors.grey[200],
-                              selectedColor: AppColors.primaryBlue.withOpacity(
-                                0.2,
-                              ),
-                              checkmarkColor: AppColors.primaryBlue,
-                              labelStyle: TextStyle(
-                                color:
-                                    isSelected
-                                        ? AppColors.primaryBlue
-                                        : Colors.black87,
-                                fontWeight:
-                                    isSelected
-                                        ? FontWeight.w600
-                                        : FontWeight.normal,
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                  ),
-                ),
-              ],
+          SizedBox(
+            width: 140,
+            child: Text(
+              'Tracking Token:',
+              style: TextStyle(
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[700],
+              ),
             ),
           ),
-
-          // Reports List
           Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream:
-                  _firestore
-                      .collection('reports')
-                      .orderBy('createdAt', descending: true)
-                      .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                }
-
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                final reports =
-                    snapshot.data!.docs.where((doc) {
-                      final data = doc.data() as Map<String, dynamic>;
-
-                      // Filter by status
-                      if (_selectedStatus != 'all' &&
-                          data['status'] != _selectedStatus) {
-                        return false;
-                      }
-
-                      // Filter by search query
-                      if (_searchQuery.isNotEmpty) {
-                        final type = (data['type'] ?? '').toLowerCase();
-                        final location = (data['location'] ?? '').toLowerCase();
-                        final reportId = doc.id.toLowerCase();
-
-                        if (!type.contains(_searchQuery) &&
-                            !location.contains(_searchQuery) &&
-                            !reportId.contains(_searchQuery)) {
-                          return false;
-                        }
-                      }
-
-                      return true;
-                    }).toList();
-
-                if (reports.isEmpty) {
-                  return const Center(child: Text('No reports found'));
-                }
-
-                return ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: reports.length,
-                  itemBuilder: (context, index) {
-                    final reportDoc = reports[index];
-                    final data = reportDoc.data() as Map<String, dynamic>;
-                    final status = data['status'] ?? 'submitted';
-                    final statusColor = _statusColors[status] ?? Colors.grey;
-
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(
-                          color: statusColor.withOpacity(0.3),
-                          width: 2,
-                        ),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.mustGold.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.mustGold.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.vpn_key, size: 16, color: AppColors.mustGold),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: SelectableText(
+                      token,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'monospace',
+                        color: AppColors.mustBlue,
                       ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.all(16),
-                        leading: Container(
-                          width: 50,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            color: statusColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Icon(Icons.report, color: statusColor),
-                        ),
-                        title: Text(
-                          data['type'] ?? 'Report',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 4),
-                            Text('Location: ${data['location'] ?? 'N/A'}'),
-                            const SizedBox(height: 2),
-                            Text(
-                              data['createdAt'] != null
-                                  ? DateFormat('MMM dd, yyyy').format(
-                                    (data['createdAt'] as Timestamp).toDate(),
-                                  )
-                                  : 'N/A',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
-                        trailing: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: statusColor.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: statusColor.withOpacity(0.5),
-                                ),
-                              ),
-                              child: Text(
-                                _statusLabels[status] ?? status,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: statusColor,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            if (data['isAnonymous'] == true)
-                              Text(
-                                'Anonymous',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.grey[600],
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              ),
-                          ],
-                        ),
-                        onTap: () => _showReportDetails(reportDoc),
-                      ),
-                    );
-                  },
-                );
-              },
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  /// Safely extracts a List<String> from Firestore document data,
+  /// handling null, wrong types, and dynamic lists.
+  List<String> _getListFromData(Map<String, dynamic> data, String key) {
+    final raw = data[key];
+    if (raw == null) return [];
+    if (raw is List) {
+      return raw.whereType<String>().where((s) => s.isNotEmpty).toList();
+    }
+    return [];
+  }
+
+  void _showFullImage(BuildContext context, String url, int imageNum) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(16),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Image
+            GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: InteractiveViewer(
+                minScale: 0.5,
+                maxScale: 4.0,
+                child: Image.network(
+                  url,
+                  fit: BoxFit.contain,
+                  loadingBuilder: (context, child, progress) {
+                    if (progress == null) return child;
+                    return Center(
+                      child: CircularProgressIndicator(
+                        value: progress.expectedTotalBytes != null
+                            ? progress.cumulativeBytesLoaded / progress.expectedTotalBytes!
+                            : null,
+                        color: AppColors.mustGold,
+                      ),
+                    );
+                  },
+                  errorBuilder: (context, error, stack) => Container(
+                    padding: const EdgeInsets.all(40),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.broken_image, size: 64, color: Colors.grey[400]),
+                        const SizedBox(height: 12),
+                        Text('Failed to load image', style: TextStyle(color: Colors.grey[600])),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            // Top bar
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Colors.black54, Colors.transparent],
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Text('Image $imageNum', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 16)),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.open_in_new, color: Colors.white, size: 22),
+                      tooltip: 'Open in browser',
+                      onPressed: () async {
+                        final uri = Uri.parse(url);
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(uri, mode: LaunchMode.externalApplication);
+                        }
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white, size: 24),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickDateRange() async {
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2023),
+      lastDate: DateTime.now(),
+      initialDateRange: _dateRange,
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: const ColorScheme.light(
+            primary: AppColors.mustBlue,
+            onPrimary: Colors.white,
+            secondary: AppColors.mustGold,
+          ),
+        ),
+        child: child!,
+      ),
+    );
+    if (picked != null) setState(() => _dateRange = picked);
+  }
+
+  void _clearFilters() {
+    setState(() {
+      _selectedStatus = 'all';
+      _selectedFaculty = 'all';
+      _anonymousOnly = false;
+      _dateRange = null;
+      _searchController.clear();
+      _searchQuery = '';
+    });
+  }
+
+  bool get _hasActiveFilters =>
+      _selectedStatus != 'all' ||
+      _selectedFaculty != 'all' ||
+      _anonymousOnly ||
+      _dateRange != null ||
+      _searchQuery.isNotEmpty;
+
+  Widget _buildBody() {
+    return Column(
+      children: [
+        // Filters Panel
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 4, offset: const Offset(0, 2))],
+          ),
+          child: Column(
+            children: [
+              // Search bar
+              TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Search by ID, type, location, or tracking token...',
+                  prefixIcon: const Icon(Icons.search),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(icon: const Icon(Icons.clear, size: 20), onPressed: () { _searchController.clear(); setState(() => _searchQuery = ''); })
+                      : null,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[300]!)),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.mustBlue, width: 2)),
+                  filled: true,
+                  fillColor: Colors.grey[50],
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                ),
+                onChanged: (value) => setState(() => _searchQuery = value.toLowerCase()),
+              ),
+              const SizedBox(height: 12),
+
+              // Filter row
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    // Status dropdown
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: _selectedStatus != 'all' ? AppColors.mustGold.withOpacity(0.1) : Colors.grey[100],
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: _selectedStatus != 'all' ? AppColors.mustGold : Colors.grey[300]!),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _selectedStatus,
+                          isDense: true,
+                          icon: const Icon(Icons.arrow_drop_down, size: 20),
+                          style: TextStyle(fontSize: 13, color: _selectedStatus != 'all' ? AppColors.mustBlue : Colors.grey[700], fontWeight: _selectedStatus != 'all' ? FontWeight.w600 : FontWeight.normal),
+                          items: _statusLabels.entries.map((e) => DropdownMenuItem(value: e.key, child: Text(e.value))).toList(),
+                          onChanged: (val) => setState(() => _selectedStatus = val ?? 'all'),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+
+                    // Date range
+                    InkWell(
+                      onTap: _pickDateRange,
+                      borderRadius: BorderRadius.circular(10),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: _dateRange != null ? AppColors.mustGold.withOpacity(0.1) : Colors.grey[100],
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: _dateRange != null ? AppColors.mustGold : Colors.grey[300]!),
+                        ),
+                        child: Row(children: [
+                          Icon(Icons.calendar_today, size: 16, color: _dateRange != null ? AppColors.mustBlue : Colors.grey[600]),
+                          const SizedBox(width: 6),
+                          Text(
+                            _dateRange != null
+                                ? '${DateFormat('MMM d').format(_dateRange!.start)} - ${DateFormat('MMM d').format(_dateRange!.end)}'
+                                : 'Date Range',
+                            style: TextStyle(fontSize: 13, color: _dateRange != null ? AppColors.mustBlue : Colors.grey[600], fontWeight: _dateRange != null ? FontWeight.w600 : FontWeight.normal),
+                          ),
+                        ]),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+
+                    // Anonymous toggle
+                    InkWell(
+                      onTap: () => setState(() => _anonymousOnly = !_anonymousOnly),
+                      borderRadius: BorderRadius.circular(10),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: _anonymousOnly ? AppColors.mustGold.withOpacity(0.1) : Colors.grey[100],
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: _anonymousOnly ? AppColors.mustGold : Colors.grey[300]!),
+                        ),
+                        child: Row(children: [
+                          Icon(Icons.visibility_off, size: 16, color: _anonymousOnly ? AppColors.mustBlue : Colors.grey[600]),
+                          const SizedBox(width: 6),
+                          Text('Anonymous', style: TextStyle(fontSize: 13, color: _anonymousOnly ? AppColors.mustBlue : Colors.grey[600], fontWeight: _anonymousOnly ? FontWeight.w600 : FontWeight.normal)),
+                        ]),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+
+                    // Clear all
+                    if (_hasActiveFilters)
+                      InkWell(
+                        onTap: _clearFilters,
+                        borderRadius: BorderRadius.circular(10),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(color: Colors.red[50], borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.red[200]!)),
+                          child: Row(children: [
+                            Icon(Icons.clear_all, size: 16, color: Colors.red[700]),
+                            const SizedBox(width: 4),
+                            Text('Clear All', style: TextStyle(fontSize: 13, color: Colors.red[700], fontWeight: FontWeight.w600)),
+                          ]),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Reports List
+        Expanded(
+          child: StreamBuilder<QuerySnapshot>(
+            stream: _firestore.collection('reports').orderBy('createdAt', descending: true).snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.hasError) return Center(child: Text('Error: ${snapshot.error}'));
+              if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
+
+              final reports = snapshot.data!.docs.where((doc) {
+                final data = doc.data() as Map<String, dynamic>;
+
+                // Status filter
+                if (_selectedStatus != 'all' && data['status'] != _selectedStatus) return false;
+
+                // Anonymous filter
+                if (_anonymousOnly && data['isAnonymous'] != true) return false;
+
+                // Date range filter
+                if (_dateRange != null && data['createdAt'] != null) {
+                  final createdAt = (data['createdAt'] as Timestamp).toDate();
+                  if (createdAt.isBefore(_dateRange!.start) || createdAt.isAfter(_dateRange!.end.add(const Duration(days: 1)))) return false;
+                }
+
+                // Search (includes tracking token search)
+                if (_searchQuery.isNotEmpty) {
+                  final type = (data['type'] ?? '').toLowerCase();
+                  final location = (data['location'] ?? '').toLowerCase();
+                  final reportId = doc.id.toLowerCase();
+                  final token = (data['trackingToken'] ?? '').toLowerCase();
+
+                  if (!type.contains(_searchQuery) &&
+                      !location.contains(_searchQuery) &&
+                      !reportId.contains(_searchQuery) &&
+                      !token.contains(_searchQuery)) {
+                    return false;
+                  }
+                }
+
+                return true;
+              }).toList();
+
+              if (reports.isEmpty) {
+                return Center(
+                  child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Icon(Icons.search_off, size: 56, color: Colors.grey[300]),
+                    const SizedBox(height: 12),
+                    Text('No reports found', style: TextStyle(color: Colors.grey[500], fontSize: 16)),
+                    if (_hasActiveFilters) ...[
+                      const SizedBox(height: 8),
+                      TextButton.icon(
+                        onPressed: _clearFilters,
+                        icon: const Icon(Icons.clear_all),
+                        label: const Text('Clear Filters'),
+                        style: TextButton.styleFrom(foregroundColor: AppColors.mustBlue),
+                      ),
+                    ],
+                  ]),
+                );
+              }
+
+              return ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: reports.length,
+                itemBuilder: (context, index) {
+                  final reportDoc = reports[index];
+                  final data = reportDoc.data() as Map<String, dynamic>;
+                  final status = data['status'] ?? 'submitted';
+                  final statusColor = _statusColors[status] ?? Colors.grey;
+
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(color: statusColor.withOpacity(0.3), width: 2),
+                    ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.all(16),
+                      leading: Container(
+                        width: 50, height: 50,
+                        decoration: BoxDecoration(color: statusColor.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                        child: Icon(Icons.report, color: statusColor),
+                      ),
+                      title: Text(data['type'] ?? 'Report', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 4),
+                          Text('Location: ${data['location'] ?? 'N/A'}'),
+                          const SizedBox(height: 2),
+                          Text(
+                            data['createdAt'] != null
+                                ? DateFormat('MMM dd, yyyy').format((data['createdAt'] as Timestamp).toDate())
+                                : 'N/A',
+                            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                          ),
+                          if (data['isAnonymous'] == true && data['trackingToken'] != null) ...[
+                            const SizedBox(height: 4),
+                            Row(children: [
+                              Icon(Icons.vpn_key, size: 12, color: AppColors.mustGold),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Text(
+                                  data['trackingToken'],
+                                  style: TextStyle(fontSize: 11, color: AppColors.mustGold, fontFamily: 'monospace', fontWeight: FontWeight.w600),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ]),
+                          ],
+                        ],
+                      ),
+                      trailing: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: statusColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: statusColor.withOpacity(0.5)),
+                            ),
+                            child: Text(_statusLabels[status] ?? status, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: statusColor)),
+                          ),
+                          const SizedBox(height: 4),
+                          if (data['isAnonymous'] == true)
+                            Text('Anonymous', style: TextStyle(fontSize: 11, color: Colors.grey[600], fontStyle: FontStyle.italic)),
+                        ],
+                      ),
+                      onTap: () => _showReportDetails(reportDoc),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.embedded) return _buildBody();
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Reports Management', style: TextStyle(fontWeight: FontWeight.bold)),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(colors: [AppColors.mustBlue, AppColors.mustBlueMedium]),
+          ),
+        ),
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      body: _buildBody(),
     );
   }
 }

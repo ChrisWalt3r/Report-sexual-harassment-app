@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../services/enhanced_ai_service.dart';
 import '../config/ai_config.dart';
+import '../constants/app_colors.dart';
 
 class AIPoweredChatScreen extends StatefulWidget {
   const AIPoweredChatScreen({super.key});
@@ -109,11 +110,20 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: Colors.white,
-      elevation: 1,
+      elevation: 0,
+      foregroundColor: Colors.white,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.black87),
+        icon: const Icon(Icons.arrow_back, color: Colors.white),
         onPressed: () => Navigator.pop(context),
+      ),
+      flexibleSpace: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
       ),
       title: Row(
         children: [
@@ -122,9 +132,9 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
               Container(
                 width: 40,
                 height: 40,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.purple.shade400, Colors.blue.shade500],
+                    colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -161,7 +171,7 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                    color: Colors.white,
                   ),
                 ),
                 Consumer<EnhancedAIService>(
@@ -172,7 +182,7 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
                           : 'Connecting to AI...',
                       style: TextStyle(
                         fontSize: 11,
-                        color: Colors.grey.shade600,
+                        color: Colors.white70,
                       ),
                     );
                   },
@@ -184,11 +194,11 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.analytics, color: Colors.black54),
+          icon: const Icon(Icons.analytics, color: Colors.white70),
           onPressed: _showAnalytics,
         ),
         PopupMenuButton<String>(
-          icon: const Icon(Icons.more_vert, color: Colors.black54),
+          icon: const Icon(Icons.more_vert, color: Colors.white70),
           onSelected: _handleMenuAction,
           itemBuilder: (context) => [
             const PopupMenuItem(
@@ -274,21 +284,21 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: Colors.blue.shade50,
+            color: AppColors.mustBlue.withOpacity(0.06),
             border: Border(
-              bottom: BorderSide(color: Colors.blue.shade100, width: 1),
+              bottom: BorderSide(color: AppColors.mustBlue.withOpacity(0.15), width: 1),
             ),
           ),
           child: Row(
             children: [
-              Icon(Icons.psychology, color: Colors.blue.shade600, size: 16),
+              Icon(Icons.psychology, color: AppColors.mustBlue, size: 16),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'AI-powered responses • Scenario: ${aiService.currentScenario.replaceAll('_', ' ')}',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.blue.shade700,
+                    color: AppColors.mustBlue,
                   ),
                 ),
               ),
@@ -298,7 +308,7 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
                   height: 16,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation(Colors.blue.shade600),
+                    valueColor: AlwaysStoppedAnimation(AppColors.mustBlue),
                   ),
                 ),
             ],
@@ -316,22 +326,22 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.blue.shade50, Colors.purple.shade50],
+              colors: [AppColors.mustBlue.withOpacity(0.06), AppColors.mustBlue.withOpacity(0.06)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.blue.shade100),
+            border: Border.all(color: AppColors.mustBlue.withOpacity(0.15)),
           ),
           child: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.blue.shade100,
+                  color: AppColors.mustBlue.withOpacity(0.15),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.psychology, color: Colors.blue.shade600, size: 16),
+                child: Icon(Icons.psychology, color: AppColors.mustBlue, size: 16),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -343,14 +353,14 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Colors.blue.shade700,
+                        color: AppColors.mustBlue,
                       ),
                     ),
                     Text(
                       'Trained specifically for sexual harassment support • End-to-end encrypted',
                       style: TextStyle(
                         fontSize: 11,
-                        color: Colors.blue.shade600,
+                        color: AppColors.mustBlue,
                       ),
                     ),
                   ],
@@ -402,7 +412,7 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
                 Icon(
                   _getActionIcon(action),
                   size: 14,
-                  color: const Color(0xFF2f3293),
+                  color: AppColors.mustBlue,
                 ),
                 const SizedBox(width: 6),
                 Text(
@@ -453,7 +463,7 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
-                    color: isUser ? const Color(0xFF2f3293) : _getMessageBubbleColor(message),
+                    color: isUser ? AppColors.mustBlue : _getMessageBubbleColor(message),
                     borderRadius: BorderRadius.circular(20).copyWith(
                       topLeft: isUser ? const Radius.circular(20) : const Radius.circular(6),
                       topRight: isUser ? const Radius.circular(6) : const Radius.circular(20),
@@ -519,8 +529,8 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
 
     if (isUser) {
       icon = Icons.person;
-      backgroundColor = Colors.blue.shade100;
-      iconColor = Colors.blue.shade600;
+      backgroundColor = AppColors.mustBlue.withOpacity(0.15);
+      iconColor = AppColors.mustBlue;
     } else {
       switch (messageType) {
         case ChatMessageType.system:
@@ -530,8 +540,8 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
           break;
         default:
           icon = Icons.psychology;
-          backgroundColor = Colors.purple.shade100;
-          iconColor = Colors.purple.shade600;
+          backgroundColor = AppColors.mustGold.withOpacity(0.15);
+          iconColor = AppColors.mustGold;
       }
     }
 
@@ -625,10 +635,10 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: Colors.purple.shade100,
+              color: AppColors.mustBlue.withOpacity(0.15),
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.psychology, color: Colors.purple.shade600, size: 18),
+            child: Icon(Icons.psychology, color: AppColors.mustBlue, size: 18),
           ),
           const SizedBox(width: 8),
           Container(
@@ -656,7 +666,7 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
                   height: 16,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation(Colors.purple.shade400),
+                    valueColor: AlwaysStoppedAnimation(AppColors.mustBlueMedium),
                   ),
                 ),
               ],
@@ -722,7 +732,7 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
                                 color: _isTyping 
-                                    ? const Color(0xFF2f3293)
+                                    ? AppColors.mustGold
                                     : Colors.grey.shade400,
                                 shape: BoxShape.circle,
                               ),
@@ -989,10 +999,10 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
         width: 48,
         height: 48,
         decoration: BoxDecoration(
-          color: const Color(0xFF2f3293).withValues(alpha: 0.1),
+          color: AppColors.mustBlue.withValues(alpha: 0.1),
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, color: const Color(0xFF2f3293)),
+        child: Icon(icon, color: AppColors.mustBlue),
       ),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
       subtitle: Text(subtitle, style: TextStyle(color: Colors.grey.shade600)),

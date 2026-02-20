@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/medical_support.dart';
 import '../services/support_service.dart';
+import '../../../constants/app_colors.dart';
 
 /// Screen displaying medical support resources
 class MedicalSupportScreen extends StatefulWidget {
@@ -70,12 +71,12 @@ class _MedicalSupportScreenState extends State<MedicalSupportScreen> {
         ),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.blue[600],
+        backgroundColor: AppColors.mustBlue,
         foregroundColor: Colors.white,
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.blue[600]!, Colors.blue[400]!],
+              colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -109,14 +110,14 @@ class _MedicalSupportScreenState extends State<MedicalSupportScreen> {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.blue[400]!, Colors.blue[600]!],
+          colors: [AppColors.mustBlueMedium, AppColors.mustBlue],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.blue.withOpacity(0.3),
+            color: AppColors.mustBlue.withOpacity(0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -168,7 +169,7 @@ class _MedicalSupportScreenState extends State<MedicalSupportScreen> {
             icon: Icons.access_time_rounded,
             title: '24/7',
             subtitle: 'Available',
-            color: Colors.green,
+            color: AppColors.mustGreen,
           ),
         ),
         const SizedBox(width: 12),
@@ -177,7 +178,7 @@ class _MedicalSupportScreenState extends State<MedicalSupportScreen> {
             icon: Icons.shield_rounded,
             title: 'Private',
             subtitle: 'Confidential',
-            color: Colors.purple,
+            color: AppColors.mustBlue,
           ),
         ),
         const SizedBox(width: 12),
@@ -186,7 +187,7 @@ class _MedicalSupportScreenState extends State<MedicalSupportScreen> {
             icon: Icons.volunteer_activism_rounded,
             title: 'Free',
             subtitle: 'Services',
-            color: Colors.orange,
+            color: AppColors.mustGold,
           ),
         ),
       ],
@@ -250,10 +251,10 @@ class _MedicalSupportScreenState extends State<MedicalSupportScreen> {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.blue.withOpacity(0.1),
+            color: AppColors.mustBlue.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, color: Colors.blue[600], size: 20),
+          child: Icon(icon, color: AppColors.mustBlue, size: 20),
         ),
         const SizedBox(width: 12),
         Text(
@@ -290,7 +291,7 @@ class _MedicalSupportScreenState extends State<MedicalSupportScreen> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.blue[50]!, Colors.white],
+                colors: [AppColors.mustBlue.withOpacity(0.06), Colors.white],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -302,7 +303,7 @@ class _MedicalSupportScreenState extends State<MedicalSupportScreen> {
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Colors.blue[400]!, Colors.blue[600]!],
+                      colors: [AppColors.mustBlueMedium, AppColors.mustBlue],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -331,7 +332,7 @@ class _MedicalSupportScreenState extends State<MedicalSupportScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: Colors.blue[100],
+                          color: AppColors.mustBlue.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -339,7 +340,7 @@ class _MedicalSupportScreenState extends State<MedicalSupportScreen> {
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
-                            color: Colors.blue[700],
+                            color: AppColors.mustBlue,
                           ),
                         ),
                       ),
@@ -370,9 +371,9 @@ class _MedicalSupportScreenState extends State<MedicalSupportScreen> {
                   runSpacing: 8,
                   children: [
                     if (resource.hasSpecializedUnit)
-                      _buildTag('Specialized Care', Colors.purple, Icons.star_rounded),
+                      _buildTag('Specialized Care', AppColors.mustGold, Icons.star_rounded),
                     if (resource.isConfidential)
-                      _buildTag('Confidential', Colors.orange, Icons.lock_rounded),
+                      _buildTag('Confidential', AppColors.mustBlue, Icons.lock_rounded),
                   ],
                 ),
                 if (resource.phoneNumber != null) ...[
@@ -433,7 +434,7 @@ class _MedicalSupportScreenState extends State<MedicalSupportScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.blue[50]!, Colors.white],
+          colors: [AppColors.mustBlue.withOpacity(0.06), Colors.white],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -445,10 +446,10 @@ class _MedicalSupportScreenState extends State<MedicalSupportScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.1),
+              color: AppColors.mustBlue.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(Icons.verified_user_rounded, color: Colors.blue[600], size: 28),
+            child: Icon(Icons.verified_user_rounded, color: AppColors.mustBlue, size: 28),
           ),
           const SizedBox(width: 16),
           Expanded(

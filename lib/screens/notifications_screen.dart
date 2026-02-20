@@ -25,7 +25,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     if (userId == null) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Notifications'),
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+          ),
+          title: const Text('Notifications', style: TextStyle(color: Colors.white)),
+          iconTheme: const IconThemeData(color: Colors.white),
         ),
         body: const Center(
           child: Text('Please login to view notifications'),
@@ -34,9 +44,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F7),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.primaryBlue,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -131,7 +149,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           Icon(
             Icons.notifications_none,
             size: 80,
-            color: Colors.grey[400],
+            color: AppColors.mustBlue.withOpacity(0.3),
           ),
           const SizedBox(height: 16),
           Text(
@@ -171,19 +189,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         break;
       case 'status_changed':
         icon = Icons.update;
-        iconColor = Colors.blue;
+        iconColor = AppColors.mustBlue;
         break;
       case 'new_comment':
         icon = Icons.comment;
-        iconColor = Colors.orange;
+        iconColor = AppColors.mustGold;
         break;
       case 'reminder':
         icon = Icons.alarm;
-        iconColor = Colors.purple;
+        iconColor = AppColors.mustBlueMedium;
         break;
       default:
         icon = Icons.notifications;
-        iconColor = AppColors.primaryBlue;
+        iconColor = AppColors.mustBlue;
     }
 
     return Dismissible(
@@ -234,12 +252,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: notification.isRead ? Colors.white : Colors.blue.shade50,
+            color: notification.isRead ? Colors.white : AppColors.mustBlue.withOpacity(0.04),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: notification.isRead
                   ? Colors.grey.shade200
-                  : AppColors.primaryBlue.withOpacity(0.3),
+                  : AppColors.mustBlue.withOpacity(0.3),
             ),
             boxShadow: [
               BoxShadow(
@@ -284,7 +302,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             width: 8,
                             height: 8,
                             decoration: const BoxDecoration(
-                              color: AppColors.primaryBlue,
+                              color: AppColors.mustGold,
                               shape: BoxShape.circle,
                             ),
                           ),

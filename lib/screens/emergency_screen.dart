@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../widgets/bottom_nav_bar.dart';
+import '../constants/app_colors.dart';
 
 class EmergencyScreen extends StatefulWidget {
   const EmergencyScreen({super.key});
@@ -19,7 +20,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
       number: '+256740535992',
       type: 'Security',
       icon: Icons.security,
-      color: Colors.blue,
+      color: AppColors.mustBlue,
       description: '24/7 Campus Security Office',
     ),
     EmergencyContact(
@@ -35,7 +36,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
       number: '+256740470116',
       type: 'Medical',
       icon: Icons.local_hospital,
-      color: Colors.green,
+      color: AppColors.mustGreen,
       description: 'MUST Medical Emergency',
     ),
     EmergencyContact(
@@ -43,7 +44,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
       number: '+256740535992',
       type: 'Support',
       icon: Icons.support_agent,
-      color: Colors.purple,
+      color: AppColors.mustGold,
       description: 'Sexual Harassment Support',
     ),
     EmergencyContact(
@@ -51,7 +52,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
       number: '+256740535992',
       type: 'Counseling',
       icon: Icons.psychology,
-      color: Colors.orange,
+      color: AppColors.mustBlueMedium,
       description: 'Mental Health Support',
     ),
   ];
@@ -177,7 +178,6 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7F7),
       appBar: AppBar(
-        backgroundColor: Colors.red.shade700,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -191,12 +191,22 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
+        foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.info_outline, color: Colors.white),
             onPressed: _showEmergencyInfo,
           ),
         ],
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -206,9 +216,9 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.red.shade700, Colors.red.shade900],
+                  colors: [AppColors.mustBlue, Color(0xFF001A33)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -335,18 +345,18 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.crisis_alert,
               size: 50,
-              color: Colors.red.shade700,
+              color: Colors.red,
             ),
             const SizedBox(height: 8),
-            Text(
+            const Text(
               'PANIC',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Colors.red.shade700,
+                color: Colors.red,
               ),
             ),
           ],
@@ -499,7 +509,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                   tooltip: 'Call',
                 ),
                 IconButton(
-                  icon: const Icon(Icons.message, color: Colors.blue, size: 22),
+                  icon: const Icon(Icons.message, color: AppColors.mustBlue, size: 22),
                   onPressed: () => _sendSMS(
                     contact.number,
                     'Emergency: I need help. This is an urgent situation at MUST Campus.',
@@ -521,23 +531,23 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.blue.shade50,
+        color: AppColors.mustBlue.withOpacity(0.06),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue.shade100),
+        border: Border.all(color: AppColors.mustBlue.withOpacity(0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.lightbulb, color: Colors.blue.shade700),
+              const Icon(Icons.lightbulb, color: AppColors.mustGold),
               const SizedBox(width: 8),
-              Text(
+              const Text(
                 'Safety Tips',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Colors.blue.shade700,
+                  color: AppColors.mustBlue,
                 ),
               ),
             ],
@@ -559,14 +569,14 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.check_circle, size: 16, color: Colors.blue.shade600),
+          const Icon(Icons.check_circle, size: 16, color: AppColors.mustGreen),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               tip,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 13,
-                color: Colors.blue.shade700,
+                color: AppColors.mustBlue,
               ),
             ),
           ),
@@ -666,7 +676,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                     icon: const Icon(Icons.message),
                     label: const Text('Send SMS'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
+                      backgroundColor: AppColors.mustBlue,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
@@ -724,7 +734,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Got it'),
+            child: const Text('Got it', style: TextStyle(color: AppColors.mustBlue)),
           ),
         ],
       ),

@@ -11,11 +11,13 @@ import '../services/cloudinary_service.dart';
 class ReportEditScreen extends StatefulWidget {
   final String reportId;
   final Map<String, dynamic> reportData;
+  final bool evidenceOnly;
 
   const ReportEditScreen({
     super.key,
     required this.reportId,
     required this.reportData,
+    this.evidenceOnly = false,
   });
 
   @override
@@ -68,18 +70,17 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: const Text(
-          'Edit Report',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: Text(
+          widget.evidenceOnly ? 'Add Evidence' : 'Edit Report',
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        backgroundColor: AppColors.primaryBlue,
         foregroundColor: Colors.white,
         elevation: 0,
         flexibleSpace: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [AppColors.primaryBlue, AppColors.primaryBlue.withOpacity(0.8)],
+              colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -120,31 +121,55 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
                 
                 const SizedBox(height: 16),
                 
-                // Editable Fields Card
-                _buildSectionCard(
-                  title: 'Edit Details',
-                  icon: Icons.edit_note,
-                  child: Column(
-                    children: [
-                      _buildEditableField(
-                        'Location',
-                        _locationController,
-                        icon: Icons.location_on,
-                        hintText: 'Enter location details',
-                      ),
-                      const SizedBox(height: 20),
-                      _buildEditableField(
-                        'Description',
-                        _descriptionController,
-                        maxLines: 5,
-                        icon: Icons.description,
-                        hintText: 'Describe what happened...',
-                      ),
-                    ],
+                // Editable Fields Card (hidden in evidence-only mode)
+                if (!widget.evidenceOnly) ...[
+                  _buildSectionCard(
+                    title: 'Edit Details',
+                    icon: Icons.edit_note,
+                    child: Column(
+                      children: [
+                        _buildEditableField(
+                          'Location',
+                          _locationController,
+                          icon: Icons.location_on,
+                          hintText: 'Enter location details',
+                        ),
+                        const SizedBox(height: 20),
+                        _buildEditableField(
+                          'Description',
+                          _descriptionController,
+                          maxLines: 5,
+                          icon: Icons.description,
+                          hintText: 'Describe what happened...',
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 16),
+                ],
                 
-                const SizedBox(height: 16),
+                if (widget.evidenceOnly)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: AppColors.mustBlue.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.mustBlue.withOpacity(0.2)),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.info_outline, color: AppColors.mustBlue, size: 20),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'This report is under review. You can add more evidence but cannot edit other details or remove existing evidence.',
+                            style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 
                 // Attachments Card
                 _buildSectionCard(
@@ -185,7 +210,7 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryBlue),
+                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.mustBlue),
                       ),
                       const SizedBox(height: 16),
                       const Text(
@@ -236,7 +261,7 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.primaryBlue.withOpacity(0.05),
+              color: AppColors.mustBlue.withOpacity(0.05),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
@@ -247,12 +272,12 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryBlue.withOpacity(0.1),
+                    color: AppColors.mustBlue.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     icon,
-                    color: AppColors.primaryBlue,
+                    color: AppColors.mustBlue,
                     size: 20,
                   ),
                 ),
@@ -331,11 +356,11 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
         break;
       case 'in progress':
       case 'investigating':
-        statusColor = Colors.blue;
+        statusColor = AppColors.mustBlue;
         statusIcon = Icons.hourglass_empty;
         break;
       case 'resolved':
-        statusColor = Colors.green;
+        statusColor = AppColors.mustGreen;
         statusIcon = Icons.check_circle;
         break;
       case 'rejected':
@@ -431,15 +456,15 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
             height: 54,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
-              gradient: LinearGradient(
+              gradient: const LinearGradient(
                 colors: [
-                  AppColors.primaryBlue,
-                  AppColors.primaryBlue.withOpacity(0.8),
+                  AppColors.mustGold,
+                  AppColors.mustGoldLight,
                 ],
               ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primaryBlue.withOpacity(0.4),
+                  color: AppColors.mustGold.withOpacity(0.4),
                   blurRadius: 12,
                   offset: const Offset(0, 6),
                 ),
@@ -452,15 +477,15 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
                 onTap: _isSaving ? null : _saveChanges,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(Icons.save_rounded, color: Colors.white, size: 22),
-                    SizedBox(width: 10),
+                  children: [
+                    const Icon(Icons.save_rounded, color: AppColors.mustBlue, size: 22),
+                    const SizedBox(width: 10),
                     Text(
-                      'Save Changes',
-                      style: TextStyle(
+                      widget.evidenceOnly ? 'Save Evidence' : 'Save Changes',
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: AppColors.mustBlue,
                       ),
                     ),
                   ],
@@ -486,7 +511,7 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
         Row(
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 18, color: AppColors.primaryBlue),
+              Icon(icon, size: 18, color: AppColors.mustBlue),
               const SizedBox(width: 8),
             ],
             Text(
@@ -519,7 +544,7 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: AppColors.primaryBlue, width: 2),
+                borderSide: BorderSide(color: AppColors.mustBlue, width: 2),
               ),
               contentPadding: const EdgeInsets.all(16),
             ),
@@ -533,7 +558,7 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
     final String description = _descriptionController.text.trim();
     final String location = _locationController.text.trim();
 
-    if (description.isEmpty || location.isEmpty) {
+    if (!widget.evidenceOnly && (description.isEmpty || location.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Description and location cannot be empty.'),
@@ -553,6 +578,16 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
       return;
     }
 
+    // In evidence-only mode, ensure new evidence is actually being added
+    if (widget.evidenceOnly && _newImages.isEmpty && _newVideos.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please add at least one image or video as evidence.'),
+        ),
+      );
+      return;
+    }
+
     setState(() => _isSaving = true);
 
     try {
@@ -562,7 +597,7 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
         newImageUrls = await _uploadImages(_newImages);
       }
 
-      // Upload new videos (placeholder for now)
+      // Upload new videos
       List<String> newVideoUrls = [];
       if (_newVideos.isNotEmpty) {
         newVideoUrls = await _uploadVideos(_newVideos);
@@ -572,13 +607,19 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
       final List<String> finalImageUrls = [..._existingImageUrls, ...newImageUrls];
       final List<String> finalVideoUrls = [..._existingVideoUrls, ...newVideoUrls];
 
-      await _firestore.collection('reports').doc(widget.reportId).update({
-        'description': description,
-        'location': location,
+      // In evidence-only mode, only update evidence fields
+      final Map<String, dynamic> updateData = {
         'imageUrls': finalImageUrls,
         'videoUrls': finalVideoUrls,
         'updatedAt': FieldValue.serverTimestamp(),
-      });
+      };
+
+      if (!widget.evidenceOnly) {
+        updateData['description'] = description;
+        updateData['location'] = location;
+      }
+
+      await _firestore.collection('reports').doc(widget.reportId).update(updateData);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -735,7 +776,7 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
         // Existing Images Preview
         if (_existingImageUrls.isNotEmpty) ...[
           const SizedBox(height: 20),
-          _buildSubsectionHeader('Existing Images', Icons.photo, Colors.blue),
+          _buildSubsectionHeader('Existing Images', Icons.photo, AppColors.mustBlue),
           const SizedBox(height: 10),
           SizedBox(
             height: 100,
@@ -778,21 +819,23 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
                       Positioned(
                         top: 4,
                         right: 4,
-                        child: GestureDetector(
-                          onTap: () => _removeExistingImage(index),
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.close,
-                              color: Colors.white,
-                              size: 16,
-                            ),
-                          ),
-                        ),
+                        child: widget.evidenceOnly
+                            ? const SizedBox.shrink()
+                            : GestureDetector(
+                                onTap: () => _removeExistingImage(index),
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.red,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.close,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
+                                ),
+                              ),
                       ),
                     ],
                   ),
@@ -805,7 +848,7 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
         // New Images Preview
         if (_newImages.isNotEmpty) ...[
           const SizedBox(height: 20),
-          _buildSubsectionHeader('New Images', Icons.add_photo_alternate, Colors.green),
+          _buildSubsectionHeader('New Images', Icons.add_photo_alternate, AppColors.mustGreen),
           const SizedBox(height: 10),
           SizedBox(
             height: 100,
@@ -856,28 +899,28 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
         // Existing Videos Preview
         if (_existingVideoUrls.isNotEmpty) ...[
           const SizedBox(height: 20),
-          _buildSubsectionHeader('Existing Videos', Icons.video_library, Colors.blue),
+          _buildSubsectionHeader('Existing Videos', Icons.video_library, AppColors.mustBlue),
           const SizedBox(height: 10),
           ...List.generate(_existingVideoUrls.length, (index) {
             return Container(
               margin: const EdgeInsets.only(bottom: 10),
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.05),
+                color: AppColors.mustBlue.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.blue.withOpacity(0.2)),
+                border: Border.all(color: AppColors.mustBlue.withOpacity(0.2)),
               ),
               child: Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppColors.primaryBlue.withOpacity(0.1),
+                      color: AppColors.mustBlue.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
                       Icons.videocam,
-                      color: AppColors.primaryBlue,
+                      color: AppColors.mustBlue,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -888,10 +931,11 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Colors.red, size: 20),
-                    onPressed: () => _removeExistingVideo(index),
-                  ),
+                  if (!widget.evidenceOnly)
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.red, size: 20),
+                      onPressed: () => _removeExistingVideo(index),
+                    ),
                 ],
               ),
             );
@@ -901,28 +945,28 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
         // New Videos Preview
         if (_newVideos.isNotEmpty) ...[
           const SizedBox(height: 20),
-          _buildSubsectionHeader('New Videos', Icons.video_call, Colors.green),
+          _buildSubsectionHeader('New Videos', Icons.video_call, AppColors.mustGreen),
           const SizedBox(height: 10),
           ...List.generate(_newVideos.length, (index) {
             return Container(
               margin: const EdgeInsets.only(bottom: 10),
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.05),
+                color: AppColors.mustGreen.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.green.withOpacity(0.2)),
+                border: Border.all(color: AppColors.mustGreen.withOpacity(0.2)),
               ),
               child: Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.green.withOpacity(0.2),
+                      color: AppColors.mustGreen.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
                       Icons.videocam,
-                      color: Colors.green,
+                      color: AppColors.mustGreen,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -985,10 +1029,10 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
           decoration: BoxDecoration(
-            color: hasItems ? AppColors.primaryBlue.withOpacity(0.05) : Colors.grey[50],
+            color: hasItems ? AppColors.mustBlue.withOpacity(0.05) : Colors.grey[50],
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: hasItems ? AppColors.primaryBlue.withOpacity(0.3) : Colors.grey.shade200,
+              color: hasItems ? AppColors.mustBlue.withOpacity(0.3) : Colors.grey.shade200,
               width: hasItems ? 2 : 1,
             ),
           ),
@@ -1000,13 +1044,13 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: hasItems ? AppColors.primaryBlue.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
+                      color: hasItems ? AppColors.mustBlue.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
                       icon,
                       size: 28,
-                      color: hasItems ? AppColors.primaryBlue : Colors.grey[400],
+                      color: hasItems ? AppColors.mustBlue : Colors.grey[400],
                     ),
                   ),
                   if (hasItems)
@@ -1017,12 +1061,12 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [AppColors.primaryBlue, AppColors.primaryBlue.withOpacity(0.8)],
+                            colors: [AppColors.mustBlue, AppColors.mustBlue.withOpacity(0.8)],
                           ),
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primaryBlue.withOpacity(0.4),
+                              color: AppColors.mustBlue.withOpacity(0.4),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),
@@ -1044,7 +1088,7 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
               Text(
                 label,
                 style: TextStyle(
-                  color: hasItems ? AppColors.primaryBlue : Colors.grey[600],
+                  color: hasItems ? AppColors.mustBlue : Colors.grey[600],
                   fontWeight: hasItems ? FontWeight.bold : FontWeight.w500,
                   fontSize: 13,
                 ),

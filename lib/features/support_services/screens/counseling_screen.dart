@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/counseling_service.dart';
 import '../services/support_service.dart';
+import '../../../constants/app_colors.dart';
 
 /// Screen displaying available counseling services
 class CounselingScreen extends StatefulWidget {
@@ -97,12 +98,12 @@ class _CounselingScreenState extends State<CounselingScreen> {
         ),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.purple[600],
+        backgroundColor: AppColors.mustBlue,
         foregroundColor: Colors.white,
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.purple[600]!, Colors.purple[400]!],
+              colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -160,14 +161,14 @@ class _CounselingScreenState extends State<CounselingScreen> {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.purple[400]!, Colors.purple[600]!],
+          colors: [AppColors.mustBlueMedium, AppColors.mustBlue],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.purple.withOpacity(0.3),
+            color: AppColors.mustBlue.withOpacity(0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -219,7 +220,7 @@ class _CounselingScreenState extends State<CounselingScreen> {
             icon: Icons.favorite_rounded,
             title: 'Safe',
             subtitle: 'Space',
-            color: Colors.pink,
+            color: AppColors.mustGold,
           ),
         ),
         const SizedBox(width: 12),
@@ -228,7 +229,7 @@ class _CounselingScreenState extends State<CounselingScreen> {
             icon: Icons.lock_rounded,
             title: 'Private',
             subtitle: 'Sessions',
-            color: Colors.purple,
+            color: AppColors.mustBlue,
           ),
         ),
         const SizedBox(width: 12),
@@ -237,7 +238,7 @@ class _CounselingScreenState extends State<CounselingScreen> {
             icon: Icons.emoji_people_rounded,
             title: 'Trained',
             subtitle: 'Experts',
-            color: Colors.indigo,
+            color: AppColors.mustGreen,
           ),
         ),
       ],
@@ -301,10 +302,10 @@ class _CounselingScreenState extends State<CounselingScreen> {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.purple.withOpacity(0.1),
+            color: AppColors.mustBlue.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, color: Colors.purple[600], size: 20),
+          child: Icon(icon, color: AppColors.mustBlue, size: 20),
         ),
         const SizedBox(width: 12),
         Text(
@@ -341,7 +342,7 @@ class _CounselingScreenState extends State<CounselingScreen> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.purple[50]!, Colors.white],
+                colors: [AppColors.mustBlue.withOpacity(0.06), Colors.white],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -353,7 +354,7 @@ class _CounselingScreenState extends State<CounselingScreen> {
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Colors.purple[400]!, Colors.purple[600]!],
+                      colors: [AppColors.mustBlueMedium, AppColors.mustBlue],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -438,11 +439,11 @@ class _CounselingScreenState extends State<CounselingScreen> {
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: () => _openWebsite(service.website!),
-                          icon: Icon(Icons.language_rounded, size: 18, color: Colors.purple[600]),
-                          label: Text('Website', style: TextStyle(color: Colors.purple[600])),
+                          icon: Icon(Icons.language_rounded, size: 18, color: AppColors.mustBlue),
+                          label: Text('Website', style: TextStyle(color: AppColors.mustBlue)),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 12),
-                            side: BorderSide(color: Colors.purple[300]!),
+                            side: BorderSide(color: AppColors.mustBlue.withOpacity(0.4)),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -482,7 +483,7 @@ class _CounselingScreenState extends State<CounselingScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.purple[50]!, Colors.white],
+          colors: [AppColors.mustBlue.withOpacity(0.06), Colors.white],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -494,10 +495,10 @@ class _CounselingScreenState extends State<CounselingScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.purple.withOpacity(0.1),
+              color: AppColors.mustBlue.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(Icons.spa_rounded, color: Colors.purple[600], size: 28),
+            child: Icon(Icons.spa_rounded, color: AppColors.mustBlue, size: 28),
           ),
           const SizedBox(width: 16),
           Expanded(

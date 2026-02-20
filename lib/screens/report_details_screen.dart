@@ -38,13 +38,12 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        backgroundColor: AppColors.primaryBlue,
         foregroundColor: Colors.white,
         elevation: 0,
         flexibleSpace: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [AppColors.primaryBlue, AppColors.primaryBlue.withOpacity(0.8)],
+              colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -209,12 +208,12 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
         break;
       case 'in progress':
       case 'investigating':
-        statusColor = Colors.blue;
+        statusColor = AppColors.mustBlue;
         statusIcon = Icons.search_rounded;
         statusMessage = 'Your report is being investigated';
         break;
       case 'resolved':
-        statusColor = Colors.green;
+        statusColor = AppColors.mustGreen;
         statusIcon = Icons.check_circle_outline_rounded;
         statusMessage = 'This report has been resolved';
         break;
@@ -298,10 +297,10 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.green.withOpacity(0.3)),
+        border: Border.all(color: AppColors.mustGreen.withOpacity(0.3)),
         boxShadow: [
           BoxShadow(
-            color: Colors.green.withOpacity(0.08),
+            color: AppColors.mustGreen.withOpacity(0.08),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -313,7 +312,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.08),
+              color: AppColors.mustGreen.withOpacity(0.08),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
@@ -324,12 +323,12 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.15),
+                    color: AppColors.mustGreen.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
                     Icons.task_alt_rounded,
-                    color: Colors.green,
+                    color: AppColors.mustGreen,
                     size: 20,
                   ),
                 ),
@@ -399,7 +398,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.primaryBlue.withOpacity(0.05),
+              color: AppColors.mustBlue.withOpacity(0.05),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
@@ -410,12 +409,12 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryBlue.withOpacity(0.1),
+                    color: AppColors.mustBlue.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     icon,
-                    color: AppColors.primaryBlue,
+                    color: AppColors.mustBlue,
                     size: 20,
                   ),
                 ),
@@ -494,18 +493,18 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
+                  color: AppColors.mustBlue.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: const Icon(Icons.photo, size: 16, color: Colors.blue),
+                child: Icon(Icons.photo, size: 16, color: AppColors.mustBlue),
               ),
               const SizedBox(width: 8),
               Text(
                 '${imageUrls.length} Photo${imageUrls.length > 1 ? 's' : ''}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: Colors.blue,
+                  color: AppColors.mustBlue,
                 ),
               ),
             ],
@@ -547,7 +546,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                                 child: Center(
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryBlue),
+                                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.mustBlue),
                                   ),
                                 ),
                               );
@@ -577,18 +576,18 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: Colors.purple.withOpacity(0.1),
+                  color: AppColors.mustBlueMedium.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: const Icon(Icons.videocam, size: 16, color: Colors.purple),
+                child: Icon(Icons.videocam, size: 16, color: AppColors.mustBlueMedium),
               ),
               const SizedBox(width: 8),
               Text(
                 '${videoUrls.length} Video${videoUrls.length > 1 ? 's' : ''}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: Colors.purple,
+                  color: AppColors.mustBlueMedium,
                 ),
               ),
             ],
@@ -606,12 +605,12 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
               decoration: BoxDecoration(
                 color: isPending 
                     ? Colors.orange.withOpacity(0.05)
-                    : Colors.purple.withOpacity(0.05),
+                    : AppColors.mustBlueMedium.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: isPending 
                       ? Colors.orange.withOpacity(0.3)
-                      : Colors.purple.withOpacity(0.2),
+                      : AppColors.mustBlueMedium.withOpacity(0.2),
                 ),
               ),
               child: Row(
@@ -621,12 +620,12 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                     decoration: BoxDecoration(
                       color: isPending 
                           ? Colors.orange.withOpacity(0.1)
-                          : Colors.purple.withOpacity(0.1),
+                          : AppColors.mustBlueMedium.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
                       isPending ? Icons.videocam_off : Icons.play_circle_fill, 
-                      color: isPending ? Colors.orange : Colors.purple, 
+                      color: isPending ? Colors.orange : AppColors.mustBlueMedium, 
                       size: 24,
                     ),
                   ),
@@ -663,7 +662,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                         borderRadius: BorderRadius.circular(8),
                         child: Container(
                           padding: const EdgeInsets.all(8),
-                          child: const Icon(Icons.open_in_new, color: Colors.purple, size: 20),
+                          child: Icon(Icons.open_in_new, color: AppColors.mustBlueMedium, size: 20),
                         ),
                       ),
                     )
@@ -708,10 +707,10 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 gradient: _isPending
-                    ? LinearGradient(
+                    ? const LinearGradient(
                         colors: [
-                          AppColors.primaryBlue,
-                          AppColors.primaryBlue.withOpacity(0.8),
+                          AppColors.mustBlue,
+                          AppColors.mustBlueMedium,
                         ],
                       )
                     : LinearGradient(
@@ -723,7 +722,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                 boxShadow: _isPending
                     ? [
                         BoxShadow(
-                          color: AppColors.primaryBlue.withOpacity(0.4),
+                          color: AppColors.mustBlue.withOpacity(0.4),
                           blurRadius: 12,
                           offset: const Offset(0, 6),
                         ),
@@ -868,18 +867,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
     }
   }
 
-  Future<void> _navigateToEdit() async {
-    // Verify the report is still pending before allowing edit
-    if (!_isPending) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Only pending reports can be edited.'),
-          backgroundColor: Colors.orange[700],
-        ),
-      );
-      return;
-    }
-
+  Future<void> _navigateToEdit({bool evidenceOnly = false}) async {
     // Verify ownership before allowing edit
     final currentUser = _auth.currentUser;
     final reportOwnerId = widget.reportData['userId'] as String?;
@@ -899,6 +887,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
         builder: (context) => ReportEditScreen(
           reportId: widget.reportId,
           reportData: widget.reportData,
+          evidenceOnly: evidenceOnly,
         ),
       ),
     );

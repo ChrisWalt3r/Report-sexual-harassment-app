@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import 'login_screen.dart';
-import 'home_screen.dart';
+import 'anonymous_info_screen.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -10,16 +10,16 @@ class WelcomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Colors.blue,
-              Colors.blue.shade600,
-              Colors.blue.shade300,
+              AppColors.mustBlue,
+              AppColors.mustBlueMedium,
+              AppColors.mustGreen,
             ],
-            stops: const [0.0, 0.5, 1.0],
+            stops: [0.0, 0.55, 1.0],
           ),
         ),
         child: SafeArea(
@@ -31,26 +31,30 @@ class WelcomeScreen extends StatelessWidget {
                 
                 // App Logo/Icon
                 Container(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(22),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 20,
+                        color: Colors.black.withOpacity(0.15),
+                        blurRadius: 24,
                         offset: const Offset(0, 10),
                       ),
                     ],
+                    border: Border.all(
+                      color: AppColors.mustGold,
+                      width: 3,
+                    ),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.shield_outlined,
                     size: 80,
-                    color: Colors.blue,
+                    color: AppColors.mustBlue,
                   ),
                 ),
                 
-                const SizedBox(height: 40),
+                const SizedBox(height: 36),
                 
                 // Welcome Title
                 const Text(
@@ -70,7 +74,7 @@ class WelcomeScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 42,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: AppColors.mustGoldLight,
                     letterSpacing: 1.5,
                   ),
                 ),
@@ -102,16 +106,16 @@ class WelcomeScreen extends StatelessWidget {
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: AppColors.primary,
-                      elevation: 0,
+                      backgroundColor: AppColors.mustGold,
+                      foregroundColor: AppColors.mustBlue,
+                      elevation: 2,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
-                    child: Row(
+                    child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
+                      children: [
                         Icon(Icons.person_outline, size: 24),
                         SizedBox(width: 12),
                         Text(
@@ -135,21 +139,21 @@ class WelcomeScreen extends StatelessWidget {
                   height: 56,
                   child: OutlinedButton(
                     onPressed: () {
-                      Navigator.pushReplacement(
+                      Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const HomeScreen()),
+                        MaterialPageRoute(builder: (_) => const AnonymousInfoScreen()),
                       );
                     },
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.white,
-                      side: const BorderSide(color: Colors.white, width: 2),
+                      side: const BorderSide(color: AppColors.mustGoldLight, width: 2),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
-                    child: Row(
+                    child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
+                      children: [
                         Icon(Icons.visibility_off_outlined, size: 24),
                         SizedBox(width: 12),
                         Text(
@@ -173,12 +177,16 @@ class WelcomeScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: AppColors.mustGold.withOpacity(0.3),
+                      width: 1,
+                    ),
                   ),
                   child: Row(
                     children: [
                       Icon(
                         Icons.lock_outline,
-                        color: Colors.white.withOpacity(0.9),
+                        color: AppColors.mustGoldLight.withOpacity(0.9),
                         size: 20,
                       ),
                       const SizedBox(width: 12),

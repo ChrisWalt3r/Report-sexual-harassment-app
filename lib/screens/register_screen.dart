@@ -23,17 +23,79 @@ class _RegisterScreenState extends State<RegisterScreen> {
   
   bool _isLoading = false;
   bool _obscurePassword = true;
+
+  // Role selection
+  String? _selectedRole;
+  final List<String> _roles = ['Student', 'Staff', 'Other'];
+
+  // Study level (for students)
+  String? _selectedStudyLevel;
+  final List<String> _studyLevels = ['Undergraduate', 'Postgraduate'];
   
   final List<String> _faculties = [
     'Faculty of Medicine',
-    'Faculty of Applied Sciences and Technology',
+    'Faculty of Science',
     'Faculty of Computing and Informatics',
+    'Faculty of Applied Sciences and Technology',
     'Faculty of Business and Management Sciences',
     'Faculty of Interdisciplinary Studies',
-    'Faculty of Agricultural and Environmental Sciences',
   ];
   
   String? _selectedFaculty;
+  String? _selectedDepartment;
+
+  // Faculty → Departments mapping
+  final Map<String, List<String>> _facultyDepartments = {
+    'Faculty of Medicine': [
+      'Anatomy',
+      'Biochemistry',
+      'Internal Medicine',
+      'Surgery',
+      'Pediatrics',
+      'Obstetrics & Gynecology',
+      'Family Medicine',
+      'Medical Laboratory Sciences',
+      'Pharmacy',
+      'Microbiology',
+      'Pathology',
+      'Radiology',
+      'Physiology',
+      'Psychiatry',
+      'Community Health',
+      'Nursing/Midwifery',
+    ],
+    'Faculty of Science': [
+      'Biology',
+      'Chemistry',
+      'Physics',
+      'Mathematics',
+    ],
+    'Faculty of Computing and Informatics': [
+      'Computer Science',
+      'Information Technology',
+      'Software Engineering',
+    ],
+    'Faculty of Applied Sciences and Technology': [
+      'Biomedical Sciences & Engineering',
+      'Civil Engineering',
+      'Electrical & Electronics Engineering',
+      'Mechanical Engineering',
+      'Petroleum & Environmental Management',
+    ],
+    'Faculty of Business and Management Sciences': [
+      'Accounting & Finance',
+      'Business Administration',
+      'Economics',
+      'Procurement & Supply Chain Management',
+      'Marketing & Entrepreneurship',
+    ],
+    'Faculty of Interdisciplinary Studies': [
+      'Planning & Governance',
+      'Human Development & Relational Sciences',
+      'Environment & Livelihood Support Systems',
+      'Community Engagement & Service Learning',
+    ],
+  };
 
   @override
   void dispose() {
@@ -59,6 +121,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         studentId: _studentIdController.text.trim(),
         department: _selectedFaculty ?? _facultyController.text.trim(),
         phoneNumber: _phoneController.text.trim(),
+        role: _selectedRole ?? '',
+        studyLevel: _selectedStudyLevel ?? '',
+        facultyDepartment: _selectedDepartment ?? '',
       );
 
       if (mounted) {
@@ -93,45 +158,106 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: () => Navigator.pop(context),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.mustBlue,
+              AppColors.mustBlueMedium,
+            ],
+            stops: [0.0, 0.4],
+          ),
         ),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Title
-                Text(
-                  'Create Account',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+        child: Column(
+          children: [
+            // Custom App Bar area
+            SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Header section on gradient
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.15),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                      border: Border.all(
+                        color: AppColors.mustGold,
+                        width: 2,
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.person_add_outlined,
+                      size: 28,
+                      color: AppColors.mustBlue,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Create Account',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Register to get started',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white.withOpacity(0.85),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 14),
+                ],
+              ),
+            ),
+
+            // Form card section
+            Expanded(
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(28),
+                    topRight: Radius.circular(28),
                   ),
                 ),
-                
-                const SizedBox(height: 8),
-                
-                Text(
-                  'Register to get started',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                
-                const SizedBox(height: 32),
-                
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+
                 // Full Name
                 CustomTextField(
                   controller: _fullNameController,
@@ -145,18 +271,110 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return null;
                   },
                 ),
-                
+
+                const SizedBox(height: 16),
+
+                // Role Dropdown
+                DropdownButtonFormField<String>(
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    labelText: 'I am a...',
+                    hintText: 'Select your role',
+                    prefixIcon: Icon(Icons.people_outline, color: AppColors.textSecondary),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey[300]!),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey[300]!),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: AppColors.mustBlue, width: 2),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                  ),
+                  items: _roles.map((role) {
+                    return DropdownMenuItem(
+                      value: role,
+                      child: Text(role),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedRole = value;
+                      // Reset study level when role changes
+                      if (value != 'Student') {
+                        _selectedStudyLevel = null;
+                      }
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please select your role';
+                    }
+                    return null;
+                  },
+                ),
+
+                // Study Level Dropdown (only for Students)
+                if (_selectedRole == 'Student') ...[
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    isExpanded: true,
+                    value: _selectedStudyLevel,
+                    decoration: InputDecoration(
+                      labelText: 'Study Level',
+                      hintText: 'Select your study level',
+                      prefixIcon: Icon(Icons.menu_book_outlined, color: AppColors.textSecondary),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.mustBlue, width: 2),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                    ),
+                    items: _studyLevels.map((level) {
+                      return DropdownMenuItem(
+                        value: level,
+                        child: Text(level),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() => _selectedStudyLevel = value);
+                    },
+                    validator: (value) {
+                      if (_selectedRole == 'Student' && (value == null || value.isEmpty)) {
+                        return 'Please select your study level';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+
                 const SizedBox(height: 16),
                 
                 // Student ID
                 CustomTextField(
                   controller: _studentIdController,
-                  label: 'Student ID',
-                  hint: 'Enter your student ID',
+                  label: _selectedRole == 'Staff' ? 'Staff ID' : _selectedRole == 'Other' ? 'ID Number' : 'Student ID',
+                  hint: _selectedRole == 'Staff' ? 'Enter your staff ID' : _selectedRole == 'Other' ? 'Enter your ID number' : 'Enter your student ID',
                   prefixIcon: Icons.badge_outlined,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your student ID';
+                      return 'Please enter your ID';
                     }
                     return null;
                   },
@@ -187,7 +405,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 // Faculty Dropdown
                 DropdownButtonFormField<String>(
                   isExpanded: true,
-                  initialValue: _selectedFaculty,
+                  value: _selectedFaculty,
                   decoration: InputDecoration(
                     labelText: 'Faculty',
                     hintText: 'Select your faculty',
@@ -203,7 +421,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppColors.primary, width: 2),
+                      borderSide: const BorderSide(color: AppColors.mustBlue, width: 2),
                     ),
                     filled: true,
                     fillColor: Colors.white,
@@ -219,7 +437,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     );
                   }).toList(),
                   onChanged: (value) {
-                    setState(() => _selectedFaculty = value);
+                    setState(() {
+                      _selectedFaculty = value;
+                      _selectedDepartment = null; // Reset department on faculty change
+                    });
                   },
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -228,6 +449,54 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return null;
                   },
                 ),
+
+                // Department Dropdown (shown after faculty is selected)
+                if (_selectedFaculty != null) ...[
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    isExpanded: true,
+                    value: _selectedDepartment,
+                    decoration: InputDecoration(
+                      labelText: 'Department',
+                      hintText: 'Select your department',
+                      prefixIcon: Icon(Icons.apartment_outlined, color: AppColors.textSecondary),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.mustBlue, width: 2),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                    ),
+                    items: (_facultyDepartments[_selectedFaculty] ?? []).map((dept) {
+                      return DropdownMenuItem(
+                        value: dept,
+                        child: Text(
+                          dept,
+                          style: const TextStyle(fontSize: 13),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() => _selectedDepartment = value);
+                    },
+                    validator: (value) {
+                      if (_selectedFaculty != null && (value == null || value.isEmpty)) {
+                        return 'Please select your department';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
                 
                 const SizedBox(height: 16),
                 
@@ -290,12 +559,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleRegister,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
+                      backgroundColor: AppColors.mustGold,
+                      foregroundColor: AppColors.mustBlue,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      elevation: 0,
+                      elevation: 2,
                     ),
                     child: _isLoading
                         ? const SizedBox(
@@ -327,9 +596,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-              ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );

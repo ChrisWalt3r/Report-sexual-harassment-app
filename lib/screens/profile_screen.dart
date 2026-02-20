@@ -20,6 +20,83 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // User data
   Map<String, dynamic>? _userData;
   bool _isLoading = true;
+  bool _isEditing = false;
+  bool _isSaving = false;
+
+  // Edit controllers
+  final _fullNameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+
+  // Dropdown selections (edit mode)
+  String? _selectedRole;
+  String? _selectedStudyLevel;
+  String? _selectedFaculty;
+  String? _selectedDepartment;
+
+  // Options matching register screen
+  final List<String> _roles = ['Student', 'Staff', 'Other'];
+  final List<String> _studyLevels = ['Undergraduate', 'Postgraduate'];
+  final List<String> _faculties = [
+    'Faculty of Medicine',
+    'Faculty of Science',
+    'Faculty of Computing and Informatics',
+    'Faculty of Applied Sciences and Technology',
+    'Faculty of Business and Management Sciences',
+    'Faculty of Interdisciplinary Studies',
+  ];
+
+  final Map<String, List<String>> _facultyDepartments = {
+    'Faculty of Medicine': [
+      'Anatomy',
+      'Biochemistry',
+      'Internal Medicine',
+      'Surgery',
+      'Pediatrics',
+      'Obstetrics & Gynecology',
+      'Family Medicine',
+      'Medical Laboratory Sciences',
+      'Pharmacy',
+      'Microbiology',
+      'Pathology',
+      'Radiology',
+      'Physiology',
+      'Psychiatry',
+      'Community Health',
+      'Nursing/Midwifery',
+    ],
+    'Faculty of Science': [
+      'Biology',
+      'Chemistry',
+      'Physics',
+      'Mathematics',
+    ],
+    'Faculty of Computing and Informatics': [
+      'Computer Science',
+      'Information Technology',
+      'Software Engineering',
+    ],
+    'Faculty of Applied Sciences and Technology': [
+      'Biomedical Sciences & Engineering',
+      'Civil Engineering',
+      'Electrical & Electronics Engineering',
+      'Mechanical Engineering',
+      'Petroleum & Environmental Management',
+    ],
+    'Faculty of Business and Management Sciences': [
+      'Accounting & Finance',
+      'Business Administration',
+      'Economics',
+      'Procurement & Supply Chain Management',
+      'Marketing & Entrepreneurship',
+    ],
+    'Faculty of Interdisciplinary Studies': [
+      'Planning & Governance',
+      'Human Development & Relational Sciences',
+      'Environment & Livelihood Support Systems',
+      'Community Engagement & Service Learning',
+    ],
+  };
 
   @override
   void initState() {
@@ -38,6 +115,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         _userData = data;
         _isLoading = false;
+        _populateEditFields();
       });
     } catch (e) {
       setState(() {
@@ -51,8 +129,94 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  void _populateEditFields() {
+    if (_userData == null) return;
+    _fullNameController.text = _userData?['fullName'] ?? '';
+    _phoneController.text = _userData?['phoneNumber'] ?? '';
+    _emailController.text = _userData?['email'] ?? '';
+    _selectedRole = _userData?['role'];
+    if (_selectedRole != null && !_roles.contains(_selectedRole)) {
+      _selectedRole = null;
+    }
+    _selectedStudyLevel = _userData?['studyLevel'];
+    if (_selectedStudyLevel != null && !_studyLevels.contains(_selectedStudyLevel)) {
+      _selectedStudyLevel = null;
+    }
+    _selectedFaculty = _userData?['department'];
+    if (_selectedFaculty != null && !_faculties.contains(_selectedFaculty)) {
+      _selectedFaculty = null;
+    }
+    _selectedDepartment = _userData?['facultyDepartment'];
+    if (_selectedFaculty != null && _selectedDepartment != null) {
+      final depts = _facultyDepartments[_selectedFaculty] ?? [];
+      if (!depts.contains(_selectedDepartment)) {
+        _selectedDepartment = null;
+      }
+    }
+  }
+
+  void _toggleEdit() {
+    setState(() {
+      if (_isEditing) {
+        // Cancel edit — re-populate from stored data
+        _populateEditFields();
+      }
+      _isEditing = !_isEditing;
+    });
+  }
+
+  Future<void> _saveProfile() async {
+    final user = _authService.currentUser;
+    if (user == null) return;
+
+    setState(() => _isSaving = true);
+    try {
+      final updates = <String, dynamic>{
+        'fullName': _fullNameController.text.trim(),
+        'phoneNumber': _phoneController.text.trim(),
+        'role': _selectedRole ?? '',
+        'studyLevel': _selectedStudyLevel ?? '',
+        'department': _selectedFaculty ?? '',
+        'facultyDepartment': _selectedDepartment ?? '',
+      };
+
+      await _authService.updateUserProfile(uid: user.uid, updates: updates);
+
+      // Refresh local data
+      final freshData = await _authService.getUserData(user.uid);
+      setState(() {
+        _userData = freshData;
+        _isEditing = false;
+        _isSaving = false;
+        _populateEditFields();
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Profile updated successfully'),
+            backgroundColor: AppColors.mustGreen,
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() => _isSaving = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error saving profile: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   void dispose() {
+    _fullNameController.dispose();
+    _phoneController.dispose();
+    _emailController.dispose();
     super.dispose();
   }
 
@@ -69,7 +233,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.white,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         elevation: 0,
         leading: TextButton(
           onPressed: () => Navigator.pop(context),
@@ -78,13 +250,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               const Icon(
                 Icons.chevron_left,
-                color: AppColors.primaryBlue,
+                color: Colors.white,
                 size: 24,
               ),
               Text(
                 'Settings',
                 style: AppStyles.bodyMedium.copyWith(
-                  color: AppColors.primaryBlue,
+                  color: Colors.white,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -92,12 +264,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
         leadingWidth: 110,
-        title: Text('Profile', style: AppStyles.heading3),
+        title: Text('Profile', style: AppStyles.heading3.copyWith(color: Colors.white)),
         centerTitle: true,
+        actions: [
+          if (!_isEditing)
+            IconButton(
+              icon: const Icon(Icons.edit_outlined, color: Colors.white),
+              tooltip: 'Edit Profile',
+              onPressed: _toggleEdit,
+            )
+          else ...
+          [
+            IconButton(
+              icon: const Icon(Icons.close, color: Colors.white70),
+              tooltip: 'Cancel',
+              onPressed: _toggleEdit,
+            ),
+            IconButton(
+              icon: _isSaving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Icons.check, color: AppColors.mustGoldLight),
+              tooltip: 'Save',
+              onPressed: _isSaving ? null : _saveProfile,
+            ),
+          ],
+        ],
       ),
       body:
           _isLoading
-              ? const Center(child: CircularProgressIndicator())
+              ? Center(child: CircularProgressIndicator(color: AppColors.mustBlue))
               : _userData == null
               ? const Center(child: Text('No user data found'))
               : SingleChildScrollView(
@@ -150,9 +352,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.background,
+              color: AppColors.mustBlue.withOpacity(0.08),
               borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: AppColors.borderLight, width: 1),
+              border: Border.all(color: AppColors.mustGold, width: 1),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -160,7 +362,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Icon(
                   Icons.school_outlined,
                   size: 14,
-                  color: AppColors.textGray,
+                  color: AppColors.mustBlue,
                 ),
                 const SizedBox(width: 4),
                 Text(
@@ -168,7 +370,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   style: AppStyles.bodySmall.copyWith(
                     fontWeight: FontWeight.w600,
                     fontSize: 11,
-                    color: AppColors.textDark,
+                    color: AppColors.mustBlue,
                   ),
                 ),
               ],
@@ -183,13 +385,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  color: AppColors.avatarOrange,
+                  gradient: LinearGradient(
+                    colors: [AppColors.mustGold, AppColors.mustGoldLight],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                   shape: BoxShape.circle,
                 ),
-                child: Center(
+                child: const Center(
                   child: Icon(
                     Icons.person,
-                    color: AppColors.avatarOrange.withValues(alpha: 0.6),
+                    color: Colors.white,
                     size: 50,
                   ),
                 ),
@@ -201,7 +407,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: AppColors.primaryBlue,
+                    color: AppColors.mustBlue,
                     shape: BoxShape.circle,
                     border: Border.all(color: AppColors.white, width: 3),
                   ),
@@ -225,10 +431,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(height: 4),
           // Role - centered
-          Text(
-            'Student',
-            style: AppStyles.bodySmall.copyWith(color: AppColors.textGray),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+            decoration: BoxDecoration(
+              color: AppColors.mustBlue.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              _userData?['role'] ?? 'Student',
+              style: AppStyles.bodySmall.copyWith(
+                color: AppColors.mustBlue,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
+          if ((_userData?['studyLevel'] ?? '').toString().isNotEmpty) ...
+          [
+            const SizedBox(height: 4),
+            Text(
+              _userData!['studyLevel'],
+              style: AppStyles.bodySmall.copyWith(color: AppColors.textGray),
+            ),
+          ],
         ],
       ),
     );
@@ -244,7 +468,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: const Color(0xFF3B5998),
+          color: AppColors.mustBlue,
           letterSpacing: 0.5,
         ),
       ),
@@ -259,36 +483,62 @@ class _ProfileScreenState extends State<ProfileScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Full Name
-          Text(
-            'Full Name',
-            style: AppStyles.bodySmall.copyWith(
-              color: AppColors.textGray,
-              fontSize: 13,
-            ),
-          ),
+          _buildFieldLabel('Full Name'),
           const SizedBox(height: 8),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.borderLight),
-            ),
-            child: Text(
-              _userData?['fullName'] ?? 'Not provided',
-              style: AppStyles.bodyMedium.copyWith(color: AppColors.textDark),
-            ),
-          ),
+          _isEditing
+              ? _buildEditTextField(
+                  controller: _fullNameController,
+                  hint: 'Enter your full name',
+                  icon: Icons.person_outline,
+                )
+              : _buildReadOnlyField(_userData?['fullName'] ?? 'Not provided'),
+
           const SizedBox(height: 20),
-          // University ID
-          Text(
-            'University ID',
-            style: AppStyles.bodySmall.copyWith(
-              color: AppColors.textGray,
-              fontSize: 13,
+
+          // Role
+          _buildFieldLabel('Role'),
+          const SizedBox(height: 8),
+          _isEditing
+              ? _buildDropdown<String>(
+                  value: _selectedRole,
+                  hint: 'Select your role',
+                  icon: Icons.people_outline,
+                  items: _roles,
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedRole = value;
+                      if (value != 'Student') _selectedStudyLevel = null;
+                    });
+                  },
+                )
+              : _buildReadOnlyField(_userData?['role'] ?? 'Not provided'),
+
+          // Study Level (for Students)
+          if (_isEditing && _selectedRole == 'Student') ...
+          [
+            const SizedBox(height: 20),
+            _buildFieldLabel('Study Level'),
+            const SizedBox(height: 8),
+            _buildDropdown<String>(
+              value: _selectedStudyLevel,
+              hint: 'Select your study level',
+              icon: Icons.menu_book_outlined,
+              items: _studyLevels,
+              onChanged: (value) => setState(() => _selectedStudyLevel = value),
             ),
-          ),
+          ]
+          else if (!_isEditing && (_userData?['studyLevel'] ?? '').toString().isNotEmpty) ...
+          [
+            const SizedBox(height: 20),
+            _buildFieldLabel('Study Level'),
+            const SizedBox(height: 8),
+            _buildReadOnlyField(_userData!['studyLevel']),
+          ],
+
+          const SizedBox(height: 20),
+
+          // University ID (always read-only)
+          _buildFieldLabel('University ID'),
           const SizedBox(height: 8),
           Container(
             width: double.infinity,
@@ -317,77 +567,232 @@ class _ProfileScreenState extends State<ProfileScreen> {
             'Contact administration to correct this ID.',
             style: TextStyle(fontSize: 12, color: AppColors.textLight),
           ),
+
           const SizedBox(height: 20),
-          // Email Address
-          Text(
-            'Email Address',
-            style: AppStyles.bodySmall.copyWith(
-              color: AppColors.textGray,
-              fontSize: 13,
-            ),
-          ),
+
+          // Email Address (always read-only)
+          _buildFieldLabel('Email Address'),
           const SizedBox(height: 8),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: AppColors.background,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: AppColors.borderLight),
             ),
-            child: Text(
-              _userData?['email'] ?? 'Not provided',
-              style: AppStyles.bodyMedium.copyWith(color: AppColors.textDark),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _userData?['email'] ?? 'Not provided',
+                    style: AppStyles.bodyMedium.copyWith(color: AppColors.textDark),
+                  ),
+                ),
+                Icon(Icons.lock_outline, size: 18, color: AppColors.textLight),
+              ],
             ),
           ),
+
           const SizedBox(height: 20),
-          // Department/Faculty
-          Text(
-            'Department/Faculty',
-            style: AppStyles.label.copyWith(
-              color: AppColors.textGray,
+
+          // Faculty
+          _buildFieldLabel('Faculty'),
+          const SizedBox(height: 8),
+          _isEditing
+              ? _buildDropdown<String>(
+                  value: _selectedFaculty,
+                  hint: 'Select your faculty',
+                  icon: Icons.school_outlined,
+                  items: _faculties,
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedFaculty = value;
+                      _selectedDepartment = null;
+                    });
+                  },
+                  fontSize: 13,
+                )
+              : _buildReadOnlyField(_userData?['department'] ?? 'Not provided'),
+
+          // Department (shown after faculty is selected)
+          if (_isEditing && _selectedFaculty != null) ...
+          [
+            const SizedBox(height: 20),
+            _buildFieldLabel('Department'),
+            const SizedBox(height: 8),
+            _buildDropdown<String>(
+              value: _selectedDepartment,
+              hint: 'Select your department',
+              icon: Icons.apartment_outlined,
+              items: _facultyDepartments[_selectedFaculty] ?? [],
+              onChanged: (value) => setState(() => _selectedDepartment = value),
               fontSize: 13,
             ),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.borderLight),
-            ),
-            child: Text(
-              _userData?['department'] ?? 'Not provided',
-              style: AppStyles.bodyMedium.copyWith(color: AppColors.textDark),
-            ),
-          ),
+          ]
+          else if (!_isEditing && (_userData?['facultyDepartment'] ?? '').toString().isNotEmpty) ...
+          [
+            const SizedBox(height: 20),
+            _buildFieldLabel('Department'),
+            const SizedBox(height: 8),
+            _buildReadOnlyField(_userData!['facultyDepartment']),
+          ],
+
           const SizedBox(height: 20),
+
           // Phone Number
-          Text(
-            'Phone Number',
-            style: AppStyles.label.copyWith(
-              color: AppColors.textGray,
-              fontSize: 13,
-            ),
-          ),
+          _buildFieldLabel('Phone Number'),
           const SizedBox(height: 8),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.borderLight),
+          _isEditing
+              ? _buildEditTextField(
+                  controller: _phoneController,
+                  hint: 'Enter your phone number',
+                  icon: Icons.phone_outlined,
+                  keyboardType: TextInputType.phone,
+                )
+              : _buildReadOnlyField(_userData?['phoneNumber'] ?? 'Not provided'),
+
+          // Save button at bottom of section in edit mode
+          if (_isEditing) ...
+          [
+            const SizedBox(height: 28),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: _isSaving ? null : _saveProfile,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.mustGold,
+                  foregroundColor: AppColors.mustBlue,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 2,
+                ),
+                child: _isSaving
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.mustBlue,
+                        ),
+                      )
+                    : const Text(
+                        'Save Changes',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+              ),
             ),
-            child: Text(
-              _userData?['phoneNumber'] ?? 'Not provided',
-              style: AppStyles.bodyMedium.copyWith(color: AppColors.textDark),
-            ),
-          ),
+          ],
         ],
       ),
+    );
+  }
+
+  // ── Helper widgets ──
+
+  Widget _buildFieldLabel(String label) {
+    return Text(
+      label,
+      style: AppStyles.bodySmall.copyWith(
+        color: AppColors.textGray,
+        fontSize: 13,
+      ),
+    );
+  }
+
+  Widget _buildReadOnlyField(String value) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.borderLight),
+      ),
+      child: Text(
+        value,
+        style: AppStyles.bodyMedium.copyWith(color: AppColors.textDark),
+      ),
+    );
+  }
+
+  Widget _buildEditTextField({
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return TextField(
+      controller: controller,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        hintText: hint,
+        prefixIcon: Icon(icon, color: AppColors.mustBlue, size: 20),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: AppColors.mustBlue, width: 2),
+        ),
+        filled: true,
+        fillColor: Colors.white,
+      ),
+    );
+  }
+
+  Widget _buildDropdown<T>({
+    required T? value,
+    required String hint,
+    required IconData icon,
+    required List<String> items,
+    required ValueChanged<String?> onChanged,
+    double fontSize = 14,
+  }) {
+    return DropdownButtonFormField<String>(
+      isExpanded: true,
+      value: value as String?,
+      decoration: InputDecoration(
+        hintText: hint,
+        prefixIcon: Icon(icon, color: AppColors.mustBlue, size: 20),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: AppColors.mustBlue, width: 2),
+        ),
+        filled: true,
+        fillColor: Colors.white,
+      ),
+      items: items.map((item) {
+        return DropdownMenuItem(
+          value: item,
+          child: Text(
+            item,
+            style: TextStyle(fontSize: fontSize),
+            overflow: TextOverflow.ellipsis,
+          ),
+        );
+      }).toList(),
+      onChanged: onChanged,
     );
   }
 
@@ -461,7 +866,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   Icon(
                     Icons.info_outline,
-                    color: AppColors.primaryBlue,
+                    color: AppColors.mustBlue,
                     size: 28,
                   ),
                   const SizedBox(width: 12),
@@ -482,7 +887,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _showPasswordResetDialog();
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryBlue,
+                    backgroundColor: AppColors.mustBlue,
                     foregroundColor: Colors.white,
                   ),
                   child: const Text('Reset Password'),
@@ -515,7 +920,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   children: [
                     Icon(
                       Icons.lock_outline,
-                      color: AppColors.primaryBlue,
+                      color: AppColors.mustBlue,
                       size: 28,
                     ),
                     const SizedBox(width: 12),
@@ -699,7 +1104,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               }
                             },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryBlue,
+                      backgroundColor: AppColors.mustBlue,
                       foregroundColor: Colors.white,
                     ),
                     child:
@@ -749,7 +1154,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             title: Row(
               children: [
-                Icon(Icons.lock_reset, color: AppColors.primaryBlue, size: 28),
+                Icon(Icons.lock_reset, color: AppColors.mustBlue, size: 28),
                 const SizedBox(width: 12),
                 const Text('Reset Password'),
               ],
@@ -798,7 +1203,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Navigator.pop(dialogContext, email);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryBlue,
+                  backgroundColor: AppColors.mustBlue,
                   foregroundColor: Colors.white,
                 ),
                 child: const Text('Send Reset Link'),

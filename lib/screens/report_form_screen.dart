@@ -9,6 +9,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import '../services/imgbb_service.dart';
 import '../services/cloudinary_service.dart';
+import '../constants/app_colors.dart';
 
 class ReportFormScreen extends StatefulWidget {
   const ReportFormScreen({super.key});
@@ -73,8 +74,8 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: Colors.blue[700]!,
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.mustBlue,
               onPrimary: Colors.white,
               surface: Colors.white,
               onSurface: Colors.black,
@@ -160,9 +161,9 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
+                      color: AppColors.mustBlue.withOpacity(0.08),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.blue.shade200),
+                      border: Border.all(color: AppColors.mustBlue.withOpacity(0.3)),
                     ),
                     child: Column(
                       children: [
@@ -170,7 +171,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                           'Your Tracking Token',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.blue.shade700,
+                            color: AppColors.mustBlue,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -180,7 +181,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blue.shade900,
+                            color: AppColors.mustBlue,
                             letterSpacing: 2,
                           ),
                           textAlign: TextAlign.center,
@@ -204,9 +205,9 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                       ),
                       label: Text(copied ? 'Copied!' : 'Copy Token'),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: copied ? Colors.green : Colors.blue.shade700,
+                        foregroundColor: copied ? Colors.green : AppColors.mustBlue,
                         side: BorderSide(
-                          color: copied ? Colors.green : Colors.blue.shade300,
+                          color: copied ? Colors.green : AppColors.mustBlue.withOpacity(0.4),
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
@@ -250,7 +251,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                       Navigator.of(context).pop();
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue[700],
+                      backgroundColor: AppColors.mustBlue,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
@@ -466,9 +467,17 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        backgroundColor: Colors.blue[700],
         foregroundColor: Colors.white,
         elevation: 0,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
+        ),
       ),
       body: _isUploading
           ? Center(
@@ -483,7 +492,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.blue.withOpacity(0.2),
+                          color: AppColors.mustBlue.withOpacity(0.2),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),
@@ -499,7 +508,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                               height: 100,
                               child: CircularProgressIndicator(
                                 value: _uploadProgress,
-                                color: Colors.blue[700],
+                                color: AppColors.mustBlue,
                                 strokeWidth: 8,
                                 backgroundColor: Colors.grey[200],
                               ),
@@ -509,7 +518,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.blue[700],
+                                color: AppColors.mustBlue,
                               ),
                             ),
                           ],
@@ -545,8 +554,8 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.blue[700]!, Colors.blue[500]!],
+                      gradient: const LinearGradient(
+                        colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                       ),
@@ -616,19 +625,19 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                                   ),
                                   decoration: BoxDecoration(
                                     color: isSelected
-                                        ? Colors.blue[700]
+                                        ? AppColors.mustBlue
                                         : Colors.white,
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
                                       color: isSelected
-                                          ? Colors.blue[700]!
+                                          ? AppColors.mustBlue
                                           : Colors.grey[300]!,
                                       width: 2,
                                     ),
                                     boxShadow: isSelected
                                         ? [
                                             BoxShadow(
-                                              color: Colors.blue.withOpacity(0.3),
+                                              color: AppColors.mustBlue.withOpacity(0.3),
                                               blurRadius: 8,
                                               offset: const Offset(0, 4),
                                             ),
@@ -695,7 +704,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                                   contentPadding: const EdgeInsets.all(16),
                                   prefixIcon: Icon(
                                     Icons.edit_rounded,
-                                    color: Colors.blue[700],
+                                    color: AppColors.mustBlue,
                                   ),
                                 ),
                               ),
@@ -812,12 +821,12 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                                   Container(
                                     padding: const EdgeInsets.all(10),
                                     decoration: BoxDecoration(
-                                      color: Colors.blue.withOpacity(0.1),
+                                      color: AppColors.mustBlue.withOpacity(0.1),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: Icon(
                                       Icons.calendar_today,
-                                      color: Colors.blue[700],
+                                      color: AppColors.mustBlue,
                                     ),
                                   ),
                                   const SizedBox(width: 16),
@@ -935,12 +944,12 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                                     Container(
                                       padding: const EdgeInsets.all(8),
                                       decoration: BoxDecoration(
-                                        color: Colors.blue.withOpacity(0.1),
+                                        color: AppColors.mustBlue.withOpacity(0.1),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: Icon(
                                         Icons.videocam,
-                                        color: Colors.blue[700],
+                                        color: AppColors.mustBlue,
                                       ),
                                     ),
                                     const SizedBox(width: 12),
@@ -968,19 +977,31 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                           const SizedBox(height: 32),
                           
                           // Submit Button
-                          SizedBox(
+                          Container(
                             width: double.infinity,
                             height: 56,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [AppColors.mustGold, AppColors.mustGoldLight],
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.mustGold.withOpacity(0.4),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
                             child: ElevatedButton(
                               onPressed: _submitReport,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue[700],
-                                foregroundColor: Colors.white,
+                                backgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                                foregroundColor: AppColors.mustBlue,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
                                 ),
-                                elevation: 4,
-                                shadowColor: Colors.blue.withOpacity(0.4),
                               ),
                               child: const Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1013,7 +1034,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
   Widget _buildSectionTitle(String title, IconData icon) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: Colors.blue[700]),
+        Icon(icon, size: 20, color: AppColors.mustBlue),
         const SizedBox(width: 8),
         Text(
           title,
@@ -1041,7 +1062,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: count > 0 ? Colors.blue[700]! : Colors.grey[300]!,
+            color: count > 0 ? AppColors.mustBlue : Colors.grey[300]!,
             width: 2,
             style: BorderStyle.solid,
           ),
@@ -1060,7 +1081,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                 Icon(
                   icon,
                   size: 32,
-                  color: count > 0 ? Colors.blue[700] : Colors.grey[400],
+                  color: count > 0 ? AppColors.mustBlue : Colors.grey[400],
                 ),
                 if (count > 0)
                   Positioned(
@@ -1069,7 +1090,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: Colors.blue[700],
+                        color: AppColors.mustBlue,
                         shape: BoxShape.circle,
                       ),
                       child: Text(
@@ -1088,7 +1109,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
             Text(
               label,
               style: TextStyle(
-                color: count > 0 ? Colors.blue[700] : Colors.grey[600],
+                color: count > 0 ? AppColors.mustBlue : Colors.grey[600],
                 fontWeight: count > 0 ? FontWeight.bold : FontWeight.normal,
               ),
             ),

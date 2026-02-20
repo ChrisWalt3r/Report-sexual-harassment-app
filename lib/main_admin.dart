@@ -40,13 +40,13 @@ class AdminApp extends StatelessWidget {
         title: 'Report Management Admin',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          primaryColor: AppColors.primaryBlue,
+          primaryColor: AppColors.mustBlue,
           colorScheme: ColorScheme.fromSeed(
-            seedColor: AppColors.primaryBlue,
+            seedColor: AppColors.mustBlue,
           ),
           useMaterial3: true,
-          appBarTheme: AppBarTheme(
-            backgroundColor: AppColors.primaryBlue,
+          appBarTheme: const AppBarTheme(
+            backgroundColor: AppColors.mustBlue,
             foregroundColor: Colors.white,
             elevation: 0,
           ),

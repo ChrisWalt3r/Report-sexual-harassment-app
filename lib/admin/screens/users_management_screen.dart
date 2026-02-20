@@ -5,8 +5,9 @@ import '../../models/admin_user.dart';
 
 class UsersManagementScreen extends StatefulWidget {
   final AdminUser admin;
+  final bool embedded;
 
-  const UsersManagementScreen({super.key, required this.admin});
+  const UsersManagementScreen({super.key, required this.admin, this.embedded = false});
 
   @override
   State<UsersManagementScreen> createState() => _UsersManagementScreenState();
@@ -136,15 +137,8 @@ class _UsersManagementScreenState extends State<UsersManagementScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('User Management'),
-        backgroundColor: AppColors.primaryBlue,
-        foregroundColor: Colors.white,
-      ),
-      body: Column(
+  Widget _buildBody() {
+    return Column(
         children: [
           // Search Bar
           Container(
@@ -225,7 +219,7 @@ class _UsersManagementScreenState extends State<UsersManagementScreen> {
                         ),
                         leading: CircleAvatar(
                           backgroundColor: isActive
-                              ? AppColors.primaryBlue
+                              ? AppColors.mustBlue
                               : Colors.grey,
                           child: Text(
                             (data['fullName'] ?? 'U')[0].toUpperCase(),
@@ -334,7 +328,27 @@ class _UsersManagementScreenState extends State<UsersManagementScreen> {
             ),
           ),
         ],
+      );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.embedded) return _buildBody();
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('User Management', style: TextStyle(fontWeight: FontWeight.bold)),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
+            ),
+          ),
+        ),
+        foregroundColor: Colors.white,
+        elevation: 0,
       ),
+      body: _buildBody(),
     );
   }
 }

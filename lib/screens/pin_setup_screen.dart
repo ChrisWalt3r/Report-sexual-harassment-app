@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../constants/app_colors.dart';
-import '../constants/app_styles.dart';
 import '../services/security_service.dart';
 
 class PinSetupScreen extends StatefulWidget {
@@ -98,17 +97,23 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        backgroundColor: AppColors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
-          onPressed: () => Navigator.pop(context),
-        ),
+        foregroundColor: Colors.white,
         title: Text(
           widget.isChanging ? 'Change PIN' : 'Setup PIN',
-          style: AppStyles.heading2,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
         ),
       ),
       body: SingleChildScrollView(
@@ -116,20 +121,45 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 20),
-            Text(
-              widget.isChanging ? 'Change Your Security PIN' : 'Create a Security PIN',
-              style: AppStyles.heading1,
+            const SizedBox(height: 12),
+            Center(
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.mustBlue.withOpacity(0.08),
+                  border: Border.all(color: AppColors.mustGold, width: 2.5),
+                ),
+                child: const Icon(
+                  Icons.pin_rounded,
+                  size: 40,
+                  color: AppColors.mustBlue,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Center(
+              child: Text(
+                widget.isChanging ? 'Change Your Security PIN' : 'Create a Security PIN',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.mustBlue,
+                ),
+              ),
             ),
             const SizedBox(height: 8),
-            Text(
-              'Use a 4-digit PIN to add an extra layer of security to your account',
-              style: AppStyles.bodyMedium.copyWith(color: AppColors.textGray),
+            Center(
+              child: Text(
+                'Use a 4-digit PIN to add an extra layer of security',
+                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                textAlign: TextAlign.center,
+              ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 32),
             
             if (widget.isChanging) ...[
-              Text('Old PIN', style: AppStyles.label),
+              const Text('Old PIN', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.mustBlue)),
               const SizedBox(height: 8),
               TextField(
                 controller: _oldPinController,
@@ -139,10 +169,14 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
                 decoration: InputDecoration(
                   hintText: 'Enter old PIN',
                   filled: true,
-                  fillColor: AppColors.white,
+                  fillColor: Colors.white,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.mustGold, width: 2),
                   ),
                   counterText: '',
                 ),
@@ -150,7 +184,7 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
               const SizedBox(height: 24),
             ],
             
-            Text('New PIN', style: AppStyles.label),
+            const Text('New PIN', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.mustBlue)),
             const SizedBox(height: 8),
             TextField(
               controller: _newPinController,
@@ -160,17 +194,21 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
               decoration: InputDecoration(
                 hintText: 'Enter 4-digit PIN',
                 filled: true,
-                fillColor: AppColors.white,
+                fillColor: Colors.white,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.mustGold, width: 2),
                 ),
                 counterText: '',
               ),
             ),
             const SizedBox(height: 24),
             
-            Text('Confirm PIN', style: AppStyles.label),
+            const Text('Confirm PIN', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.mustBlue)),
             const SizedBox(height: 8),
             TextField(
               controller: _confirmPinController,
@@ -180,25 +218,43 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
               decoration: InputDecoration(
                 hintText: 'Re-enter PIN',
                 filled: true,
-                fillColor: AppColors.white,
+                fillColor: Colors.white,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
                 ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.mustGold, width: 2),
+                ),
                 counterText: '',
               ),
             ),
-            const SizedBox(height: 40),
-            
-            SizedBox(
+            const SizedBox(height: 36),
+            Container(
               width: double.infinity,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [AppColors.mustGold, AppColors.mustGoldLight],
+                ),
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.mustGold.withOpacity(0.4),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _setupPin,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryBlue,
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  foregroundColor: AppColors.mustBlue,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                 ),
                 child: _isLoading
@@ -207,12 +263,15 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
                         width: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.mustBlue),
                         ),
                       )
                     : Text(
                         widget.isChanging ? 'Change PIN' : 'Setup PIN',
-                        style: AppStyles.buttonText,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
               ),
             ),
