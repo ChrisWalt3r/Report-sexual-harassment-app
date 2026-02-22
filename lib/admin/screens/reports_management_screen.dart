@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../constants/app_colors.dart';
 import '../../models/admin_user.dart';
+import '../../services/firebase_ai_report_service.dart';
+import '../widgets/ai_insights_panel.dart';
 
 class ReportsManagementScreen extends StatefulWidget {
   final AdminUser admin;
@@ -623,6 +626,15 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                 );
                               }),
 
+                              // AI Insights Panel
+                              if (widget.admin.canManageReports()) ...[                                AIInsightsPanel(
+                                  reportData: data,
+                                  reportId: reportDoc.id,
+                                  currentStatus: data['status'] ?? 'submitted',
+                                ),
+                                const SizedBox(height: 20),
+                              ],
+
                               // Resolution Message (if resolved)
                               if (data['resolutionMessage'] != null &&
                                   (data['resolutionMessage'] as String).isNotEmpty) ...[
@@ -961,6 +973,16 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
     });
   }
 
+  Future<void> _showTrendAnalysis() async {
+    final aiService = FirebaseAIReportService.instance;
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => _TrendAnalysisDialog(aiService: aiService, firestore: _firestore),
+    );
+  }
+
   bool get _hasActiveFilters =>
       _selectedStatus != 'all' ||
       _selectedFaculty != 'all' ||
@@ -1065,6 +1087,26 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                           Icon(Icons.visibility_off, size: 16, color: _anonymousOnly ? AppColors.mustBlue : Colors.grey[600]),
                           const SizedBox(width: 6),
                           Text('Anonymous', style: TextStyle(fontSize: 13, color: _anonymousOnly ? AppColors.mustBlue : Colors.grey[600], fontWeight: _anonymousOnly ? FontWeight.w600 : FontWeight.normal)),
+                        ]),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+
+                    // AI Trend Analysis
+                    InkWell(
+                      onTap: () => _showTrendAnalysis(),
+                      borderRadius: BorderRadius.circular(10),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: AppColors.mustBlue.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.mustBlue.withOpacity(0.3)),
+                        ),
+                        child: Row(children: [
+                          Icon(Icons.auto_awesome, size: 16, color: AppColors.mustBlue),
+                          const SizedBox(width: 6),
+                          Text('AI Trends', style: TextStyle(fontSize: 13, color: AppColors.mustBlue, fontWeight: FontWeight.w600)),
                         ]),
                       ),
                     ),
@@ -1250,6 +1292,209 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
         elevation: 0,
       ),
       body: _buildBody(),
+    );
+  }
+}
+
+/// Dialog that shows AI-powered trend analysis across all reports
+class _TrendAnalysisDialog extends StatefulWidget {
+  final FirebaseAIReportService aiService;
+  final FirebaseFirestore firestore;
+
+  const _TrendAnalysisDialog({required this.aiService, required this.firestore});
+
+  @override
+  State<_TrendAnalysisDialog> createState() => _TrendAnalysisDialogState();
+}
+
+class _TrendAnalysisDialogState extends State<_TrendAnalysisDialog> {
+  String? _trendResult;
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTrends();
+  }
+
+  Future<void> _loadTrends() async {
+    try {
+      // Fetch recent reports for analysis
+      final snapshot = await widget.firestore
+          .collection('reports')
+          .orderBy('createdAt', descending: true)
+          .limit(50)
+          .get();
+
+      final reportsData = snapshot.docs.map((doc) {
+        final data = doc.data();
+        // Convert Timestamp to string for AI context
+        if (data['createdAt'] != null) {
+          data['createdAt'] = (data['createdAt'] as Timestamp).toDate().toString();
+        }
+        return data;
+      }).toList();
+
+      if (reportsData.isEmpty) {
+        if (mounted) {
+          setState(() {
+            _loading = false;
+            _error = 'No reports available for trend analysis.';
+          });
+        }
+        return;
+      }
+
+      final result = await widget.aiService.analyzeTrends(reportsData);
+      if (mounted) setState(() => _trendResult = result);
+    } catch (e) {
+      if (mounted) setState(() => _error = e.toString());
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.75,
+        constraints: const BoxConstraints(maxWidth: 800, maxHeight: 600),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
+                ),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.auto_awesome, color: AppColors.mustGold, size: 24),
+                  const SizedBox(width: 10),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('AI Trend Analysis',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                        Text('Cross-report pattern recognition powered by Gemini',
+                            style: TextStyle(fontSize: 12, color: Colors.white70)),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+
+            // Content
+            Flexible(
+              child: _loading
+                  ? const Padding(
+                      padding: EdgeInsets.all(40),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CircularProgressIndicator(color: AppColors.mustBlue),
+                          SizedBox(height: 16),
+                          Text('Analyzing report trends...', style: TextStyle(color: Colors.grey)),
+                          SizedBox(height: 4),
+                          Text('This may take a moment', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                        ],
+                      ),
+                    )
+                  : _error != null
+                      ? Padding(
+                          padding: const EdgeInsets.all(32),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.error_outline, size: 40, color: Colors.red[300]),
+                              const SizedBox(height: 12),
+                              Text('Analysis failed', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.red[700])),
+                              const SizedBox(height: 6),
+                              Text(_error!, style: const TextStyle(color: Colors.grey, fontSize: 12), textAlign: TextAlign.center),
+                              const SizedBox(height: 16),
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  setState(() {
+                                    _loading = true;
+                                    _error = null;
+                                    _trendResult = null;
+                                  });
+                                  _loadTrends();
+                                },
+                                icon: const Icon(Icons.refresh, size: 18),
+                                label: const Text('Retry'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.mustBlue,
+                                  foregroundColor: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : SingleChildScrollView(
+                          padding: const EdgeInsets.all(20),
+                          child: SelectableText(
+                            _trendResult ?? '',
+                            style: const TextStyle(fontSize: 14, height: 1.6),
+                          ),
+                        ),
+            ),
+
+            // Footer
+            if (_trendResult != null)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(16),
+                    bottomRight: Radius.circular(16),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton.icon(
+                      onPressed: () {
+                        Clipboard.setData(ClipboardData(text: _trendResult!));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Trend analysis copied to clipboard')));
+                      },
+                      icon: const Icon(Icons.copy, size: 16),
+                      label: const Text('Copy'),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.mustBlue,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      child: const Text('Close'),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

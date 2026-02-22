@@ -5,6 +5,7 @@ import 'firebase_options.dart';
 import 'admin/screens/admin_login_screen.dart';
 import 'constants/app_colors.dart';
 import 'services/admin_auth_service.dart';
+import 'services/firebase_ai_report_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +21,13 @@ void main() async {
     } else {
       rethrow;
     }
+  }
+
+  // Initialize Firebase AI Report Service
+  try {
+    await FirebaseAIReportService.instance.initialize();
+  } catch (e) {
+    debugPrint('Firebase AI initialization deferred: $e');
   }
 
   runApp(const AdminApp());
