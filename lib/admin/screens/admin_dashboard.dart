@@ -712,7 +712,9 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
     Map<String, int> deptData = {};
     if (_selectedFacultyFilter == 'All') {
       for (final entry in _reportsByDepartment.entries) {
-        for (final d in entry.value.entries) deptData[d.key] = (deptData[d.key] ?? 0) + d.value;
+        for (final d in entry.value.entries) {
+          deptData[d.key] = (deptData[d.key] ?? 0) + d.value;
+        }
       }
     } else {
       deptData = _reportsByDepartment[_selectedFacultyFilter] ?? {};

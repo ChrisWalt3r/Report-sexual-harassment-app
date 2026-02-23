@@ -88,6 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: emailController,
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.done,
+                style: const TextStyle(color: Colors.black, fontSize: 16),
                 decoration: InputDecoration(
                   labelText: 'Email Address',
                   hintText: 'example@gmail.com',
@@ -99,6 +100,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: AppColors.mustBlue, width: 2),
                   ),
+                  filled: true,
+                  fillColor: Colors.white,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 16,

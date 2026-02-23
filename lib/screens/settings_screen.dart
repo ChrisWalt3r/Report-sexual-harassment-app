@@ -6,6 +6,7 @@ import '../constants/app_colors.dart';
 import '../constants/app_styles.dart';
 import '../services/auth_service.dart';
 import '../services/security_service.dart';
+import '../services/theme_service.dart';
 import '../widgets/settings_tile.dart';
 import 'login_screen.dart';
 import 'pin_setup_screen.dart';
@@ -86,6 +87,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 16),
             _buildSectionHeader('GENERAL'),
             _buildGeneralSection(),
+            const SizedBox(height: 16),
+            _buildSectionHeader('APPEARANCE'),
+            _buildAppearanceSection(),
             const SizedBox(height: 16),
             _buildSectionHeader('SECURITY'),
             _buildSecuritySection(),
@@ -282,6 +286,116 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildAppearanceSection() {
+    return Consumer<ThemeService>(
+      builder: (context, themeService, child) {
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Column(
+              children: [
+                SettingsTileWithValue(
+                  icon: themeService.themeModeIcon,
+                  iconBackgroundColor: AppColors.mustGold.withOpacity(0.15),
+                  iconColor: AppColors.mustGold,
+                  title: 'Theme',
+                  value: themeService.themeModeLabel,
+                  onTap: () => _showThemeSelectionDialog(themeService),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showThemeSelectionDialog(ThemeService themeService) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Choose Theme'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            RadioListTile<ThemeMode>(
+              title: const Row(
+                children: [
+                  Icon(Icons.brightness_auto, size: 20),
+                  SizedBox(width: 12),
+                  Text('System Default'),
+                ],
+              ),
+              subtitle: const Text('Follows your device settings'),
+              value: ThemeMode.system,
+              groupValue: themeService.themeMode,
+              onChanged: (value) {
+                if (value != null) {
+                  themeService.setThemeMode(value);
+                  Navigator.pop(context);
+                }
+              },
+            ),
+            RadioListTile<ThemeMode>(
+              title: const Row(
+                children: [
+                  Icon(Icons.light_mode, size: 20),
+                  SizedBox(width: 12),
+                  Text('Light'),
+                ],
+              ),
+              subtitle: const Text('Always use light theme'),
+              value: ThemeMode.light,
+              groupValue: themeService.themeMode,
+              onChanged: (value) {
+                if (value != null) {
+                  themeService.setThemeMode(value);
+                  Navigator.pop(context);
+                }
+              },
+            ),
+            RadioListTile<ThemeMode>(
+              title: const Row(
+                children: [
+                  Icon(Icons.dark_mode, size: 20),
+                  SizedBox(width: 12),
+                  Text('Dark'),
+                ],
+              ),
+              subtitle: const Text('Always use dark theme'),
+              value: ThemeMode.dark,
+              groupValue: themeService.themeMode,
+              onChanged: (value) {
+                if (value != null) {
+                  themeService.setThemeMode(value);
+                  Navigator.pop(context);
+                }
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+        ],
       ),
     );
   }

@@ -13,6 +13,7 @@ import 'services/enhanced_ai_service.dart';
 import 'services/auth_service.dart';
 import 'services/notification_service.dart';
 import 'services/security_service.dart';
+import 'services/theme_service.dart';
 import 'constants/app_colors.dart';
 
 void main() async {
@@ -45,35 +46,64 @@ class ReportHarassmentApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => EnhancedAIService()),
         ChangeNotifierProvider(create: (_) => NotificationService()),
         ChangeNotifierProvider(create: (_) => SecurityService()),
+        ChangeNotifierProvider(create: (_) => ThemeService()),
       ],
-      child: MaterialApp(
-        title: 'Report Harassment',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: AppColors.primaryBlue,
-            primary: AppColors.primaryBlue,
-          ),
-          scaffoldBackgroundColor: AppColors.background,
-          appBarTheme: const AppBarTheme(
-            backgroundColor: AppColors.white,
-            elevation: 0,
-            iconTheme: IconThemeData(color: AppColors.textDark),
-            titleTextStyle: TextStyle(
-              color: AppColors.textDark,
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
+      child: Builder(
+        builder: (context) {
+          final themeService = context.watch<ThemeService>();
+          return MaterialApp(
+            title: 'Report Harassment',
+            debugShowCheckedModeBanner: false,
+            themeMode: themeService.themeMode,
+            theme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: AppColors.primaryBlue,
+                primary: AppColors.primaryBlue,
+                brightness: Brightness.light,
+              ),
+              scaffoldBackgroundColor: AppColors.background,
+              appBarTheme: const AppBarTheme(
+                backgroundColor: AppColors.white,
+                elevation: 0,
+                iconTheme: IconThemeData(color: AppColors.textDark),
+                titleTextStyle: TextStyle(
+                  color: AppColors.textDark,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              useMaterial3: true,
+              fontFamily: 'Roboto',
             ),
-          ),
-          useMaterial3: true,
-          fontFamily: 'Roboto',
-        ),
-        home: const SecurityWrapper(),
-        routes: {
-          '/welcome': (context) => const WelcomeScreen(),
-          '/home': (context) => const HomeScreen(),
-          '/login': (context) => const LoginScreen(),
-          '/settings': (context) => const SettingsScreen(),
+            darkTheme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: AppColors.primaryBlue,
+                primary: AppColors.primaryBlue,
+                brightness: Brightness.dark,
+              ),
+              scaffoldBackgroundColor: const Color(0xFF121212),
+              appBarTheme: const AppBarTheme(
+                backgroundColor: Color(0xFF1E1E1E),
+                elevation: 0,
+                iconTheme: IconThemeData(color: Colors.white),
+                titleTextStyle: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              cardColor: const Color(0xFF1E1E1E),
+              useMaterial3: true,
+              fontFamily: 'Roboto',
+            ),
+            home: const SecurityWrapper(),
+            routes: {
+              '/welcome': (context) => const WelcomeScreen(),
+              '/home': (context) => const HomeScreen(),
+              '/login': (context) => const LoginScreen(),
+              '/settings': (context) => const SettingsScreen(),
+            },
+          );
         },
       ),
     );
