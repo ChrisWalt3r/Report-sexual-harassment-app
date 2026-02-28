@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../config/api_keys.dart';
 
-/// Service for uploading videos to Cloudinary
+/// Service for uploading videos and audio to Cloudinary
 /// Sign up at https://cloudinary.com and create an unsigned upload preset
 class CloudinaryService {
   static const String _cloudName = ApiKeys.cloudinaryCloudName;
@@ -16,10 +16,21 @@ class CloudinaryService {
     '.mp4', '.mov', '.avi', '.mkv', '.webm', '.m4v', '.3gp'
   ];
 
+  /// Supported audio extensions
+  static const List<String> supportedAudioExtensions = [
+    '.mp3', '.wav', '.aac', '.m4a', '.ogg', '.flac', '.wma', '.opus'
+  ];
+
   /// Check if file is a video
   static bool isVideo(String filePath) {
     final ext = filePath.toLowerCase();
     return supportedVideoExtensions.any((e) => ext.endsWith(e));
+  }
+
+  /// Check if file is an audio file
+  static bool isAudio(String filePath) {
+    final ext = filePath.toLowerCase();
+    return supportedAudioExtensions.any((e) => ext.endsWith(e));
   }
 
   /// Upload a single video to Cloudinary
@@ -100,6 +111,64 @@ class CloudinaryService {
         }
       } else {
         print('Cloudinary Warning: Skipping non-video file: $path');
+      }
+    }
+
+    return uploadedUrls;
+  }
+
+  /// Upload a single audio file to Cloudinary
+  /// Cloudinary handles audio under the "video" resource type
+  /// Returns the URL of the uploaded audio or null if failed
+  static Future<String?> uploadAudio(String audioPath) async {
+    try {
+      final file = File(audioPath);
+      if (!await file.exists()) {
+        print('Cloudinary Error: Audio file does not exist at $audioPath');
+        return null;
+      }
+
+      // Cloudinary uses the video/upload endpoint for audio files too
+      final url = Uri.parse('$_uploadUrl/$_cloudName/video/upload');
+      
+      final request = http.MultipartRequest('POST', url);
+      request.fields['upload_preset'] = _uploadPreset;
+      request.fields['resource_type'] = 'video';
+      request.files.add(await http.MultipartFile.fromPath('file', audioPath));
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
+        final audioUrl = jsonResponse['secure_url'] as String?;
+        if (audioUrl != null) {
+          print('Cloudinary: Audio uploaded successfully: $audioUrl');
+          return audioUrl;
+        }
+      }
+      
+      print('Cloudinary Error: HTTP ${response.statusCode} - ${response.body}');
+      return null;
+    } catch (e) {
+      print('Cloudinary Error: Exception during audio upload - $e');
+      return null;
+    }
+  }
+
+  /// Upload multiple audio files
+  /// Returns list of URLs for successfully uploaded audio files
+  static Future<List<String>> uploadMultipleAudios(List<String> audioPaths) async {
+    final List<String> uploadedUrls = [];
+
+    for (final path in audioPaths) {
+      if (isAudio(path)) {
+        final url = await uploadAudio(path);
+        if (url != null) {
+          uploadedUrls.add(url);
+        }
+      } else {
+        print('Cloudinary Warning: Skipping non-audio file: $path');
       }
     }
 

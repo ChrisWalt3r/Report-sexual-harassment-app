@@ -28,7 +28,8 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
   Widget build(BuildContext context) {
     final List<String> imageUrls = List<String>.from(widget.reportData['imageUrls'] ?? []);
     final List<String> videoUrls = List<String>.from(widget.reportData['videoUrls'] ?? []);
-    final bool hasAttachments = imageUrls.isNotEmpty || videoUrls.isNotEmpty;
+    final List<String> audioUrls = List<String>.from(widget.reportData['audioUrls'] ?? []);
+    final bool hasAttachments = imageUrls.isNotEmpty || videoUrls.isNotEmpty || audioUrls.isNotEmpty;
 
     return Scaffold(
       backgroundColor: Colors.grey[100],
@@ -132,7 +133,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                   _buildSectionCard(
                     title: 'Attachments',
                     icon: Icons.attach_file_rounded,
-                    child: _buildAttachmentsSection(imageUrls, videoUrls),
+                    child: _buildAttachmentsSection(imageUrls, videoUrls, audioUrls),
                   ),
                 
                 if (hasAttachments) const SizedBox(height: 16),
@@ -482,7 +483,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
     );
   }
 
-  Widget _buildAttachmentsSection(List<String> imageUrls, List<String> videoUrls) {
+  Widget _buildAttachmentsSection(List<String> imageUrls, List<String> videoUrls, List<String> audioUrls) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -687,6 +688,98 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
             );
           }),
         ],
+
+        // Audio
+        if (audioUrls.isNotEmpty) ...[
+          if (imageUrls.isNotEmpty || videoUrls.isNotEmpty) const SizedBox(height: 20),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.deepPurple.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Icon(Icons.audiotrack, size: 16, color: Colors.deepPurple),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '${audioUrls.length} Audio${audioUrls.length > 1 ? 's' : ''}',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.deepPurple,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ...audioUrls.asMap().entries.map((entry) {
+            return Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.deepPurple.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Colors.deepPurple.withOpacity(0.2),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.deepPurple.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.headphones_rounded,
+                      color: Colors.deepPurple,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Audio ${entry.key + 1}',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Tap to listen',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => _openAudioUrl(entry.value),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        child: const Icon(Icons.open_in_new, color: Colors.deepPurple, size: 20),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
       ],
     );
   }
@@ -862,6 +955,27 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Invalid video URL')),
+        );
+      }
+    }
+  }
+
+  Future<void> _openAudioUrl(String url) async {
+    try {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not open audio')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid audio URL')),
         );
       }
     }
