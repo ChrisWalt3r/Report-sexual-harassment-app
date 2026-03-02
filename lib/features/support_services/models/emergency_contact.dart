@@ -8,6 +8,10 @@ class EmergencyContact {
   final bool isNational;
   final String? region;
   final int priority; // Lower number = higher priority
+  final String? email;
+  final String? address;
+  final String? operatingHours;
+  final bool isAvailable24Hours;
 
   const EmergencyContact({
     required this.id,
@@ -18,6 +22,10 @@ class EmergencyContact {
     this.isNational = true,
     this.region,
     this.priority = 10,
+    this.email,
+    this.address,
+    this.operatingHours,
+    this.isAvailable24Hours = false,
   });
 
   factory EmergencyContact.fromJson(Map<String, dynamic> json) {
@@ -33,6 +41,10 @@ class EmergencyContact {
       isNational: json['is_national'] as bool? ?? true,
       region: json['region'] as String?,
       priority: json['priority'] as int? ?? 10,
+      email: json['email'] as String?,
+      address: json['address'] as String?,
+      operatingHours: json['operating_hours'] as String?,
+      isAvailable24Hours: json['is_available_24_hours'] as bool? ?? false,
     );
   }
 
@@ -46,6 +58,10 @@ class EmergencyContact {
       'is_national': isNational,
       'region': region,
       'priority': priority,
+      'email': email,
+      'address': address,
+      'operating_hours': operatingHours,
+      'is_available_24_hours': isAvailable24Hours,
     };
   }
 }
@@ -58,6 +74,10 @@ enum EmergencyCategory {
   womenShelter,
   legalAid,
   general,
+  campusSecurity,
+  counseling,
+  genderDesk,
+  other,
 }
 
 extension EmergencyCategoryExtension on EmergencyCategory {
@@ -75,6 +95,14 @@ extension EmergencyCategoryExtension on EmergencyCategory {
         return 'Legal Aid';
       case EmergencyCategory.general:
         return 'General Emergency';
+      case EmergencyCategory.campusSecurity:
+        return 'Campus Security';
+      case EmergencyCategory.counseling:
+        return 'Counseling Services';
+      case EmergencyCategory.genderDesk:
+        return 'Gender Desk';
+      case EmergencyCategory.other:
+        return 'Other';
     }
   }
 }

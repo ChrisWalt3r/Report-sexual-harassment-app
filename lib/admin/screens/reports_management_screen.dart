@@ -396,12 +396,18 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                         (data['incidentDate'] as Timestamp)
                                             .toDate(),
                                       )
-                                      : (data['incidentDateString'] ?? 'N/A'),
+                                      : (data['incidentDateString'] ?? data['date'] ?? 'N/A'),
                                 ),
                                 _buildDetailRow(
                                   'Time of Incident',
-                                  data['incidentTime'] ?? 'N/A',
+                                  data['incidentTime'] ?? data['time'] ?? 'N/A',
                                 ),
+                                if (data['perpetratorInfo'] != null &&
+                                    data['perpetratorInfo'].toString().isNotEmpty)
+                                  _buildDetailRow(
+                                    'Person(s) Involved',
+                                    data['perpetratorInfo'] ?? 'N/A',
+                                  ),
                                 if (data['witnessName'] != null &&
                                     data['witnessName'].toString().isNotEmpty)
                                   _buildDetailRow(
@@ -416,8 +422,40 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                     'Witness Contact',
                                     data['witnessContact'] ?? 'N/A',
                                   ),
+                                if (data['witnesses'] != null &&
+                                    data['witnesses'].toString().isNotEmpty)
+                                  _buildDetailRow(
+                                    'Witnesses',
+                                    data['witnesses'] ?? 'N/A',
+                                  ),
                               ]),
                               const SizedBox(height: 20),
+
+                              // Complainant Response section (per MUST Policy Section 8.4)
+                              if (data['complainantResponse'] != null &&
+                                  data['complainantResponse'].toString().isNotEmpty) ...[
+                                _buildDetailSection('Complainant Response', [
+                                  Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue[50],
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: Colors.blue[200]!,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      data['complainantResponse'],
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        height: 1.5,
+                                      ),
+                                    ),
+                                  ),
+                                ]),
+                                const SizedBox(height: 20),
+                              ],
 
                               _buildDetailSection('Incident Description', [
                                 Container(

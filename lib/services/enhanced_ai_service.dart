@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../config/ai_config.dart';
+import 'policy_knowledge_service.dart';
+import 'official_contacts_service.dart';
 
 class EnhancedAIService extends ChangeNotifier {
   static final EnhancedAIService _instance = EnhancedAIService._internal();
@@ -17,6 +19,13 @@ class EnhancedAIService extends ChangeNotifier {
   bool _isConnected = false;
   bool _isAgentTyping = false;
   String _currentScenario = 'initial_contact';
+  
+  // RAG: Policy Knowledge Service for retrieval-augmented generation
+  final PolicyKnowledgeService _policyService = PolicyKnowledgeService();
+  bool _policyServiceInitialized = false;
+  
+  // Official contacts service for contact information retrieval
+  final OfficialContactsService _contactsService = OfficialContactsService();
 
   // Getters
   List<ChatMessage> get messages => List.unmodifiable(_messages);
@@ -29,6 +38,12 @@ class EnhancedAIService extends ChangeNotifier {
     try {
       _isConnected = true;
       notifyListeners();
+      
+      // Initialize RAG policy knowledge service
+      if (!_policyServiceInitialized) {
+        await _policyService.initialize();
+        _policyServiceInitialized = true;
+      }
 
       // Initial welcome message using scenario-specific prompt
       final welcomeText = await _generateContextualWelcome();
@@ -140,7 +155,13 @@ Welcome message:''';
   }
 
   Future<String> _generateContextualResponse(String userMessage) async {
-    // Use smart keyword-based responses first - they're more reliable than free AI models
+    // Check if this is a policy-related question that RAG can answer
+    final policyResponse = await _tryRAGResponse(userMessage);
+    if (policyResponse != null) {
+      return policyResponse;
+    }
+    
+    // Use smart keyword-based responses for emotional support
     final smartResponse = _getSmartResponse(userMessage);
     if (smartResponse != null) {
       return smartResponse;
@@ -194,6 +215,140 @@ Respond with empathy in 1-2 sentences. Be supportive and trauma-informed.''';
     }
 
     throw Exception('All AI models failed');
+  }
+
+  /// RAG: Try to answer using retrieved policy content and contacts
+  Future<String?> _tryRAGResponse(String userMessage) async {
+    final lowerMessage = userMessage.toLowerCase();
+    
+    // Detect if this is a policy-related question (not just emotional support)
+    final isPolicyQuestion = _isPolicyRelatedQuestion(lowerMessage);
+    final isContactQuestion = _isContactQuery(lowerMessage);
+    
+    if (!isPolicyQuestion && !isContactQuestion) {
+      return null; // Let emotional support handlers deal with it
+    }
+    
+    try {
+      // Get relevant policy chunks
+      final policyResults = _policyService.retrieveRelevantChunks(userMessage, topN: 3);
+      final policyContext = policyResults.isNotEmpty && policyResults.first.relevanceScore >= 1.0
+          ? _policyService.formatContextForAI(policyResults)
+          : '';
+      
+      // Get relevant contacts if this is a contact query
+      String contactsContext = '';
+      if (isContactQuestion) {
+        final contacts = await _contactsService.getContactsForQuery(userMessage);
+        if (contacts.isNotEmpty) {
+          // Format contacts as readable string
+          final formattedContacts = contacts.map((c) => c.toAIReadableString()).join('\n---\n');
+          contactsContext = '''
+
+OFFICIAL CONTACT INFORMATION:
+---
+$formattedContacts
+---
+''';
+        }
+      }
+      
+      // If we have neither policy nor contacts, let other handlers deal with it
+      if (policyContext.isEmpty && contactsContext.isEmpty) {
+        return null;
+      }
+      
+      // Build RAG prompt with both policy and contacts
+      final ragPrompt = '''You are a helpful assistant for MUST University's sexual harassment support system. 
+Answer the user's question using the information provided below. Be accurate and helpful.
+
+$policyContext
+$contactsContext
+
+User's Question: "$userMessage"
+
+Provide a helpful, accurate answer based on the information above.
+- If asked about contacts, provide the relevant contact details clearly.
+- If asked about policy, cite the policy.
+- Keep your response concise (2-4 sentences) and supportive.
+
+Answer:''';
+      
+      // Call AI with RAG context
+      final response = await _callAIModel('primary', ragPrompt);
+      final cleanedResponse = _cleanInstructResponse(response, ragPrompt);
+      
+      if (cleanedResponse.length > 30 && cleanedResponse.length < 600) {
+        return cleanedResponse;
+      }
+      
+      // Fallback: Return formatted content directly if AI fails
+      if (contactsContext.isNotEmpty) {
+        return "Here are the relevant contacts:\n$contactsContext\n\nIs there anything else you need help with?";
+      }
+      return _formatDirectPolicyResponse(policyResults, userMessage);
+    } catch (e) {
+      debugPrint('RAG response failed: $e');
+      return null;
+    }
+  }
+  
+  /// Check if this is a question about policy/procedures vs emotional support
+  bool _isPolicyRelatedQuestion(String message) {
+    final policyIndicators = [
+      // Questions about definitions
+      'what is', 'what\'s', 'define', 'meaning of', 'considered', 'constitute', 
+      'types of', 'forms of', 'examples of',
+      // Questions about procedures
+      'how do i', 'how can i', 'how to', 'where do i', 'where can i', 'where to',
+      'who do i', 'who can i', 'who should i', 'who handles',
+      // Reporting questions
+      'report', 'file', 'complaint', 'lodge', 'submit',
+      // Rights and procedures
+      'my rights', 'confidential', 'anonymous', 'private', 'protect',
+      'punishment', 'penalty', 'consequence', 'action taken',
+      'appeal', 'committee', 'ashc', 'timeline', 'how long',
+      // Support questions
+      'counseling', 'counselling', 'support available', 'help available',
+      'services', 'resources',
+      // Policy scope
+      'who is covered', 'applies to', 'policy cover',
+      // Contact information queries
+      'contact', 'phone', 'email', 'office', 'reach', 'call', 'talk to',
+      'dean', 'hr', 'human resources', 'security', 'medical', 'hospital',
+      'number', 'location', 'address', 'hours',
+    ];
+    
+    return policyIndicators.any((indicator) => message.contains(indicator));
+  }
+  
+  /// Check if user is asking for contact information
+  bool _isContactQuery(String message) {
+    final contactIndicators = [
+      'contact', 'phone', 'email', 'number', 'call', 'reach', 'talk to',
+      'office', 'location', 'where is', 'how do i get to', 'hours',
+      'dean of students', 'dean', 'dos', 'ashc', 'ushc', 'counselor',
+      'counselling', 'medical', 'health center', 'security', 'hr',
+      'human resources', 'legal', 'secretary',
+    ];
+    return contactIndicators.any((indicator) => message.contains(indicator));
+  }
+  
+  /// Format a direct response from policy content when AI is unavailable
+  String _formatDirectPolicyResponse(List<RetrievalResult> results, String query) {
+    if (results.isEmpty) {
+      return "I couldn't find specific policy information for that question. Would you like me to explain the general reporting process or connect you with a counselor who can help?";
+    }
+    
+    final topResult = results.first;
+    final content = topResult.chunk.content;
+    
+    // Truncate if too long
+    final truncated = content.length > 400 
+        ? '${content.substring(0, 400)}...' 
+        : content;
+    
+    return "According to the MUST Anti-Sexual Harassment Policy:\n\n$truncated\n\nWould you like more details about this or any other aspect of the policy?";
   }
 
   String _cleanInstructResponse(String response, String prompt) {

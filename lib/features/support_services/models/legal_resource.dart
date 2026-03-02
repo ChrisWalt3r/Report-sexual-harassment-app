@@ -9,6 +9,8 @@ class LegalResource {
   final String? website;
   final bool providesFreeConsultation;
   final List<String> servicesOffered;
+  final String? address;
+  final String? operatingHours;
 
   const LegalResource({
     required this.id,
@@ -20,6 +22,8 @@ class LegalResource {
     this.website,
     this.providesFreeConsultation = false,
     this.servicesOffered = const [],
+    this.address,
+    this.operatingHours,
   });
 
   factory LegalResource.fromJson(Map<String, dynamic> json) {
@@ -39,6 +43,8 @@ class LegalResource {
               ?.map((e) => e as String)
               .toList() ??
           [],
+      address: json['address'] as String?,
+      operatingHours: json['operating_hours'] as String?,
     );
   }
 
@@ -53,6 +59,8 @@ class LegalResource {
       'website': website,
       'provides_free_consultation': providesFreeConsultation,
       'services_offered': servicesOffered,
+      'address': address,
+      'operating_hours': operatingHours,
     };
   }
 }

@@ -9,6 +9,7 @@ import 'admin_login_screen.dart';
 import 'analytics_screen.dart';
 import 'admin_management_screen.dart';
 import 'data_export_screen.dart';
+import 'contacts_management_screen.dart';
 
 // ─── Sidebar navigation item model ───
 class _NavItem {
@@ -52,8 +53,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
       const _NavItem(label: 'Reports', icon: Icons.assignment_outlined, activeIcon: Icons.assignment, index: 1),
       const _NavItem(label: 'Users', icon: Icons.people_outline, activeIcon: Icons.people, index: 2),
       const _NavItem(label: 'Analytics', icon: Icons.analytics_outlined, activeIcon: Icons.analytics, index: 3),
-      const _NavItem(label: 'Admins', icon: Icons.admin_panel_settings_outlined, activeIcon: Icons.admin_panel_settings, index: 4, superAdminOnly: true),
-      const _NavItem(label: 'Export', icon: Icons.download_outlined, activeIcon: Icons.download, index: 5),
+      const _NavItem(label: 'Contacts', icon: Icons.contact_phone_outlined, activeIcon: Icons.contact_phone, index: 4),
+      const _NavItem(label: 'Admins', icon: Icons.admin_panel_settings_outlined, activeIcon: Icons.admin_panel_settings, index: 5, superAdminOnly: true),
+      const _NavItem(label: 'Export', icon: Icons.download_outlined, activeIcon: Icons.download, index: 6),
     ];
   }
 
@@ -75,8 +77,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
       case 3:
         return const AnalyticsScreen(embedded: true);
       case 4:
-        return const AdminManagementScreen(embedded: true);
+        return const ContactsManagementScreen();
       case 5:
+        return const AdminManagementScreen(embedded: true);
+      case 6:
         return const DataExportScreen(embedded: true);
       default:
         return _DashboardOverview(admin: widget.admin);

@@ -500,6 +500,10 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
       case EmergencyCategory.womenShelter: return AppColors.mustGold;
       case EmergencyCategory.legalAid: return AppColors.mustBlue;
       case EmergencyCategory.general: return AppColors.mustBlueMedium;
+      case EmergencyCategory.campusSecurity: return Colors.red;
+      case EmergencyCategory.counseling: return Colors.teal;
+      case EmergencyCategory.genderDesk: return Colors.purple;
+      case EmergencyCategory.other: return Colors.grey;
     }
   }
 
@@ -511,6 +515,10 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
       case EmergencyCategory.womenShelter: return Icons.home_rounded;
       case EmergencyCategory.legalAid: return Icons.gavel_rounded;
       case EmergencyCategory.general: return Icons.emergency_rounded;
+      case EmergencyCategory.campusSecurity: return Icons.security_rounded;
+      case EmergencyCategory.counseling: return Icons.psychology_rounded;
+      case EmergencyCategory.genderDesk: return Icons.people_rounded;
+      case EmergencyCategory.other: return Icons.contact_phone_rounded;
     }
   }
 }
