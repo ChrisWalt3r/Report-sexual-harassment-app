@@ -431,7 +431,7 @@ class _ContactsManagementScreenState extends State<ContactsManagementScreen> {
                   children: [
                     // Category Dropdown
                     DropdownButtonFormField<ContactCategory>(
-                      value: selectedCategory,
+                      initialValue: selectedCategory,
                       decoration: const InputDecoration(
                         labelText: 'Category *',
                         border: OutlineInputBorder(),

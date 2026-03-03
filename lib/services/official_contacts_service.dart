@@ -223,8 +223,13 @@ class OfficialContactsService {
       await getContacts();
     }
     
+    // If cache is still empty, use defaults
+    if (_cachedContacts.isEmpty) {
+      _cachedContacts = _getDefaultContacts(null);
+    }
+    
     final lowerQuery = userQuery.toLowerCase();
-    List<OfficialContact> relevantContacts = [];
+    List<_ScoredContact> scoredContacts = [];
     
     // Check each category's keywords
     for (final contact in _cachedContacts) {
@@ -245,6 +250,10 @@ class OfficialContactsService {
       if (lowerQuery.contains(contact.title.toLowerCase())) {
         relevanceScore += 2.0;
       }
+      if (contact.department.toLowerCase().isNotEmpty && 
+          lowerQuery.contains(contact.department.toLowerCase())) {
+        relevanceScore += 1.5;
+      }
       
       // Check common contact-seeking patterns
       if (_isContactQuery(lowerQuery)) {
@@ -256,7 +265,8 @@ class OfficialContactsService {
         
         // Committee queries
         if ((lowerQuery.contains('committee') || lowerQuery.contains('ashc') || 
-             lowerQuery.contains('report')) &&
+             lowerQuery.contains('report') || lowerQuery.contains('complaint') ||
+             lowerQuery.contains('lodge')) &&
             (contact.category == ContactCategory.ashc || 
              contact.category == ContactCategory.ushc)) {
           relevanceScore += 3.0;
@@ -264,35 +274,56 @@ class OfficialContactsService {
         
         // Counseling queries
         if ((lowerQuery.contains('counsel') || lowerQuery.contains('therapy') || 
-             lowerQuery.contains('mental health')) &&
+             lowerQuery.contains('mental health') || lowerQuery.contains('support') ||
+             lowerQuery.contains('talk to someone')) &&
             contact.category == ContactCategory.counseling) {
           relevanceScore += 3.0;
         }
         
         // Security/emergency queries
         if ((lowerQuery.contains('security') || lowerQuery.contains('emergency') || 
-             lowerQuery.contains('danger')) &&
+             lowerQuery.contains('danger') || lowerQuery.contains('unsafe') ||
+             lowerQuery.contains('help') || lowerQuery.contains('immediate')) &&
             contact.category == ContactCategory.security) {
           relevanceScore += 3.0;
         }
         
         // Medical queries
         if ((lowerQuery.contains('medical') || lowerQuery.contains('doctor') || 
-             lowerQuery.contains('pep') || lowerQuery.contains('health')) &&
+             lowerQuery.contains('pep') || lowerQuery.contains('health') ||
+             lowerQuery.contains('hospital') || lowerQuery.contains('clinic')) &&
             contact.category == ContactCategory.medical) {
+          relevanceScore += 3.0;
+        }
+        
+        // HR queries (staff reporting)
+        if ((lowerQuery.contains('hr') || lowerQuery.contains('human resource') ||
+             lowerQuery.contains('staff') || lowerQuery.contains('employee')) &&
+            contact.category == ContactCategory.humanResources) {
+          relevanceScore += 3.0;
+        }
+        
+        // University Secretary queries
+        if ((lowerQuery.contains('secretary') || lowerQuery.contains('administration') ||
+             lowerQuery.contains('third party') || lowerQuery.contains('visitor')) &&
+            contact.category == ContactCategory.administration) {
           relevanceScore += 3.0;
         }
       }
       
       if (relevanceScore > 0) {
-        relevantContacts.add(contact);
+        scoredContacts.add(_ScoredContact(contact, relevanceScore));
       }
     }
     
-    // Sort by relevance (using priority as secondary sort)
-    relevantContacts.sort((a, b) => a.priority.compareTo(b.priority));
+    // Sort by relevance score (descending), then by priority (ascending)
+    scoredContacts.sort((a, b) {
+      final scoreCompare = b.score.compareTo(a.score);
+      if (scoreCompare != 0) return scoreCompare;
+      return a.contact.priority.compareTo(b.contact.priority);
+    });
     
-    return relevantContacts.take(3).toList();
+    return scoredContacts.take(3).map((sc) => sc.contact).toList();
   }
 
   /// Check if query is asking for contact information
@@ -345,7 +376,11 @@ class OfficialContactsService {
         title: 'Dean of Students',
         department: 'Student Affairs',
         category: ContactCategory.deanOfStudents,
-        description: 'Primary contact for all student matters including sexual harassment complaints from students',
+        email: 'dos@must.ac.ug',
+        phoneNumber: '+256 485 421 387',
+        officeLocation: 'Administration Block, Ground Floor',
+        officeHours: 'Monday - Friday, 8:00 AM - 5:00 PM',
+        description: 'Primary contact for all student matters including sexual harassment complaints from students. Students can report directly to the DOS.',
         priority: 1,
       ),
       OfficialContact(
@@ -354,7 +389,10 @@ class OfficialContactsService {
         title: 'Chairperson, Anti-Sexual Harassment Committee',
         department: 'ASHC',
         category: ContactCategory.ashc,
-        description: 'Handles all sexual harassment cases. Contact for formal complaints and guidance.',
+        email: 'ashc@must.ac.ug',
+        phoneNumber: '+256 485 421 387',
+        officeLocation: 'Administration Block',
+        description: 'Handles all sexual harassment cases. Contact for formal complaints, guidance, and case facilitation.',
         priority: 2,
       ),
       OfficialContact(
@@ -363,7 +401,11 @@ class OfficialContactsService {
         title: 'University Secretary',
         department: 'Administration',
         category: ContactCategory.administration,
-        description: 'Receives complaints from staff and third parties. Presents cases to Top Management.',
+        email: 'us@must.ac.ug',
+        phoneNumber: '+256 485 421 387',
+        officeLocation: 'Administration Block, 2nd Floor',
+        officeHours: 'Monday - Friday, 8:00 AM - 5:00 PM',
+        description: 'Receives complaints from staff and third parties. Staff report through HR or directly to US.',
         priority: 3,
       ),
       OfficialContact(
@@ -372,7 +414,11 @@ class OfficialContactsService {
         title: 'Director Human Resource',
         department: 'Human Resources',
         category: ContactCategory.humanResources,
-        description: 'Staff can report through HR to University Secretary',
+        email: 'hr@must.ac.ug',
+        phoneNumber: '+256 485 421 387',
+        officeLocation: 'Administration Block, 1st Floor',
+        officeHours: 'Monday - Friday, 8:00 AM - 5:00 PM',
+        description: 'Staff can report sexual harassment through HR to University Secretary.',
         priority: 4,
       ),
       OfficialContact(
@@ -381,7 +427,11 @@ class OfficialContactsService {
         title: 'Counselor',
         department: 'Student Welfare',
         category: ContactCategory.counseling,
-        description: 'Confidential counseling and psycho-social support for victims',
+        email: 'counseling@must.ac.ug',
+        phoneNumber: '+256 485 421 387',
+        officeLocation: 'Student Center Building',
+        officeHours: 'Monday - Friday, 8:00 AM - 5:00 PM',
+        description: 'Confidential counseling and psycho-social support for victims of sexual harassment.',
         priority: 5,
       ),
       OfficialContact(
@@ -390,7 +440,11 @@ class OfficialContactsService {
         title: 'Medical Officer',
         department: 'Medical Services',
         category: ContactCategory.medical,
-        description: 'Emergency medical services including Post Exposure Prophylaxis (PEP)',
+        email: 'healthcenter@must.ac.ug',
+        phoneNumber: '+256 485 421 387',
+        officeLocation: 'University Health Center',
+        officeHours: '24/7 Emergency Services Available',
+        description: 'Emergency medical services including Post Exposure Prophylaxis (PEP). Available 24/7 for emergencies.',
         priority: 6,
       ),
       OfficialContact(
@@ -399,7 +453,10 @@ class OfficialContactsService {
         title: 'Chief Security Officer',
         department: 'Security',
         category: ContactCategory.security,
-        description: '24/7 campus security for immediate safety concerns and emergencies',
+        phoneNumber: '+256 485 421 387',
+        officeLocation: 'Main Gate Security Office',
+        officeHours: '24/7 Available',
+        description: '24/7 campus security for immediate safety concerns and emergencies. Contact immediately if in danger.',
         priority: 7,
       ),
     ];
@@ -416,4 +473,12 @@ class OfficialContactsService {
     _isCacheValid = false;
     _cachedContacts.clear();
   }
+}
+
+/// Helper class for ranking contacts by relevance score
+class _ScoredContact {
+  final OfficialContact contact;
+  final double score;
+  
+  _ScoredContact(this.contact, this.score);
 }

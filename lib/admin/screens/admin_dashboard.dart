@@ -10,6 +10,8 @@ import 'analytics_screen.dart';
 import 'admin_management_screen.dart';
 import 'data_export_screen.dart';
 import 'contacts_management_screen.dart';
+import 'policy_management_screen.dart';
+import 'profile_management_screen.dart';
 
 // ─── Sidebar navigation item model ───
 class _NavItem {
@@ -54,8 +56,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
       const _NavItem(label: 'Users', icon: Icons.people_outline, activeIcon: Icons.people, index: 2),
       const _NavItem(label: 'Analytics', icon: Icons.analytics_outlined, activeIcon: Icons.analytics, index: 3),
       const _NavItem(label: 'Contacts', icon: Icons.contact_phone_outlined, activeIcon: Icons.contact_phone, index: 4),
-      const _NavItem(label: 'Admins', icon: Icons.admin_panel_settings_outlined, activeIcon: Icons.admin_panel_settings, index: 5, superAdminOnly: true),
-      const _NavItem(label: 'Export', icon: Icons.download_outlined, activeIcon: Icons.download, index: 6),
+      const _NavItem(label: 'Policy RAG', icon: Icons.policy_outlined, activeIcon: Icons.policy, index: 5),
+      const _NavItem(label: 'Admins', icon: Icons.admin_panel_settings_outlined, activeIcon: Icons.admin_panel_settings, index: 6, superAdminOnly: true),
+      const _NavItem(label: 'Export', icon: Icons.download_outlined, activeIcon: Icons.download, index: 7),
+      const _NavItem(label: 'Profile', icon: Icons.account_circle_outlined, activeIcon: Icons.account_circle, index: 8),
     ];
   }
 
@@ -79,9 +83,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
       case 4:
         return const ContactsManagementScreen();
       case 5:
-        return const AdminManagementScreen(embedded: true);
+        return const PolicyManagementScreen(embedded: true);
       case 6:
+        return const AdminManagementScreen(embedded: true);
+      case 7:
         return const DataExportScreen(embedded: true);
+      case 8:
+        return ProfileManagementScreen(admin: widget.admin, embedded: true);
       default:
         return _DashboardOverview(admin: widget.admin);
     }
@@ -257,6 +265,43 @@ class _AdminDashboardState extends State<AdminDashboard> {
               children: _visibleNavItems.map((item) => _buildSidebarItem(item)).toList(),
             ),
           ),
+          // Footer
+          Divider(color: Colors.white.withOpacity(0.1), height: 1),
+          Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: _sidebarCollapsed ? 8 : 16,
+              vertical: 12,
+            ),
+            child: _sidebarCollapsed
+                ? const Icon(Icons.school, color: Colors.white38, size: 20)
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.school, color: AppColors.mustGold, size: 16),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'MUST',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'v1.0.0 · © 2026',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.4),
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
           // Collapse toggle
           Divider(color: Colors.white.withOpacity(0.1), height: 1),
           InkWell(
@@ -366,6 +411,26 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       },
                     );
                   }).toList(),
+                ),
+              ),
+              Divider(color: Colors.white.withOpacity(0.1)),
+              // Footer
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                child: Row(
+                  children: [
+                    const Icon(Icons.school, color: AppColors.mustGold, size: 16),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'MUST',
+                      style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                    const Spacer(),
+                    Text(
+                      'v1.0.0 · © 2026',
+                      style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 10),
+                    ),
+                  ],
                 ),
               ),
               Divider(color: Colors.white.withOpacity(0.1)),

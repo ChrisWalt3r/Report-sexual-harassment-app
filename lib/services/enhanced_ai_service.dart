@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../config/ai_config.dart';
+import '../models/official_contact.dart';
 import 'policy_knowledge_service.dart';
 import 'official_contacts_service.dart';
 
@@ -221,27 +222,36 @@ Respond with empathy in 1-2 sentences. Be supportive and trauma-informed.''';
   Future<String?> _tryRAGResponse(String userMessage) async {
     final lowerMessage = userMessage.toLowerCase();
     
+    // Check for contact queries FIRST - these should always return contact info
+    final isContactQuestion = _isContactQuery(lowerMessage);
+    
     // Detect if this is a policy-related question (not just emotional support)
     final isPolicyQuestion = _isPolicyRelatedQuestion(lowerMessage);
-    final isContactQuestion = _isContactQuery(lowerMessage);
     
     if (!isPolicyQuestion && !isContactQuestion) {
       return null; // Let emotional support handlers deal with it
     }
     
     try {
-      // Get relevant policy chunks
-      final policyResults = _policyService.retrieveRelevantChunks(userMessage, topN: 3);
-      final policyContext = policyResults.isNotEmpty && policyResults.first.relevanceScore >= 1.0
-          ? _policyService.formatContextForAI(policyResults)
-          : '';
-      
-      // Get relevant contacts if this is a contact query
+      // Always get relevant contacts if this might be a contact query
       String contactsContext = '';
+      List<OfficialContact> contacts = [];
+      
       if (isContactQuestion) {
-        final contacts = await _contactsService.getContactsForQuery(userMessage);
+        contacts = await _contactsService.getContactsForQuery(userMessage);
+        debugPrint('RAG: Found ${contacts.length} relevant contacts for query');
+        
+        // If no specific contacts matched, get all active contacts for general queries
+        if (contacts.isEmpty) {
+          contacts = await _contactsService.getContacts();
+          // Take top 3 by priority
+          if (contacts.length > 3) {
+            contacts = contacts.take(3).toList();
+          }
+        }
+        
         if (contacts.isNotEmpty) {
-          // Format contacts as readable string
+          // Format contacts as readable string with clear structure
           final formattedContacts = contacts.map((c) => c.toAIReadableString()).join('\n---\n');
           contactsContext = '''
 
@@ -250,6 +260,15 @@ OFFICIAL CONTACT INFORMATION:
 $formattedContacts
 ---
 ''';
+        }
+      }
+      
+      // Get relevant policy chunks
+      String policyContext = '';
+      if (isPolicyQuestion) {
+        final policyResults = _policyService.retrieveRelevantChunks(userMessage, topN: 3);
+        if (policyResults.isNotEmpty && policyResults.first.relevanceScore >= 1.0) {
+          policyContext = _policyService.formatContextForAI(policyResults);
         }
       }
       
@@ -268,9 +287,10 @@ $contactsContext
 User's Question: "$userMessage"
 
 Provide a helpful, accurate answer based on the information above.
-- If asked about contacts, provide the relevant contact details clearly.
+- If asked about contacts, ALWAYS include the relevant phone numbers and emails from the contact information.
 - If asked about policy, cite the policy.
 - Keep your response concise (2-4 sentences) and supportive.
+- Format contact details clearly.
 
 Answer:''';
       
@@ -283,10 +303,14 @@ Answer:''';
       }
       
       // Fallback: Return formatted content directly if AI fails
-      if (contactsContext.isNotEmpty) {
-        return "Here are the relevant contacts:\n$contactsContext\n\nIs there anything else you need help with?";
+      if (contactsContext.isNotEmpty && isContactQuestion) {
+        return "Here are the relevant contacts you can reach out to:\n$contactsContext\n\nIs there anything else you need help with?";
       }
-      return _formatDirectPolicyResponse(policyResults, userMessage);
+      if (isPolicyQuestion) {
+        final policyResults = _policyService.retrieveRelevantChunks(userMessage, topN: 3);
+        return _formatDirectPolicyResponse(policyResults, userMessage);
+      }
+      return null;
     } catch (e) {
       debugPrint('RAG response failed: $e');
       return null;
@@ -325,11 +349,19 @@ Answer:''';
   /// Check if user is asking for contact information
   bool _isContactQuery(String message) {
     final contactIndicators = [
+      // Direct contact requests
       'contact', 'phone', 'email', 'number', 'call', 'reach', 'talk to',
       'office', 'location', 'where is', 'how do i get to', 'hours',
+      // Who to contact questions
+      'who do i', 'who can i', 'who should i', 'who to',
+      // Specific role mentions
       'dean of students', 'dean', 'dos', 'ashc', 'ushc', 'counselor',
-      'counselling', 'medical', 'health center', 'security', 'hr',
-      'human resources', 'legal', 'secretary',
+      'counselling', 'counseling', 'medical', 'health center', 'security', 'hr',
+      'human resources', 'legal', 'secretary', 'university secretary',
+      // Implied contact needs
+      'speak to', 'meet with', 'get help from', 'report to', 'lodge complaint',
+      'where can i report', 'where do i report', 'where to report',
+      'need to report', 'want to report', 'make a complaint',
     ];
     return contactIndicators.any((indicator) => message.contains(indicator));
   }
