@@ -174,4 +174,95 @@ class AdminAuthService {
       rethrow;
     }
   }
+
+  /// Update current admin's profile information
+  Future<void> updateProfile({
+    required String fullName,
+  }) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) throw Exception('Not logged in');
+
+      await _firestore.collection('admins').doc(user.uid).update({
+        'fullName': fullName,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Change current admin's password
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) throw Exception('Not logged in');
+
+      // Re-authenticate before changing password
+      final credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: currentPassword,
+      );
+      await user.reauthenticateWithCredential(credential);
+
+      // Change password
+      await user.updatePassword(newPassword);
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case 'wrong-password':
+          throw Exception('Current password is incorrect');
+        case 'weak-password':
+          throw Exception('New password is too weak. Use at least 6 characters.');
+        case 'requires-recent-login':
+          throw Exception('Please sign out and sign in again before changing password');
+        default:
+          throw Exception('Password change failed: ${e.message}');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Update current admin's email
+  Future<void> updateEmail({
+    required String newEmail,
+    required String password,
+  }) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) throw Exception('Not logged in');
+
+      // Re-authenticate before changing email
+      final credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: password,
+      );
+      await user.reauthenticateWithCredential(credential);
+
+      // Update email in Auth
+      await user.verifyBeforeUpdateEmail(newEmail);
+
+      // Update email in Firestore
+      await _firestore.collection('admins').doc(user.uid).update({
+        'email': newEmail,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case 'wrong-password':
+          throw Exception('Password is incorrect');
+        case 'email-already-in-use':
+          throw Exception('This email is already in use');
+        case 'invalid-email':
+          throw Exception('Invalid email format');
+        default:
+          throw Exception('Email update failed: ${e.message}');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

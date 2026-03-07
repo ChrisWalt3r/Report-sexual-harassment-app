@@ -28,6 +28,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String? _selectedRole;
   final List<String> _roles = ['Student', 'Staff', 'Other'];
 
+  // Gender selection
+  String? _selectedGender;
+  final List<String> _genders = ['Male', 'Female', 'Prefer not to say'];
+
   // Study level (for students)
   String? _selectedStudyLevel;
   final List<String> _studyLevels = ['Undergraduate', 'Postgraduate'];
@@ -124,6 +128,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         role: _selectedRole ?? '',
         studyLevel: _selectedStudyLevel ?? '',
         facultyDepartment: _selectedDepartment ?? '',
+        gender: _selectedGender ?? '',
       );
 
       if (mounted) {
@@ -316,6 +321,46 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please select your role';
+                    }
+                    return null;
+                  },
+                ),
+
+                // Gender Dropdown
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  isExpanded: true,
+                  style: const TextStyle(color: Colors.black, fontSize: 16),
+                  decoration: InputDecoration(
+                    labelText: 'Gender',
+                    hintText: 'Select your gender',
+                    prefixIcon: Icon(Icons.wc_outlined, color: AppColors.textSecondary),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey[300]!),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey[300]!),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: AppColors.mustBlue, width: 2),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                  ),
+                  items: _genders.map((gender) {
+                    return DropdownMenuItem(
+                      value: gender,
+                      child: Text(gender, style: const TextStyle(color: Colors.black)),
+                    );
+                  }).toList(),
+                  onChanged: (value) => setState(() => _selectedGender = value),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please select your gender';
                     }
                     return null;
                   },

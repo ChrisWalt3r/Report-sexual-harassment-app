@@ -72,6 +72,11 @@ dependencies:
   # Environment variables
   flutter_dotenv: ^5.2.1
   firebase_ai: ^2.3.0
+  
+  # Onboarding & Feature Tour
+  introduction_screen: ^3.1.14
+  showcaseview: ^3.0.0
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:

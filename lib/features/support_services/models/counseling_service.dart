@@ -10,6 +10,8 @@ class CounselingService {
   final bool isAvailable24Hours;
   final bool isConfidential;
   final bool isFree;
+  final String? operatingHours;
+  final String? address;
 
   const CounselingService({
     required this.id,
@@ -22,6 +24,8 @@ class CounselingService {
     this.isAvailable24Hours = false,
     this.isConfidential = true,
     this.isFree = false,
+    this.operatingHours,
+    this.address,
   });
 
   factory CounselingService.fromJson(Map<String, dynamic> json) {
@@ -39,6 +43,8 @@ class CounselingService {
       isAvailable24Hours: json['is_available_24_hours'] as bool? ?? false,
       isConfidential: json['is_confidential'] as bool? ?? true,
       isFree: json['is_free'] as bool? ?? false,
+      operatingHours: json['operating_hours'] as String?,
+      address: json['address'] as String?,
     );
   }
 
@@ -54,6 +60,8 @@ class CounselingService {
       'is_available_24_hours': isAvailable24Hours,
       'is_confidential': isConfidential,
       'is_free': isFree,
+      'operating_hours': operatingHours,
+      'address': address,
     };
   }
 }

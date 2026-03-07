@@ -9,6 +9,9 @@ import 'admin_login_screen.dart';
 import 'analytics_screen.dart';
 import 'admin_management_screen.dart';
 import 'data_export_screen.dart';
+import 'contacts_management_screen.dart';
+import 'policy_management_screen.dart';
+import 'profile_management_screen.dart';
 
 // ─── Sidebar navigation item model ───
 class _NavItem {
@@ -52,8 +55,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
       const _NavItem(label: 'Reports', icon: Icons.assignment_outlined, activeIcon: Icons.assignment, index: 1),
       const _NavItem(label: 'Users', icon: Icons.people_outline, activeIcon: Icons.people, index: 2),
       const _NavItem(label: 'Analytics', icon: Icons.analytics_outlined, activeIcon: Icons.analytics, index: 3),
-      const _NavItem(label: 'Admins', icon: Icons.admin_panel_settings_outlined, activeIcon: Icons.admin_panel_settings, index: 4, superAdminOnly: true),
-      const _NavItem(label: 'Export', icon: Icons.download_outlined, activeIcon: Icons.download, index: 5),
+      const _NavItem(label: 'Contacts', icon: Icons.contact_phone_outlined, activeIcon: Icons.contact_phone, index: 4),
+      const _NavItem(label: 'Policy RAG', icon: Icons.policy_outlined, activeIcon: Icons.policy, index: 5),
+      const _NavItem(label: 'Admins', icon: Icons.admin_panel_settings_outlined, activeIcon: Icons.admin_panel_settings, index: 6, superAdminOnly: true),
+      const _NavItem(label: 'Export', icon: Icons.download_outlined, activeIcon: Icons.download, index: 7),
+      const _NavItem(label: 'Profile', icon: Icons.account_circle_outlined, activeIcon: Icons.account_circle, index: 8),
     ];
   }
 
@@ -75,9 +81,15 @@ class _AdminDashboardState extends State<AdminDashboard> {
       case 3:
         return const AnalyticsScreen(embedded: true);
       case 4:
-        return const AdminManagementScreen(embedded: true);
+        return const ContactsManagementScreen();
       case 5:
+        return const PolicyManagementScreen(embedded: true);
+      case 6:
+        return const AdminManagementScreen(embedded: true);
+      case 7:
         return const DataExportScreen(embedded: true);
+      case 8:
+        return ProfileManagementScreen(admin: widget.admin, embedded: true);
       default:
         return _DashboardOverview(admin: widget.admin);
     }
@@ -253,6 +265,43 @@ class _AdminDashboardState extends State<AdminDashboard> {
               children: _visibleNavItems.map((item) => _buildSidebarItem(item)).toList(),
             ),
           ),
+          // Footer
+          Divider(color: Colors.white.withOpacity(0.1), height: 1),
+          Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: _sidebarCollapsed ? 8 : 16,
+              vertical: 12,
+            ),
+            child: _sidebarCollapsed
+                ? const Icon(Icons.school, color: Colors.white38, size: 20)
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.school, color: AppColors.mustGold, size: 16),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'MUST',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'v1.0.0 · © 2026',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.4),
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
           // Collapse toggle
           Divider(color: Colors.white.withOpacity(0.1), height: 1),
           InkWell(
@@ -365,6 +414,26 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 ),
               ),
               Divider(color: Colors.white.withOpacity(0.1)),
+              // Footer
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                child: Row(
+                  children: [
+                    const Icon(Icons.school, color: AppColors.mustGold, size: 16),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'MUST',
+                      style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                    const Spacer(),
+                    Text(
+                      'v1.0.0 · © 2026',
+                      style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 10),
+                    ),
+                  ],
+                ),
+              ),
+              Divider(color: Colors.white.withOpacity(0.1)),
               ListTile(
                 leading: const Icon(Icons.logout, color: Colors.white60),
                 title: const Text('Sign Out', style: TextStyle(color: Colors.white70)),
@@ -392,14 +461,19 @@ class _DashboardOverview extends StatefulWidget {
 class _DashboardOverviewState extends State<_DashboardOverview> {
   final _firestore = FirebaseFirestore.instance;
 
-  int _totalUsers = 0, _totalReports = 0, _pendingReports = 0;
-  int _resolvedReports = 0, _underReviewReports = 0, _anonymousReports = 0;
-  Map<String, int> _reportsByFaculty = {};
-  Map<String, int> _usersByFaculty = {};
-  Map<String, Map<String, int>> _reportsByDepartment = {};
-  Map<String, Map<String, int>> _statusByFaculty = {};
+  // Raw data
+  List<Map<String, dynamic>> _allUsers = [];
+  List<Map<String, dynamic>> _allReports = [];
+  Map<String, String> _userFacultyMap = {};
+  Map<String, String> _userDeptMap = {};
+
+  // Filter state
+  String _selectedFaculty = 'All Faculties';
+  String _selectedDepartment = 'All Departments';
+  String _selectedStatus = 'All Statuses';
+  String _viewMode = 'reports'; // 'reports' or 'users'
+
   bool _isLoading = true;
-  String _selectedFacultyFilter = 'All';
 
   final List<String> _faculties = [
     'Faculty of Medicine',
@@ -410,80 +484,130 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
     'Faculty of Interdisciplinary Studies',
   ];
 
+  final Map<String, List<String>> _facultyDepartments = {
+    'Faculty of Medicine': [
+      'Anatomy', 'Biochemistry', 'Internal Medicine', 'Surgery', 'Pediatrics',
+      'Obstetrics & Gynecology', 'Family Medicine', 'Medical Laboratory Sciences',
+      'Pharmacy', 'Microbiology', 'Pathology', 'Radiology', 'Physiology',
+      'Psychiatry', 'Community Health', 'Nursing/Midwifery',
+    ],
+    'Faculty of Science': ['Biology', 'Chemistry', 'Physics', 'Mathematics'],
+    'Faculty of Computing and Informatics': [
+      'Computer Science', 'Information Technology', 'Software Engineering',
+    ],
+    'Faculty of Applied Sciences and Technology': [
+      'Biomedical Sciences & Engineering', 'Civil Engineering',
+      'Electrical & Electronics Engineering', 'Mechanical Engineering',
+      'Petroleum & Environmental Management',
+    ],
+    'Faculty of Business and Management Sciences': [
+      'Accounting & Finance', 'Business Administration', 'Economics',
+      'Procurement & Supply Chain Management', 'Marketing & Entrepreneurship',
+    ],
+    'Faculty of Interdisciplinary Studies': [
+      'Planning & Governance', 'Human Development & Relational Sciences',
+      'Environment & Livelihood Support Systems', 'Community Engagement & Service Learning',
+    ],
+  };
+
+  final List<String> _statuses = ['submitted', 'pending', 'under_review', 'resolved', 'dismissed'];
+
   @override
   void initState() {
     super.initState();
-    _loadStatistics();
+    _loadData();
   }
 
-  Future<void> _loadStatistics() async {
+  Future<void> _loadData() async {
     setState(() => _isLoading = true);
     try {
+      // Load users
       final usersSnapshot = await _firestore.collection('users').get();
-      _totalUsers = usersSnapshot.docs.length;
-
-      Map<String, String> userFacultyMap = {};
-      Map<String, String> userDeptMap = {};
-      Map<String, int> usersByFaculty = {};
-
-      for (final doc in usersSnapshot.docs) {
+      _allUsers = usersSnapshot.docs.map((doc) {
         final data = doc.data();
-        final faculty = (data['department'] ?? '') as String;
-        final dept = (data['facultyDepartment'] ?? '') as String;
-        userFacultyMap[doc.id] = faculty;
-        userDeptMap[doc.id] = dept;
-        if (faculty.isNotEmpty) usersByFaculty[faculty] = (usersByFaculty[faculty] ?? 0) + 1;
+        data['id'] = doc.id;
+        return data;
+      }).toList();
+
+      // Build faculty/dept mapping
+      for (final user in _allUsers) {
+        final id = user['id'] as String;
+        _userFacultyMap[id] = (user['department'] ?? '') as String;
+        _userDeptMap[id] = (user['facultyDepartment'] ?? '') as String;
       }
 
+      // Load reports
       final reportsSnapshot = await _firestore.collection('reports').get();
-      _totalReports = reportsSnapshot.docs.length;
-
-      int pending = 0, resolved = 0, underReview = 0, anonymous = 0;
-      Map<String, int> reportsByFaculty = {};
-      Map<String, Map<String, int>> reportsByDepartment = {};
-      Map<String, Map<String, int>> statusByFaculty = {};
-
-      for (final doc in reportsSnapshot.docs) {
+      _allReports = reportsSnapshot.docs.map((doc) {
         final data = doc.data();
-        final status = (data['status'] ?? '') as String;
+        data['id'] = doc.id;
+        // Attach user's faculty/dept to report
         final userId = data['userId'] as String?;
-        final isAnonymous = data['isAnonymous'] == true;
-
-        if (status == 'pending' || status == 'submitted') pending++;
-        if (status == 'resolved') resolved++;
-        if (status == 'under_review') underReview++;
-        if (isAnonymous) anonymous++;
-
-        String faculty = '', dept = '';
-        if (userId != null && userFacultyMap.containsKey(userId)) {
-          faculty = userFacultyMap[userId]!;
-          dept = userDeptMap[userId] ?? '';
+        if (userId != null) {
+          data['userFaculty'] = _userFacultyMap[userId] ?? '';
+          data['userDept'] = _userDeptMap[userId] ?? '';
+        } else {
+          data['userFaculty'] = '';
+          data['userDept'] = '';
         }
-        if (faculty.isNotEmpty) {
-          reportsByFaculty[faculty] = (reportsByFaculty[faculty] ?? 0) + 1;
-          statusByFaculty.putIfAbsent(faculty, () => {});
-          statusByFaculty[faculty]![status] = (statusByFaculty[faculty]![status] ?? 0) + 1;
-          if (dept.isNotEmpty) {
-            reportsByDepartment.putIfAbsent(faculty, () => {});
-            reportsByDepartment[faculty]![dept] = (reportsByDepartment[faculty]![dept] ?? 0) + 1;
-          }
-        }
-      }
+        return data;
+      }).toList();
 
-      setState(() {
-        _pendingReports = pending;
-        _resolvedReports = resolved;
-        _underReviewReports = underReview;
-        _anonymousReports = anonymous;
-        _reportsByFaculty = reportsByFaculty;
-        _usersByFaculty = usersByFaculty;
-        _reportsByDepartment = reportsByDepartment;
-        _statusByFaculty = statusByFaculty;
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     } catch (e) {
       setState(() => _isLoading = false);
     }
+  }
+
+  // Get available departments based on selected faculty
+  List<String> get _availableDepartments {
+    if (_selectedFaculty == 'All Faculties') {
+      // Return all departments
+      return _facultyDepartments.values.expand((d) => d).toSet().toList()..sort();
+    }
+    return _facultyDepartments[_selectedFaculty] ?? [];
+  }
+
+  // Filtered reports
+  List<Map<String, dynamic>> get _filteredReports {
+    return _allReports.where((r) {
+      if (_selectedFaculty != 'All Faculties' && r['userFaculty'] != _selectedFaculty) return false;
+      if (_selectedDepartment != 'All Departments' && r['userDept'] != _selectedDepartment) return false;
+      if (_selectedStatus != 'All Statuses' && r['status'] != _selectedStatus) return false;
+      return true;
+    }).toList();
+  }
+
+  // Filtered users
+  List<Map<String, dynamic>> get _filteredUsers {
+    return _allUsers.where((u) {
+      final faculty = u['department'] ?? '';
+      final dept = u['facultyDepartment'] ?? '';
+      if (_selectedFaculty != 'All Faculties' && faculty != _selectedFaculty) return false;
+      if (_selectedDepartment != 'All Departments' && dept != _selectedDepartment) return false;
+      return true;
+    }).toList();
+  }
+
+  // Stats for filtered data
+  Map<String, int> get _filteredStats {
+    final reports = _filteredReports;
+    return {
+      'total': reports.length,
+      'pending': reports.where((r) => r['status'] == 'pending' || r['status'] == 'submitted').length,
+      'under_review': reports.where((r) => r['status'] == 'under_review').length,
+      'resolved': reports.where((r) => r['status'] == 'resolved').length,
+      'dismissed': reports.where((r) => r['status'] == 'dismissed').length,
+      'anonymous': reports.where((r) => r['isAnonymous'] == true).length,
+    };
+  }
+
+  void _resetFilters() {
+    setState(() {
+      _selectedFaculty = 'All Faculties';
+      _selectedDepartment = 'All Departments';
+      _selectedStatus = 'All Statuses';
+    });
   }
 
   @override
@@ -492,7 +616,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
 
     return RefreshIndicator(
       color: AppColors.mustGold,
-      onRefresh: _loadStatistics,
+      onRefresh: _loadData,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(20),
@@ -501,21 +625,15 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
           children: [
             _buildWelcomeBanner(),
             const SizedBox(height: 24),
-            _buildSectionHeader('System Overview', Icons.dashboard),
-            const SizedBox(height: 12),
-            _buildOverviewStats(),
-            const SizedBox(height: 28),
-            _buildSectionHeader('Reports by Faculty', Icons.school),
-            const SizedBox(height: 12),
-            _buildFacultyReportsSection(),
-            const SizedBox(height: 28),
-            _buildSectionHeader('Users by Faculty', Icons.people),
-            const SizedBox(height: 12),
-            _buildUsersByFacultySection(),
-            const SizedBox(height: 28),
-            _buildSectionHeader('Department Breakdown', Icons.account_tree),
-            const SizedBox(height: 12),
-            _buildDepartmentBreakdown(),
+            _buildFilterPanel(),
+            const SizedBox(height: 20),
+            _buildFilteredStatsCards(),
+            const SizedBox(height: 24),
+            _buildViewToggle(),
+            const SizedBox(height: 16),
+            _viewMode == 'reports' ? _buildReportsDataView() : _buildUsersDataView(),
+            const SizedBox(height: 24),
+            _buildBreakdownSection(),
             const SizedBox(height: 24),
           ],
         ),
@@ -540,9 +658,9 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
               Text('MUST Sexual Harassment Report System', style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.8))),
               const SizedBox(height: 12),
               Row(children: [
-                _buildMiniStat('Total Reports', _totalReports.toString(), AppColors.mustGoldLight),
+                _buildMiniStat('Total Reports', _allReports.length.toString(), AppColors.mustGoldLight),
                 const SizedBox(width: 16),
-                _buildMiniStat('Pending', _pendingReports.toString(), Colors.orange[200]!),
+                _buildMiniStat('Total Users', _allUsers.length.toString(), Colors.white),
               ]),
             ]),
           ),
@@ -563,34 +681,218 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
     ]);
   }
 
-  Widget _buildSectionHeader(String title, IconData icon) {
-    return Row(children: [
-      Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(color: AppColors.mustGold.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
-        child: Icon(icon, color: AppColors.mustGold, size: 20),
+  Widget _buildFilterPanel() {
+    final isWide = MediaQuery.of(context).size.width > 800;
+    final hasActiveFilters = _selectedFaculty != 'All Faculties' ||
+        _selectedDepartment != 'All Departments' ||
+        _selectedStatus != 'All Statuses';
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: hasActiveFilters ? AppColors.mustGold : Colors.grey[200]!, width: hasActiveFilters ? 2 : 1),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 2))],
       ),
-      const SizedBox(width: 12),
-      Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.mustBlue)),
-    ]);
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(color: AppColors.mustGold.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
+                child: const Icon(Icons.filter_list, color: AppColors.mustGold, size: 20),
+              ),
+              const SizedBox(width: 12),
+              const Text('Filter Data', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.mustBlue)),
+              const Spacer(),
+              if (hasActiveFilters)
+                TextButton.icon(
+                  onPressed: _resetFilters,
+                  icon: const Icon(Icons.clear_all, size: 18),
+                  label: const Text('Reset'),
+                  style: TextButton.styleFrom(foregroundColor: Colors.grey[600]),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          isWide
+              ? Row(
+                  children: [
+                    Expanded(child: _buildFacultyDropdown()),
+                    const SizedBox(width: 12),
+                    Expanded(child: _buildDepartmentDropdown()),
+                    const SizedBox(width: 12),
+                    Expanded(child: _buildStatusDropdown()),
+                  ],
+                )
+              : Column(
+                  children: [
+                    _buildFacultyDropdown(),
+                    const SizedBox(height: 12),
+                    _buildDepartmentDropdown(),
+                    const SizedBox(height: 12),
+                    _buildStatusDropdown(),
+                  ],
+                ),
+        ],
+      ),
+    );
   }
 
-  Widget _buildOverviewStats() {
-    final wide = MediaQuery.of(context).size.width > 800;
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: wide ? 6 : 3,
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      childAspectRatio: wide ? 1.1 : 0.95,
+  Widget _buildFacultyDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildStatCard('Total Users', _totalUsers.toString(), Icons.people, AppColors.mustBlue),
-        _buildStatCard('Total Reports', _totalReports.toString(), Icons.description, AppColors.mustGold),
-        _buildStatCard('Pending', _pendingReports.toString(), Icons.pending_actions, Colors.orange),
-        _buildStatCard('Under Review', _underReviewReports.toString(), Icons.search, AppColors.mustBlueMedium),
-        _buildStatCard('Resolved', _resolvedReports.toString(), Icons.check_circle, AppColors.mustGreen),
-        _buildStatCard('Anonymous', _anonymousReports.toString(), Icons.visibility_off, Colors.grey[700]!),
+        Text('Faculty', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey[600])),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: Colors.grey[50],
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: _selectedFaculty != 'All Faculties' ? AppColors.mustGold : Colors.grey[300]!),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: _selectedFaculty,
+              isExpanded: true,
+              icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey[600]),
+              items: ['All Faculties', ..._faculties].map((f) => DropdownMenuItem(
+                value: f,
+                child: Text(f == 'All Faculties' ? f : _shortFaculty(f), style: const TextStyle(fontSize: 13), overflow: TextOverflow.ellipsis),
+              )).toList(),
+              onChanged: (val) {
+                setState(() {
+                  _selectedFaculty = val!;
+                  _selectedDepartment = 'All Departments'; // Reset department when faculty changes
+                });
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDepartmentDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Department', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey[600])),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: Colors.grey[50],
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: _selectedDepartment != 'All Departments' ? AppColors.mustGold : Colors.grey[300]!),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: _selectedDepartment,
+              isExpanded: true,
+              icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey[600]),
+              items: ['All Departments', ..._availableDepartments].map((d) => DropdownMenuItem(
+                value: d,
+                child: Text(d, style: const TextStyle(fontSize: 13), overflow: TextOverflow.ellipsis),
+              )).toList(),
+              onChanged: (val) => setState(() => _selectedDepartment = val!),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatusDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Report Status', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey[600])),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: Colors.grey[50],
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: _selectedStatus != 'All Statuses' ? AppColors.mustGold : Colors.grey[300]!),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: _selectedStatus,
+              isExpanded: true,
+              icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey[600]),
+              items: ['All Statuses', ..._statuses].map((s) => DropdownMenuItem(
+                value: s,
+                child: Row(
+                  children: [
+                    if (s != 'All Statuses') ...[
+                      Container(width: 8, height: 8, decoration: BoxDecoration(shape: BoxShape.circle, color: _getStatusColor(s))),
+                      const SizedBox(width: 8),
+                    ],
+                    Text(_formatStatus(s), style: const TextStyle(fontSize: 13)),
+                  ],
+                ),
+              )).toList(),
+              onChanged: (val) => setState(() => _selectedStatus = val!),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFilteredStatsCards() {
+    final stats = _filteredStats;
+    final isWide = MediaQuery.of(context).size.width > 800;
+    final hasFilter = _selectedFaculty != 'All Faculties' ||
+        _selectedDepartment != 'All Departments' ||
+        _selectedStatus != 'All Statuses';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (hasFilter)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.mustGold.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.filter_alt, size: 16, color: AppColors.mustGold),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Showing filtered results: ${_filteredReports.length} reports, ${_filteredUsers.length} users',
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.mustBlue),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: isWide ? 6 : 3,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: isWide ? 1.1 : 0.95,
+          children: [
+            _buildStatCard('Users', _filteredUsers.length.toString(), Icons.people, AppColors.mustBlue),
+            _buildStatCard('Reports', stats['total'].toString(), Icons.description, AppColors.mustGold),
+            _buildStatCard('Pending', stats['pending'].toString(), Icons.pending_actions, Colors.orange),
+            _buildStatCard('Under Review', stats['under_review'].toString(), Icons.search, AppColors.mustBlueMedium),
+            _buildStatCard('Resolved', stats['resolved'].toString(), Icons.check_circle, AppColors.mustGreen),
+            _buildStatCard('Anonymous', stats['anonymous'].toString(), Icons.visibility_off, Colors.grey[700]!),
+          ],
+        ),
       ],
     );
   }
@@ -598,154 +900,519 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
   Widget _buildStatCard(String title, String value, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))]),
-      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle), child: Icon(icon, color: color, size: 20)),
-        const SizedBox(height: 6),
-        Text(value, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: color)),
-        const SizedBox(height: 2),
-        Text(title, style: TextStyle(fontSize: 11, color: Colors.grey[600], fontWeight: FontWeight.w500), textAlign: TextAlign.center),
-      ]),
-    );
-  }
-
-  Widget _buildFacultyReportsSection() {
-    final sortedFaculties = List<String>.from(_faculties)..sort((a, b) => (_reportsByFaculty[b] ?? 0).compareTo(_reportsByFaculty[a] ?? 0));
-    final maxReports = _reportsByFaculty.values.isEmpty ? 1 : _reportsByFaculty.values.reduce((a, b) => a > b ? a : b).clamp(1, double.maxFinite.toInt());
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 2))]),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+      ),
       child: Column(
-        children: sortedFaculties.map((faculty) {
-          final count = _reportsByFaculty[faculty] ?? 0;
-          final statusMap = _statusByFaculty[faculty] ?? {};
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                Expanded(child: Text(_shortFaculty(faculty), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.mustBlue))),
-                Row(children: [
-                  if ((statusMap['pending'] ?? 0) + (statusMap['submitted'] ?? 0) > 0)
-                    _chip('${(statusMap['pending'] ?? 0) + (statusMap['submitted'] ?? 0)} pending', Colors.orange),
-                  if (statusMap['resolved'] != null)
-                    Padding(padding: const EdgeInsets.only(left: 4), child: _chip('${statusMap['resolved']} resolved', AppColors.mustGreen)),
-                  const SizedBox(width: 8),
-                  Text('$count', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.mustGold)),
-                ]),
-              ]),
-              const SizedBox(height: 6),
-              ClipRRect(borderRadius: BorderRadius.circular(4), child: LinearProgressIndicator(value: maxReports > 0 ? count / maxReports : 0, backgroundColor: Colors.grey[100], valueColor: AlwaysStoppedAnimation(count > 0 ? AppColors.mustGold : Colors.grey[300]!), minHeight: 8)),
-              if (faculty != sortedFaculties.last) Divider(color: Colors.grey[100], height: 16),
-            ]),
-          );
-        }).toList(),
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(height: 6),
+          Text(value, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: color)),
+          const SizedBox(height: 2),
+          Text(title, style: TextStyle(fontSize: 11, color: Colors.grey[600], fontWeight: FontWeight.w500), textAlign: TextAlign.center),
+        ],
       ),
     );
   }
 
-  Widget _chip(String text, Color color) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-    decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-    child: Text(text, style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w600)),
-  );
-
-  Widget _buildUsersByFacultySection() {
-    final maxUsers = _usersByFaculty.values.isEmpty ? 1 : _usersByFaculty.values.reduce((a, b) => a > b ? a : b).clamp(1, double.maxFinite.toInt());
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 2))]),
-      child: Column(
-        children: _faculties.map((faculty) {
-          final count = _usersByFaculty[faculty] ?? 0;
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            child: Row(children: [
-              Container(width: 32, height: 32, decoration: BoxDecoration(color: AppColors.mustBlue.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-                child: Center(child: Text('$count', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.mustBlue)))),
-              const SizedBox(width: 12),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(_shortFaculty(faculty), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
-                const SizedBox(height: 4),
-                ClipRRect(borderRadius: BorderRadius.circular(4), child: LinearProgressIndicator(value: maxUsers > 0 ? count / maxUsers : 0, backgroundColor: Colors.grey[100], valueColor: const AlwaysStoppedAnimation(AppColors.mustBlue), minHeight: 6)),
-              ])),
-            ]),
-          );
-        }).toList(),
-      ),
+  Widget _buildViewToggle() {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(color: AppColors.mustGold.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
+          child: const Icon(Icons.visibility, color: AppColors.mustGold, size: 20),
+        ),
+        const SizedBox(width: 12),
+        const Text('View Data', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.mustBlue)),
+        const Spacer(),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(25),
+          ),
+          child: Row(
+            children: [
+              _buildToggleButton('Reports', Icons.assignment, _viewMode == 'reports'),
+              _buildToggleButton('Users', Icons.people, _viewMode == 'users'),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _buildDepartmentBreakdown() {
-    return Column(children: [
-      SizedBox(
-        height: 40,
-        child: ListView(scrollDirection: Axis.horizontal, children: [
-          _buildFilterChip('All', _selectedFacultyFilter == 'All'),
-          ..._faculties.map((f) => _buildFilterChip(_shortFaculty(f), _selectedFacultyFilter == f, fullName: f)),
-        ]),
-      ),
-      const SizedBox(height: 12),
-      Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 2))]),
-        child: _buildDepartmentList(),
-      ),
-    ]);
-  }
-
-  Widget _buildFilterChip(String label, bool isSelected, {String? fullName}) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: GestureDetector(
-        onTap: () => setState(() => _selectedFacultyFilter = fullName ?? label),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(color: isSelected ? AppColors.mustGold : Colors.white, borderRadius: BorderRadius.circular(20), border: Border.all(color: isSelected ? AppColors.mustGold : Colors.grey[300]!)),
-          child: Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: isSelected ? AppColors.mustBlue : Colors.grey[600])),
+  Widget _buildToggleButton(String label, IconData icon, bool isActive) {
+    return GestureDetector(
+      onTap: () => setState(() => _viewMode = label.toLowerCase()),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.mustBlue : Colors.transparent,
+          borderRadius: BorderRadius.circular(25),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 16, color: isActive ? Colors.white : Colors.grey[600]),
+            const SizedBox(width: 6),
+            Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: isActive ? Colors.white : Colors.grey[600])),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildDepartmentList() {
-    Map<String, int> deptData = {};
-    if (_selectedFacultyFilter == 'All') {
-      for (final entry in _reportsByDepartment.entries) {
-        for (final d in entry.value.entries) {
-          deptData[d.key] = (deptData[d.key] ?? 0) + d.value;
-        }
-      }
-    } else {
-      deptData = _reportsByDepartment[_selectedFacultyFilter] ?? {};
+  Widget _buildReportsDataView() {
+    final reports = _filteredReports;
+    if (reports.isEmpty) {
+      return _buildEmptyState('No reports found', 'Try adjusting your filters', Icons.assignment_outlined);
     }
 
-    if (deptData.isEmpty) {
-      return Padding(padding: const EdgeInsets.all(24), child: Column(children: [
-        Icon(Icons.info_outline, size: 40, color: Colors.grey[300]),
-        const SizedBox(height: 8),
-        Text('No department data available', style: TextStyle(color: Colors.grey[500], fontSize: 14)),
-      ]));
-    }
-
-    final sorted = deptData.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
-    final maxVal = sorted.first.value.clamp(1, double.maxFinite.toInt());
-
-    return Column(
-      children: sorted.map((entry) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(children: [
-          Container(width: 36, height: 36, decoration: BoxDecoration(gradient: const LinearGradient(colors: [AppColors.mustGold, AppColors.mustGoldLight]), borderRadius: BorderRadius.circular(8)),
-            child: Center(child: Text('${entry.value}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.mustBlue)))),
-          const SizedBox(width: 12),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(entry.key, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500), maxLines: 1, overflow: TextOverflow.ellipsis),
-            const SizedBox(height: 4),
-            ClipRRect(borderRadius: BorderRadius.circular(4), child: LinearProgressIndicator(value: entry.value / maxVal, backgroundColor: Colors.grey[100], valueColor: const AlwaysStoppedAnimation(AppColors.mustGreenLight), minHeight: 6)),
-          ])),
-        ]),
-      )).toList(),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 2))],
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            ),
+            child: Row(
+              children: [
+                Text('${reports.length} Reports', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.mustBlue)),
+                const Spacer(),
+                Text('Most recent first', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+              ],
+            ),
+          ),
+          ...reports.take(10).map((report) => _buildReportRow(report)),
+          if (reports.length > 10)
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Text('+ ${reports.length - 10} more reports', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+            ),
+        ],
+      ),
     );
+  }
+
+  Widget _buildReportRow(Map<String, dynamic> report) {
+    final status = report['status'] ?? 'unknown';
+    final isAnonymous = report['isAnonymous'] == true;
+    final createdAt = report['createdAt'];
+    String dateStr = '';
+    if (createdAt != null) {
+      final date = (createdAt as Timestamp).toDate();
+      dateStr = '${date.day}/${date.month}/${date.year}';
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey[100]!))),
+      child: Row(
+        children: [
+          Container(
+            width: 40, height: 40,
+            decoration: BoxDecoration(
+              color: _getStatusColor(status).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(isAnonymous ? Icons.visibility_off : Icons.assignment, color: _getStatusColor(status), size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  report['userFaculty']?.isNotEmpty == true ? _shortFaculty(report['userFaculty']) : 'Unknown Faculty',
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+                if (report['userDept']?.isNotEmpty == true)
+                  Text(report['userDept'], style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              _buildStatusChip(status),
+              if (dateStr.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(dateStr, style: TextStyle(fontSize: 10, color: Colors.grey[500])),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUsersDataView() {
+    final users = _filteredUsers;
+    if (users.isEmpty) {
+      return _buildEmptyState('No users found', 'Try adjusting your filters', Icons.people_outline);
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 2))],
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            ),
+            child: Row(
+              children: [
+                Text('${users.length} Users', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.mustBlue)),
+                const Spacer(),
+                Text('Alphabetically', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+              ],
+            ),
+          ),
+          ...users.take(10).map((user) => _buildUserRow(user)),
+          if (users.length > 10)
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Text('+ ${users.length - 10} more users', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUserRow(Map<String, dynamic> user) {
+    final name = user['fullName'] ?? user['displayName'] ?? 'Unknown';
+    final email = user['email'] ?? '';
+    final faculty = user['department'] ?? '';
+    final dept = user['facultyDepartment'] ?? '';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey[100]!))),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 20,
+            backgroundColor: AppColors.mustBlue.withOpacity(0.1),
+            child: Text(
+              name.isNotEmpty ? name[0].toUpperCase() : '?',
+              style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.mustBlue),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                Text(email, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              if (faculty.isNotEmpty)
+                Text(_shortFaculty(faculty), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.mustBlue)),
+              if (dept.isNotEmpty)
+                Text(dept, style: TextStyle(fontSize: 10, color: Colors.grey[500]), overflow: TextOverflow.ellipsis),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(String title, String subtitle, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(40),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 2))],
+      ),
+      child: Column(
+        children: [
+          Icon(icon, size: 48, color: Colors.grey[300]),
+          const SizedBox(height: 12),
+          Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey[600])),
+          const SizedBox(height: 4),
+          Text(subtitle, style: TextStyle(fontSize: 13, color: Colors.grey[400])),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBreakdownSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(color: AppColors.mustGold.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
+              child: const Icon(Icons.bar_chart, color: AppColors.mustGold, size: 20),
+            ),
+            const SizedBox(width: 12),
+            const Text('Breakdown Summary', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.mustBlue)),
+          ],
+        ),
+        const SizedBox(height: 16),
+        MediaQuery.of(context).size.width > 800
+            ? Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: _buildFacultyBreakdown()),
+                  const SizedBox(width: 16),
+                  Expanded(child: _buildDepartmentBreakdown()),
+                ],
+              )
+            : Column(
+                children: [
+                  _buildFacultyBreakdown(),
+                  const SizedBox(height: 16),
+                  _buildDepartmentBreakdown(),
+                ],
+              ),
+      ],
+    );
+  }
+
+  Widget _buildFacultyBreakdown() {
+    // Build counts per faculty
+    Map<String, int> reportsByFaculty = {};
+    Map<String, int> usersByFaculty = {};
+
+    for (final report in _allReports) {
+      final f = report['userFaculty'] ?? '';
+      if (f.isNotEmpty) reportsByFaculty[f] = (reportsByFaculty[f] ?? 0) + 1;
+    }
+
+    for (final user in _allUsers) {
+      final f = user['department'] ?? '';
+      if (f.isNotEmpty) usersByFaculty[f] = (usersByFaculty[f] ?? 0) + 1;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 2))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.school, size: 18, color: AppColors.mustBlue),
+              const SizedBox(width: 8),
+              const Text('By Faculty', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.mustBlue)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ..._faculties.map((faculty) {
+            final reports = reportsByFaculty[faculty] ?? 0;
+            final users = usersByFaculty[faculty] ?? 0;
+            final isSelected = _selectedFaculty == faculty;
+            return GestureDetector(
+              onTap: () => setState(() {
+                _selectedFaculty = isSelected ? 'All Faculties' : faculty;
+                _selectedDepartment = 'All Departments';
+              }),
+              child: Container(
+                margin: const EdgeInsets.symmetric(vertical: 4),
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppColors.mustGold.withOpacity(0.1) : Colors.grey[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: isSelected ? Border.all(color: AppColors.mustGold) : null,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        _shortFaculty(faculty),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                          color: isSelected ? AppColors.mustBlue : Colors.grey[700],
+                        ),
+                      ),
+                    ),
+                    _miniCount(reports, Icons.assignment, AppColors.mustGold),
+                    const SizedBox(width: 8),
+                    _miniCount(users, Icons.people, AppColors.mustBlue),
+                  ],
+                ),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDepartmentBreakdown() {
+    // Get departments data based on current faculty selection
+    Map<String, int> reportsByDept = {};
+    Map<String, int> usersByDept = {};
+
+    for (final report in _allReports) {
+      if (_selectedFaculty != 'All Faculties' && report['userFaculty'] != _selectedFaculty) continue;
+      final d = report['userDept'] ?? '';
+      if (d.isNotEmpty) reportsByDept[d] = (reportsByDept[d] ?? 0) + 1;
+    }
+
+    for (final user in _allUsers) {
+      if (_selectedFaculty != 'All Faculties' && user['department'] != _selectedFaculty) continue;
+      final d = user['facultyDepartment'] ?? '';
+      if (d.isNotEmpty) usersByDept[d] = (usersByDept[d] ?? 0) + 1;
+    }
+
+    final allDepts = {...reportsByDept.keys, ...usersByDept.keys}.toList()..sort();
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 2))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.account_tree, size: 18, color: AppColors.mustBlue),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  _selectedFaculty != 'All Faculties' ? 'Departments in ${_shortFaculty(_selectedFaculty)}' : 'By Department (All)',
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.mustBlue),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (allDepts.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Center(
+                child: Text('No department data', style: TextStyle(color: Colors.grey[400], fontSize: 13)),
+              ),
+            )
+          else
+            ...allDepts.take(8).map((dept) {
+              final reports = reportsByDept[dept] ?? 0;
+              final users = usersByDept[dept] ?? 0;
+              final isSelected = _selectedDepartment == dept;
+              return GestureDetector(
+                onTap: () => setState(() => _selectedDepartment = isSelected ? 'All Departments' : dept),
+                child: Container(
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppColors.mustGold.withOpacity(0.1) : Colors.grey[50],
+                    borderRadius: BorderRadius.circular(8),
+                    border: isSelected ? Border.all(color: AppColors.mustGold) : null,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          dept,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                            color: isSelected ? AppColors.mustBlue : Colors.grey[700],
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      _miniCount(reports, Icons.assignment, AppColors.mustGold),
+                      const SizedBox(width: 8),
+                      _miniCount(users, Icons.people, AppColors.mustBlue),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          if (allDepts.length > 8)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text('+ ${allDepts.length - 8} more departments', style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _miniCount(int count, IconData icon, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 12, color: color),
+        const SizedBox(width: 2),
+        Text('$count', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: color)),
+      ],
+    );
+  }
+
+  Widget _buildStatusChip(String status) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: _getStatusColor(status).withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        _formatStatus(status),
+        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: _getStatusColor(status)),
+      ),
+    );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'pending':
+      case 'submitted':
+        return Colors.orange;
+      case 'under_review':
+        return AppColors.mustBlueMedium;
+      case 'resolved':
+        return AppColors.mustGreen;
+      case 'dismissed':
+        return Colors.grey;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _formatStatus(String status) {
+    if (status == 'All Statuses') return status;
+    return status.replaceAll('_', ' ').split(' ').map((w) => w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1)}' : w).join(' ');
   }
 
   String _shortFaculty(String s) => s.replaceAll('Faculty of ', 'F. ');

@@ -92,12 +92,38 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                         label: 'Date of Incident',
                         value: _formatDate(widget.reportData['date']),
                       ),
+                      if (widget.reportData['time'] != null) ...[
+                        const Divider(height: 24),
+                        _buildInfoRow(
+                          icon: Icons.access_time,
+                          label: 'Time of Incident',
+                          value: widget.reportData['time'] ?? 'N/A',
+                        ),
+                      ],
                       const Divider(height: 24),
                       _buildInfoRow(
                         icon: Icons.location_on_rounded,
                         label: 'Location',
                         value: widget.reportData['location'] ?? 'N/A',
                       ),
+                      if (widget.reportData['perpetratorInfo'] != null && 
+                          (widget.reportData['perpetratorInfo'] as String).isNotEmpty) ...[
+                        const Divider(height: 24),
+                        _buildInfoRow(
+                          icon: Icons.person_outline,
+                          label: 'Person(s) Involved',
+                          value: widget.reportData['perpetratorInfo'],
+                        ),
+                      ],
+                      if (widget.reportData['witnesses'] != null && 
+                          (widget.reportData['witnesses'] as String).isNotEmpty) ...[
+                        const Divider(height: 24),
+                        _buildInfoRow(
+                          icon: Icons.groups,
+                          label: 'Witnesses',
+                          value: widget.reportData['witnesses'],
+                        ),
+                      ],
                       if (widget.reportData['createdAt'] != null) ...[
                         const Divider(height: 24),
                         _buildInfoRow(
@@ -125,6 +151,24 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                     ),
                   ),
                 ),
+                
+                // Complainant Response Card (per MUST Policy Section 8.4)
+                if (widget.reportData['complainantResponse'] != null && 
+                    (widget.reportData['complainantResponse'] as String).isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  _buildSectionCard(
+                    title: 'Your Response to Incident',
+                    icon: Icons.reply,
+                    child: Text(
+                      widget.reportData['complainantResponse'],
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.grey[800],
+                        height: 1.5,
+                      ),
+                    ),
+                  ),
+                ],
                 
                 const SizedBox(height: 16),
                 

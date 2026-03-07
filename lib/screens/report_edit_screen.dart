@@ -32,6 +32,9 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   late TextEditingController _descriptionController;
   late TextEditingController _locationController;
+  late TextEditingController _perpetratorController;
+  late TextEditingController _witnessesController;
+  late TextEditingController _responseController;
   bool _isSaving = false;
 
   // Existing attachments from the report
@@ -64,6 +67,15 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
     _locationController = TextEditingController(
       text: widget.reportData['location'] ?? '',
     );
+    _perpetratorController = TextEditingController(
+      text: widget.reportData['perpetratorInfo'] ?? '',
+    );
+    _witnessesController = TextEditingController(
+      text: widget.reportData['witnesses'] ?? '',
+    );
+    _responseController = TextEditingController(
+      text: widget.reportData['complainantResponse'] ?? '',
+    );
     
     // Initialize existing attachments
     _existingImageUrls = List<String>.from(widget.reportData['imageUrls'] ?? []);
@@ -77,6 +89,9 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
     _locationController.dispose();
     _audioRecorder.dispose();
     _recordingTimer?.cancel();
+    _perpetratorController.dispose();
+    _witnessesController.dispose();
+    _responseController.dispose();
     super.dispose();
   }
 
@@ -156,6 +171,30 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
                           maxLines: 5,
                           icon: Icons.description,
                           hintText: 'Describe what happened...',
+                        ),
+                        const SizedBox(height: 20),
+                        _buildEditableField(
+                          'Person(s) Involved',
+                          _perpetratorController,
+                          maxLines: 2,
+                          icon: Icons.person_outline,
+                          hintText: 'Name, position, or identifying details (optional)',
+                        ),
+                        const SizedBox(height: 20),
+                        _buildEditableField(
+                          'Witnesses',
+                          _witnessesController,
+                          maxLines: 2,
+                          icon: Icons.groups,
+                          hintText: 'Witness names and contact info (optional)',
+                        ),
+                        const SizedBox(height: 20),
+                        _buildEditableField(
+                          'Your Response to Incident',
+                          _responseController,
+                          maxLines: 3,
+                          icon: Icons.reply,
+                          hintText: 'How did you respond at the time? (optional)',
                         ),
                       ],
                     ),
@@ -640,6 +679,15 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
       if (!widget.evidenceOnly) {
         updateData['description'] = description;
         updateData['location'] = location;
+        updateData['perpetratorInfo'] = _perpetratorController.text.trim().isNotEmpty 
+            ? _perpetratorController.text.trim() 
+            : null;
+        updateData['witnesses'] = _witnessesController.text.trim().isNotEmpty 
+            ? _witnessesController.text.trim() 
+            : null;
+        updateData['complainantResponse'] = _responseController.text.trim().isNotEmpty 
+            ? _responseController.text.trim() 
+            : null;
       }
 
       await _firestore.collection('reports').doc(widget.reportId).update(updateData);

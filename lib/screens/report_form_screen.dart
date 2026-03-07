@@ -25,7 +25,11 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _descriptionController = TextEditingController();
   final _locationController = TextEditingController();
+  final _perpetratorController = TextEditingController();
+  final _witnessesController = TextEditingController();
+  final _responseController = TextEditingController();
   DateTime? _selectedDate;
+  TimeOfDay? _selectedTime;
   final Set<String> _selectedIncidentTypes = {};
   final TextEditingController _otherTypeController = TextEditingController();
   bool _isUploading = false;
@@ -41,18 +45,28 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
   Duration _recordingDuration = Duration.zero;
   Timer? _recordingTimer;
 
+  // Incident types aligned with MUST Anti-Sexual Harassment Policy definitions
   final List<Map<String, dynamic>> _incidentTypes = [
-    {'name': 'Verbal Harassment', 'icon': Icons.record_voice_over},
-    {'name': 'Physical Harassment', 'icon': Icons.front_hand},
-    {'name': 'Online Harassment', 'icon': Icons.computer},
-    {'name': 'Stalking', 'icon': Icons.visibility},
-    {'name': 'Other', 'icon': Icons.more_horiz},
+    {'name': 'Quid Pro Quo', 'icon': Icons.swap_horiz, 'description': 'Sexual favors demanded in exchange for benefits'},
+    {'name': 'Hostile Environment', 'icon': Icons.dangerous, 'description': 'Conduct making work/study environment intolerable'},
+    {'name': 'Unwelcome Physical Conduct', 'icon': Icons.front_hand, 'description': 'Unwanted touching, grabbing, or physical contact'},
+    {'name': 'Unwelcome Verbal Conduct', 'icon': Icons.record_voice_over, 'description': 'Sexual comments, jokes, or advances'},
+    {'name': 'Unwelcome Non-Verbal Conduct', 'icon': Icons.visibility, 'description': 'Obscene gestures, indecent exposure, sending explicit content'},
+    {'name': 'Sexual Assault', 'icon': Icons.warning_amber, 'description': 'Non-consensual sexual touching or contact'},
+    {'name': 'Sexual Exploitation', 'icon': Icons.camera_alt, 'description': 'Recording/sharing sexual content, voyeurism'},
+    {'name': 'Stalking', 'icon': Icons.person_search, 'description': 'Repeated unwanted contact or following'},
+    {'name': 'Dating Violence', 'icon': Icons.heart_broken, 'description': 'Abusive behavior by intimate partner'},
+    {'name': 'Online/Cyber Harassment', 'icon': Icons.computer, 'description': 'Harassment via electronic means'},
+    {'name': 'Other', 'icon': Icons.more_horiz, 'description': 'Other forms of sexual harassment'},
   ];
 
   @override
   void dispose() {
     _descriptionController.dispose();
     _locationController.dispose();
+    _perpetratorController.dispose();
+    _witnessesController.dispose();
+    _responseController.dispose();
     _otherTypeController.dispose();
     _audioRecorder.dispose();
     _recordingTimer?.cancel();
@@ -100,6 +114,31 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     if (picked != null) {
       setState(() {
         _selectedDate = picked;
+      });
+    }
+  }
+
+  Future<void> _selectTime() async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime ?? TimeOfDay.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.mustBlue,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Colors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedTime = picked;
       });
     }
   }
@@ -611,6 +650,18 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
           'description': _descriptionController.text,
           'location': _locationController.text,
           'date': _selectedDate?.toIso8601String(),
+          'time': _selectedTime != null 
+              ? '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}' 
+              : null,
+          'perpetratorInfo': _perpetratorController.text.trim().isNotEmpty 
+              ? _perpetratorController.text.trim() 
+              : null,
+          'witnesses': _witnessesController.text.trim().isNotEmpty 
+              ? _witnessesController.text.trim() 
+              : null,
+          'complainantResponse': _responseController.text.trim().isNotEmpty 
+              ? _responseController.text.trim() 
+              : null,
           'incidentType': incidentTypeString,
           'incidentTypes': incidentTypes, // Store as list for structured access
           'category': incidentTypeString, // Combined category string
@@ -1061,6 +1112,179 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                                   ),
                                 ],
                               ),
+                            ),
+                          ),
+                          
+                          const SizedBox(height: 24),
+                          
+                          // Time Section (per MUST Policy Section 8.4)
+                          _buildSectionTitle('Time of Incident', Icons.access_time),
+                          const SizedBox(height: 12),
+                          GestureDetector(
+                            onTap: _selectTime,
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.1),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.mustBlue.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Icon(
+                                      Icons.access_time,
+                                      color: AppColors.mustBlue,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Text(
+                                    _selectedTime == null
+                                        ? 'Select time (optional)'
+                                        : _selectedTime!.format(context),
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: _selectedTime == null
+                                          ? Colors.grey[400]
+                                          : Colors.black87,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Icon(
+                                    Icons.arrow_forward_ios,
+                                    size: 16,
+                                    color: Colors.grey[400],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          
+                          const SizedBox(height: 24),
+                          
+                          // Perpetrator Information Section (per MUST Policy Section 8.4)
+                          _buildSectionTitle('Person(s) Involved', Icons.person_outline),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Name or description of the alleged perpetrator (if known)',
+                            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                          ),
+                          const SizedBox(height: 12),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.1),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: TextFormField(
+                              controller: _perpetratorController,
+                              decoration: InputDecoration(
+                                hintText: 'Name, position, or identifying details (optional)',
+                                hintStyle: TextStyle(color: Colors.grey[400]),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
+                                filled: true,
+                                fillColor: Colors.white,
+                                contentPadding: const EdgeInsets.all(16),
+                              ),
+                              maxLines: 2,
+                            ),
+                          ),
+                          
+                          const SizedBox(height: 24),
+                          
+                          // Witnesses Section (per MUST Policy Section 8.4)
+                          _buildSectionTitle('Witnesses', Icons.groups),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Names of any witnesses who can support your account',
+                            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                          ),
+                          const SizedBox(height: 12),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.1),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: TextFormField(
+                              controller: _witnessesController,
+                              decoration: InputDecoration(
+                                hintText: 'Witness names and contact info (optional)',
+                                hintStyle: TextStyle(color: Colors.grey[400]),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
+                                filled: true,
+                                fillColor: Colors.white,
+                                contentPadding: const EdgeInsets.all(16),
+                              ),
+                              maxLines: 2,
+                            ),
+                          ),
+                          
+                          const SizedBox(height: 24),
+                          
+                          // Your Response Section (per MUST Policy Section 8.4)
+                          _buildSectionTitle('Your Response', Icons.reply),
+                          const SizedBox(height: 8),
+                          Text(
+                            'How did you respond to the incident at the time?',
+                            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                          ),
+                          const SizedBox(height: 12),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.1),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: TextFormField(
+                              controller: _responseController,
+                              decoration: InputDecoration(
+                                hintText: 'Describe your response to the incident (optional)',
+                                hintStyle: TextStyle(color: Colors.grey[400]),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
+                                filled: true,
+                                fillColor: Colors.white,
+                                contentPadding: const EdgeInsets.all(16),
+                              ),
+                              maxLines: 3,
                             ),
                           ),
                           

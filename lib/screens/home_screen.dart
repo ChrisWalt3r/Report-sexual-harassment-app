@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:showcaseview/showcaseview.dart';
 import '../constants/app_colors.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../features/support_services/support_services.dart';
@@ -16,7 +17,15 @@ import 'notifications_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final Map<String, dynamic>? anonymousInfo;
-  const HomeScreen({super.key, this.anonymousInfo});
+  final String? userId;
+  final bool showShowcase;
+  
+  const HomeScreen({
+    super.key, 
+    this.anonymousInfo, 
+    this.userId,
+    this.showShowcase = false,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -25,6 +34,13 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentNavIndex = 0;
   final List<int> _tabHistory = [0];
+  
+  // Showcase keys for feature highlighting
+  final GlobalKey _reportButtonKey = GlobalKey();
+  final GlobalKey _myReportsKey = GlobalKey();
+  final GlobalKey _chatSupportKey = GlobalKey();
+  final GlobalKey _emergencyKey = GlobalKey();
+  final GlobalKey _supportServicesKey = GlobalKey();
 
   @override
   void initState() {
@@ -35,6 +51,34 @@ class _HomeScreenState extends State<HomeScreen> {
       final notificationService = Provider.of<NotificationService>(context, listen: false);
       notificationService.initialize(user.uid);
     }
+    
+    // Start showcase after first frame if needed
+    if (widget.showShowcase) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _startShowcase();
+      });
+    }
+  }
+  
+  void _startShowcase() {
+    ShowCaseWidget.of(context).startShowCase([
+      _reportButtonKey,
+      _myReportsKey,
+      _chatSupportKey,
+      _supportServicesKey,
+      _emergencyKey,
+    ]);
+  }
+  
+  // Public method to replay the showcase
+  Future<void> replayShowcase() async {
+    if (_currentNavIndex != 0) {
+      setState(() {
+        _currentNavIndex = 0;
+      });
+      await Future.delayed(const Duration(milliseconds: 300));
+    }
+    _startShowcase();
   }
 
   bool _handleBackPress() {
@@ -90,15 +134,6 @@ class _HomeScreenState extends State<HomeScreen> {
       default:
         return _buildDashboard();
     }
-  }
-
-  PreferredSizeWidget? _buildAppBar() {
-    // Only show Home AppBar on the Dashboard tab.
-    // Other tabs (Report, Support, Settings) handle their own AppBars or lack thereof.
-    if (_currentNavIndex == 0) {
-      return _buildHomeAppBar();
-    }
-    return null;
   }
 
   // Helper method to keep build method clean, replacing the conditional in build()
@@ -207,42 +242,50 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Prominent Report Incident Button
-          SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const MyReportsScreen(),
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.mustGold,
-                foregroundColor: AppColors.mustBlue,
-                elevation: 3,
-                shadowColor: AppColors.mustGold.withOpacity(0.4),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.add_moderator, size: 22),
-                  SizedBox(width: 10),
-                  Text(
-                    'Report Incident',
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
+          // Prominent Report Incident Button with Showcase
+          Showcase(
+            key: _reportButtonKey,
+            description: 'Tap here to report a harassment incident. You can choose to report anonymously.',
+            descTextStyle: const TextStyle(fontSize: 14, color: Colors.white),
+            tooltipBackgroundColor: AppColors.mustBlue,
+            targetBorderRadius: BorderRadius.circular(14),
+            targetPadding: const EdgeInsets.all(8),
+            child: SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const MyReportsScreen(),
                     ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.mustGold,
+                  foregroundColor: AppColors.mustBlue,
+                  elevation: 3,
+                  shadowColor: AppColors.mustGold.withOpacity(0.4),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
                   ),
-                ],
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.add_moderator, size: 22),
+                    SizedBox(width: 10),
+                    Text(
+                      'Report Incident',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -319,49 +362,77 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisSpacing: 16,
             childAspectRatio: 1.2,
             children: [
-              _buildMyReportsCard(context),
-              _buildServiceCard(
-                context,
-                'Support Services',
-                'Counseling & Medical',
-                Icons.health_and_safety,
-                AppColors.mustGreen,
-                onTap: () {
-                  setState(() {
-                    _currentNavIndex = 2;
-                  });
-                },
+              Showcase(
+                key: _myReportsKey,
+                description: 'View and track all your submitted reports here. Check status updates and responses.',
+                descTextStyle: const TextStyle(fontSize: 14, color: Colors.white),
+                tooltipBackgroundColor: Colors.teal,
+                targetBorderRadius: BorderRadius.circular(16),
+                child: _buildMyReportsCard(context),
               ),
-              _buildServiceCard(
-                context,
-                'Emergency',
-                'Quick dial security',
-                Icons.emergency,
-                Colors.red,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const EmergencyScreen(),
-                    ),
-                  );
-                },
+              Showcase(
+                key: _supportServicesKey,
+                description: 'Access counseling, medical support, and other wellness services available to you.',
+                descTextStyle: const TextStyle(fontSize: 14, color: Colors.white),
+                tooltipBackgroundColor: AppColors.mustGreen,
+                targetBorderRadius: BorderRadius.circular(16),
+                child: _buildServiceCard(
+                  context,
+                  'Support Services',
+                  'Counseling & Medical',
+                  Icons.health_and_safety,
+                  AppColors.mustGreen,
+                  onTap: () {
+                    setState(() {
+                      _currentNavIndex = 2;
+                    });
+                  },
+                ),
               ),
-              _buildServiceCard(
-                context,
-                'Chat Support',
-                'Talk to an agent',
-                Icons.chat,
-                AppColors.mustBlueMedium,
-                badge: 'Live',
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const AIPoweredChatScreen(),
-                    ),
-                  );
-                },
+              Showcase(
+                key: _emergencyKey,
+                description: 'In case of emergency, quickly contact campus security and emergency services.',
+                descTextStyle: const TextStyle(fontSize: 14, color: Colors.white),
+                tooltipBackgroundColor: Colors.red,
+                targetBorderRadius: BorderRadius.circular(16),
+                child: _buildServiceCard(
+                  context,
+                  'Emergency',
+                  'Quick dial security',
+                  Icons.emergency,
+                  Colors.red,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const EmergencyScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              Showcase(
+                key: _chatSupportKey,
+                description: 'Chat with our AI assistant for policy questions, or connect with the management team.',
+                descTextStyle: const TextStyle(fontSize: 14, color: Colors.white),
+                tooltipBackgroundColor: AppColors.mustBlueMedium,
+                targetBorderRadius: BorderRadius.circular(16),
+                child: _buildServiceCard(
+                  context,
+                  'Chat Support',
+                  'Talk to an agent',
+                  Icons.chat,
+                  AppColors.mustBlueMedium,
+                  badge: 'Live',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AIPoweredChatScreen(),
+                      ),
+                    );
+                  },
+                ),
               ),
             ],
           ),

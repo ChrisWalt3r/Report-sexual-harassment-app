@@ -64,6 +64,7 @@ class AuthService {
     String role = '',
     String studyLevel = '',
     String facultyDepartment = '',
+    String gender = '',
   }) async {
     try {
       // Create user account
@@ -80,6 +81,7 @@ class AuthService {
         'role': role,
         'studyLevel': studyLevel,
         'facultyDepartment': facultyDepartment,
+        'gender': gender,
         'createdAt': FieldValue.serverTimestamp(),
         'isVerified': false,
       });

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 import '../constants/app_colors.dart';
 import '../constants/app_styles.dart';
@@ -11,6 +12,9 @@ import '../widgets/settings_tile.dart';
 import 'login_screen.dart';
 import 'pin_setup_screen.dart';
 import 'profile_screen.dart';
+import 'onboarding_screen.dart';
+import 'home_screen.dart';
+import 'faq_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -611,6 +615,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Column(
           children: [
             SettingsTileWithChevron(
+              icon: Icons.play_circle_outline,
+              iconBackgroundColor: Colors.green.withOpacity(0.15),
+              iconColor: Colors.green,
+              title: 'App Guide',
+              onTap: _showAppGuideOptions,
+            ),
+            SettingsTileWithChevron(
+              icon: Icons.quiz_outlined,
+              iconBackgroundColor: Colors.deepPurple.withOpacity(0.15),
+              iconColor: Colors.deepPurple,
+              title: 'FAQs',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const FAQScreen()),
+              ),
+            ),
+            SettingsTileWithChevron(
               icon: Icons.help_outline,
               iconBackgroundColor: AppColors.mustGold.withOpacity(0.15),
               iconColor: AppColors.mustGold,
@@ -634,6 +655,114 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         ),
       ),
+    );
+  }
+  
+  void _showAppGuideOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.school, color: Colors.green, size: 24),
+                ),
+                const SizedBox(width: 14),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'App Guide',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        'Learn how to use the app',
+                        style: TextStyle(fontSize: 13, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.mustBlue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.slideshow, color: AppColors.mustBlue, size: 22),
+              ),
+              title: const Text('Watch Introduction', style: TextStyle(fontWeight: FontWeight.w600)),
+              subtitle: const Text('Full onboarding tutorial', style: TextStyle(fontSize: 12)),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.pop(context);
+                _replayOnboarding();
+              },
+            ),
+            const Divider(height: 1),
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.mustGold.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.touch_app, color: AppColors.mustGold, size: 22),
+              ),
+              title: const Text('Feature Highlights', style: TextStyle(fontWeight: FontWeight.w600)),
+              subtitle: const Text('Quick tour of main features', style: TextStyle(fontSize: 12)),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.pop(context);
+                _replayShowcase();
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  void _replayOnboarding() {
+    final user = _authService.currentUser;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => OnboardingScreen(
+          userId: user?.uid ?? '',
+        ),
+      ),
+    );
+  }
+  
+  void _replayShowcase() {
+    // Navigate to home and trigger showcase
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ShowCaseWidget(
+          builder: (context) => const HomeScreen(showShowcase: true),
+        ),
+      ),
+      (route) => false,
     );
   }
 

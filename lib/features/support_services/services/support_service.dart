@@ -4,19 +4,38 @@ import '../models/counseling_service.dart';
 import '../models/emergency_contact.dart';
 import '../models/legal_resource.dart';
 import '../models/medical_support.dart';
+import '../../../services/official_contacts_service.dart';
+import '../../../models/official_contact.dart';
 
 /// Service class for managing support services data
-/// Handles API calls and local data management
+/// Fetches from Firestore first (admin-managed), falls back to local data
 class SupportService {
   final String? baseUrl;
   final http.Client _client;
+  final OfficialContactsService _officialContactsService = OfficialContactsService();
 
   SupportService({this.baseUrl, http.Client? client})
     : _client = client ?? http.Client();
 
   /// Fetches all counseling services
-  /// Returns local data if API is not configured
+  /// First tries Firestore (admin-managed), then falls back to local data
   Future<List<CounselingService>> getCounselingServices() async {
+    // First, try to get contacts from Firestore (admin-managed)
+    try {
+      final officialContacts = await _officialContactsService.getContacts(
+        category: ContactCategory.counseling,
+      );
+      if (officialContacts.isNotEmpty) {
+        final counselingServices = officialContacts
+            .map((c) => _convertToCounselingService(c))
+            .toList();
+        return counselingServices;
+      }
+    } catch (e) {
+      // Fall back to local data
+    }
+    
+    // API fallback
     if (baseUrl != null) {
       try {
         final response = await _client.get(
@@ -32,9 +51,59 @@ class SupportService {
     }
     return _getLocalCounselingServices();
   }
+  
+  /// Convert OfficialContact to CounselingService
+  CounselingService _convertToCounselingService(OfficialContact contact) {
+    return CounselingService(
+      id: contact.id,
+      name: contact.name,
+      description: contact.description ?? 'Professional counseling and mental health support services.',
+      contactNumber: contact.phoneNumber ?? 'See office',
+      email: contact.email,
+      website: null,
+      serviceType: ServiceType.general,
+      isAvailable24Hours: contact.officeHours?.toLowerCase().contains('24') ?? false,
+      isConfidential: true,
+      isFree: true,
+      operatingHours: contact.officeHours,
+      address: contact.officeLocation,
+    );
+  }
 
   /// Fetches all emergency contacts
+  /// First tries Firestore (admin-managed), then falls back to local data
   Future<List<EmergencyContact>> getEmergencyContacts() async {
+    // First, try to get contacts from Firestore (admin-managed)
+    try {
+      final officialContacts = await _officialContactsService.getContacts();
+      if (officialContacts.isNotEmpty) {
+        // Filter for emergency-related categories and convert to EmergencyContact
+        final emergencyCategories = [
+          ContactCategory.security,
+          ContactCategory.medical,
+          ContactCategory.police,
+          ContactCategory.crisisHotline,
+          ContactCategory.womenShelter,
+          ContactCategory.genderDesk,
+          ContactCategory.counseling,
+          ContactCategory.deanOfStudents,
+          ContactCategory.ashc,
+        ];
+        
+        final emergencyContacts = officialContacts
+            .where((c) => emergencyCategories.contains(c.category) && c.phoneNumber != null)
+            .map((c) => _convertToEmergencyContact(c))
+            .toList();
+        
+        if (emergencyContacts.isNotEmpty) {
+          return emergencyContacts;
+        }
+      }
+    } catch (e) {
+      // Fall back to local data on error
+    }
+    
+    // API fallback (if configured)
     if (baseUrl != null) {
       try {
         final response = await _client.get(
@@ -50,9 +119,68 @@ class SupportService {
     }
     return _getLocalEmergencyContacts();
   }
+  
+  /// Convert OfficialContact to EmergencyContact for UI compatibility
+  EmergencyContact _convertToEmergencyContact(OfficialContact contact) {
+    return EmergencyContact(
+      id: contact.id,
+      name: contact.name,
+      phoneNumber: contact.phoneNumber ?? '',
+      category: _mapCategory(contact.category),
+      description: contact.description ?? contact.title,
+      priority: contact.priority,
+      email: contact.email,
+      address: contact.officeLocation,
+      operatingHours: contact.officeHours,
+      isAvailable24Hours: contact.officeHours?.toLowerCase().contains('24') ?? false,
+    );
+  }
+  
+  /// Map ContactCategory to EmergencyCategory
+  EmergencyCategory _mapCategory(ContactCategory category) {
+    switch (category) {
+      case ContactCategory.security:
+        return EmergencyCategory.campusSecurity;
+      case ContactCategory.police:
+        return EmergencyCategory.police;
+      case ContactCategory.medical:
+        return EmergencyCategory.medical;
+      case ContactCategory.crisisHotline:
+        return EmergencyCategory.crisisHotline;
+      case ContactCategory.womenShelter:
+        return EmergencyCategory.womenShelter;
+      case ContactCategory.counseling:
+        return EmergencyCategory.counseling;
+      case ContactCategory.genderDesk:
+        return EmergencyCategory.genderDesk;
+      case ContactCategory.deanOfStudents:
+      case ContactCategory.ashc:
+      case ContactCategory.ushc:
+        return EmergencyCategory.genderDesk;
+      default:
+        return EmergencyCategory.other;
+    }
+  }
 
   /// Fetches all legal resources
+  /// First tries Firestore (admin-managed), then falls back to local data
   Future<List<LegalResource>> getLegalResources() async {
+    // First, try to get contacts from Firestore (admin-managed)
+    try {
+      final officialContacts = await _officialContactsService.getContacts(
+        category: ContactCategory.legalServices,
+      );
+      if (officialContacts.isNotEmpty) {
+        final legalResources = officialContacts
+            .map((c) => _convertToLegalResource(c))
+            .toList();
+        return legalResources;
+      }
+    } catch (e) {
+      // Fall back to local data
+    }
+    
+    // API fallback
     if (baseUrl != null) {
       try {
         final response = await _client.get(
@@ -70,7 +198,24 @@ class SupportService {
   }
 
   /// Fetches all medical support resources
+  /// First tries Firestore (admin-managed), then falls back to local data
   Future<List<MedicalSupport>> getMedicalSupport() async {
+    // First, try to get contacts from Firestore (admin-managed)
+    try {
+      final officialContacts = await _officialContactsService.getContacts(
+        category: ContactCategory.medical,
+      );
+      if (officialContacts.isNotEmpty) {
+        final medicalSupport = officialContacts
+            .map((c) => _convertToMedicalSupport(c))
+            .toList();
+        return medicalSupport;
+      }
+    } catch (e) {
+      // Fall back to local data
+    }
+    
+    // API fallback
     if (baseUrl != null) {
       try {
         final response = await _client.get(
@@ -85,6 +230,39 @@ class SupportService {
       }
     }
     return _getLocalMedicalSupport();
+  }
+  
+  /// Convert OfficialContact to LegalResource
+  LegalResource _convertToLegalResource(OfficialContact contact) {
+    return LegalResource(
+      id: contact.id,
+      title: contact.name,
+      description: contact.description ?? 'Legal assistance and guidance services.',
+      resourceType: LegalResourceType.legalAidOrganization,
+      contactNumber: contact.phoneNumber,
+      email: contact.email,
+      website: null,
+      providesFreeConsultation: true,
+      servicesOffered: ['Legal consultation', 'Guidance on reporting', 'Rights information'],
+      address: contact.officeLocation,
+      operatingHours: contact.officeHours,
+    );
+  }
+  
+  /// Convert OfficialContact to MedicalSupport
+  MedicalSupport _convertToMedicalSupport(OfficialContact contact) {
+    return MedicalSupport(
+      id: contact.id,
+      facilityName: contact.name,
+      description: contact.description ?? 'Medical support and healthcare services.',
+      serviceType: MedicalServiceType.clinic,
+      phoneNumber: contact.phoneNumber,
+      address: contact.officeLocation,
+      hasSpecializedUnit: true,
+      isConfidential: true,
+      servicesProvided: ['Medical examination', 'Emergency care', 'Referrals'],
+      operatingHours: contact.officeHours ?? 'Contact for hours',
+    );
   }
 
   /// Get priority emergency contacts for quick access
