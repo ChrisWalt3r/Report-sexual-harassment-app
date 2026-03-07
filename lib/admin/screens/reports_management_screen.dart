@@ -448,6 +448,11 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                 final videoUrls = _getListFromData(data, 'videoUrls');
                                 final audioUrls = _getListFromData(data, 'audioUrls');
                                 final hasEvidence = imageUrls.isNotEmpty || videoUrls.isNotEmpty || audioUrls.isNotEmpty;
+                                
+                                print('ADMIN DEBUG: imageUrls=$imageUrls');
+                                print('ADMIN DEBUG: videoUrls=$videoUrls');
+                                print('ADMIN DEBUG: audioUrls=$audioUrls');
+                                print('ADMIN DEBUG: hasEvidence=$hasEvidence');
 
                                 if (!hasEvidence) {
                                   return _buildDetailSection('Evidence', [

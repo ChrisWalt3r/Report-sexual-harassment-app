@@ -398,9 +398,22 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     List<String> urls = [];
     
     for (var file in files) {
+      print('DEBUG: Attempting video upload for: ${file.path}');
       final url = await CloudinaryService.uploadVideo(file.path);
       if (url != null) {
         urls.add(url);
+        print('DEBUG: Video upload succeeded: $url');
+      } else {
+        print('DEBUG: Video upload FAILED. Error: ${CloudinaryService.lastError}');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Video upload failed: ${CloudinaryService.lastError ?? "Unknown error"}'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 5),
+            ),
+          );
+        }
       }
     }
     
@@ -412,9 +425,22 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     List<String> urls = [];
     
     for (var file in files) {
+      print('DEBUG: Attempting audio upload for: ${file.path}');
       final url = await CloudinaryService.uploadAudio(file.path);
       if (url != null) {
         urls.add(url);
+        print('DEBUG: Audio upload succeeded: $url');
+      } else {
+        print('DEBUG: Audio upload FAILED. Error: ${CloudinaryService.lastError}');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Audio upload failed: ${CloudinaryService.lastError ?? "Unknown error"}'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 5),
+            ),
+          );
+        }
       }
     }
     
@@ -488,6 +514,9 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
             _uploadStatus = 'Uploading images...';
           });
           imageUrls = await _uploadImages(_selectedImages);
+          if (imageUrls.length < _selectedImages.length) {
+            print('WARNING: Only ${imageUrls.length}/${_selectedImages.length} images uploaded');
+          }
           setState(() {
             _uploadProgress = 0.4;
           });
@@ -498,7 +527,12 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
           setState(() {
             _uploadStatus = 'Uploading videos...';
           });
+          print('DEBUG: Uploading ${_selectedVideos.length} videos');
           videoUrls = await _uploadVideos(_selectedVideos);
+          print('DEBUG: Video upload complete. Got ${videoUrls.length} URLs: $videoUrls');
+          if (videoUrls.length < _selectedVideos.length) {
+            print('WARNING: Only ${videoUrls.length}/${_selectedVideos.length} videos uploaded');
+          }
           setState(() {
             _uploadProgress = 0.55;
           });
@@ -509,10 +543,55 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
           setState(() {
             _uploadStatus = 'Uploading audio recordings...';
           });
+          print('DEBUG: Uploading ${_selectedAudios.length} audios');
+          for (var a in _selectedAudios) {
+            print('DEBUG: Audio file path=${a.path}, exists=${await a.exists()}, size=${await a.length()} bytes');
+          }
           audioUrls = await _uploadAudios(_selectedAudios);
+          print('DEBUG: Audio upload complete. Got ${audioUrls.length} URLs: $audioUrls');
+          if (audioUrls.length < _selectedAudios.length) {
+            print('WARNING: Only ${audioUrls.length}/${_selectedAudios.length} audios uploaded');
+          }
           setState(() {
             _uploadProgress = 0.7;
           });
+        }
+
+        // Warn user if some evidence failed to upload
+        final int totalSelected = _selectedImages.length + _selectedVideos.length + _selectedAudios.length;
+        final int totalUploaded = imageUrls.length + videoUrls.length + audioUrls.length;
+        if (totalSelected > 0 && totalUploaded < totalSelected) {
+          if (mounted) {
+            final bool proceed = await showDialog<bool>(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: const Text('Upload Warning'),
+                content: Text(
+                  '$totalUploaded out of $totalSelected evidence files uploaded successfully. '
+                  '${totalSelected - totalUploaded} file(s) failed to upload.\n\n'
+                  'Do you want to submit the report anyway?',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx, false),
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx, true),
+                    child: const Text('Submit Anyway'),
+                  ),
+                ],
+              ),
+            ) ?? false;
+            if (!proceed) {
+              setState(() {
+                _isUploading = false;
+                _uploadProgress = 0.0;
+                _uploadStatus = '';
+              });
+              return;
+            }
+          }
         }
 
         setState(() {
