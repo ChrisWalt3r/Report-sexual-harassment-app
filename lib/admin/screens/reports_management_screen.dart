@@ -661,7 +661,13 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                               Builder(builder: (context) {
                                 final imageUrls = _getListFromData(data, 'imageUrls');
                                 final videoUrls = _getListFromData(data, 'videoUrls');
-                                final hasEvidence = imageUrls.isNotEmpty || videoUrls.isNotEmpty;
+                                final audioUrls = _getListFromData(data, 'audioUrls');
+                                final hasEvidence = imageUrls.isNotEmpty || videoUrls.isNotEmpty || audioUrls.isNotEmpty;
+                                
+                                print('ADMIN DEBUG: imageUrls=$imageUrls');
+                                print('ADMIN DEBUG: videoUrls=$videoUrls');
+                                print('ADMIN DEBUG: audioUrls=$audioUrls');
+                                print('ADMIN DEBUG: hasEvidence=$hasEvidence');
 
                                 if (!hasEvidence) {
                                   return _buildDetailCard(
@@ -827,6 +833,67 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                           }),
                                         ],
                                       ),
+                                            ),
+                                          );
+                                        }),
+                                      ]),
+                                      const SizedBox(height: 20),
+                                    ],
+
+                                    // Audio Evidence
+                                    if (audioUrls.isNotEmpty) ...[
+                                      _buildDetailSection('Audio Evidence (${audioUrls.length})', [
+                                        ...audioUrls.asMap().entries.map((entry) {
+                                          final audioUrl = entry.value;
+                                          final audioNum = entry.key + 1;
+                                          return Padding(
+                                            padding: const EdgeInsets.only(bottom: 8),
+                                            child: InkWell(
+                                              onTap: () async {
+                                                final uri = Uri.parse(audioUrl);
+                                                if (await canLaunchUrl(uri)) {
+                                                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                                }
+                                              },
+                                              borderRadius: BorderRadius.circular(10),
+                                              child: Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.deepPurple.withOpacity(0.05),
+                                                  borderRadius: BorderRadius.circular(10),
+                                                  border: Border.all(color: Colors.deepPurple.withOpacity(0.2)),
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    Container(
+                                                      padding: const EdgeInsets.all(8),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.deepPurple.withOpacity(0.1),
+                                                        borderRadius: BorderRadius.circular(8),
+                                                      ),
+                                                      child: const Icon(Icons.headphones_rounded, color: Colors.deepPurple, size: 22),
+                                                    ),
+                                                    const SizedBox(width: 12),
+                                                    Expanded(
+                                                      child: Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        children: [
+                                                          Text('Audio $audioNum', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                                                          const SizedBox(height: 2),
+                                                          Text('Tap to listen in browser', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    Icon(Icons.open_in_new, color: Colors.deepPurple.withOpacity(0.6), size: 20),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        }),
+                                      ]),
+                                      const SizedBox(height: 20),
+                                    ],
                                   ],
                                 );
                               }),

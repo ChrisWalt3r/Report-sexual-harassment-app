@@ -287,11 +287,15 @@ Keep the analysis data-driven and actionable. Focus on insights that drive bette
     // Evidence info
     final imageUrls = data['imageUrls'];
     final videoUrls = data['videoUrls'];
+    final audioUrls = data['audioUrls'];
     if (imageUrls is List && imageUrls.isNotEmpty) {
       buffer.writeln('Photo Evidence: ${imageUrls.length} image(s) submitted');
     }
     if (videoUrls is List && videoUrls.isNotEmpty) {
       buffer.writeln('Video Evidence: ${videoUrls.length} video(s) submitted');
+    }
+    if (audioUrls is List && audioUrls.isNotEmpty) {
+      buffer.writeln('Audio Evidence: ${audioUrls.length} audio recording(s) submitted');
     }
 
     if (data['faculty'] != null) {

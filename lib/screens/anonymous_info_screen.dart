@@ -378,7 +378,7 @@ class _AnonymousInfoScreenState extends State<AnonymousInfoScreen> {
                         // Faculty dropdown (optional)
                         DropdownButtonFormField<String>(
                           isExpanded: true,
-                          initialValue: _selectedFaculty,
+                          value: _selectedFaculty,
                           decoration: _dropdownDecoration(
                             label: 'Faculty (optional)',
                             hint: 'Select your faculty',
@@ -407,7 +407,7 @@ class _AnonymousInfoScreenState extends State<AnonymousInfoScreen> {
                           const SizedBox(height: 16),
                           DropdownButtonFormField<String>(
                             isExpanded: true,
-                            initialValue: _selectedDepartment,
+                            value: _selectedDepartment,
                             decoration: _dropdownDecoration(
                               label: 'Department (optional)',
                               hint: 'Select your department',

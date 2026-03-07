@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
@@ -7,6 +8,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:record/record.dart';
+import 'package:path_provider/path_provider.dart';
 import '../services/imgbb_service.dart';
 import '../services/cloudinary_service.dart';
 import '../constants/app_colors.dart';
@@ -34,6 +37,13 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
   String _uploadStatus = '';
   final List<File> _selectedImages = [];
   final List<File> _selectedVideos = [];
+  final List<File> _selectedAudios = [];
+
+  // Audio recording state
+  final AudioRecorder _audioRecorder = AudioRecorder();
+  bool _isRecording = false;
+  Duration _recordingDuration = Duration.zero;
+  Timer? _recordingTimer;
 
   // Incident types aligned with MUST Anti-Sexual Harassment Policy definitions
   final List<Map<String, dynamic>> _incidentTypes = [
@@ -58,6 +68,8 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     _witnessesController.dispose();
     _responseController.dispose();
     _otherTypeController.dispose();
+    _audioRecorder.dispose();
+    _recordingTimer?.cancel();
     super.dispose();
   }
 
@@ -141,6 +153,101 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     setState(() {
       _selectedVideos.removeAt(index);
     });
+  }
+
+  void _removeAudio(int index) {
+    setState(() {
+      _selectedAudios.removeAt(index);
+    });
+  }
+
+  Future<void> _toggleRecording() async {
+    if (_isRecording) {
+      await _stopRecording();
+    } else {
+      await _startRecording();
+    }
+  }
+
+  Future<void> _startRecording() async {
+    try {
+      if (await _audioRecorder.hasPermission()) {
+        final tempDir = await getTemporaryDirectory();
+        final filePath = '${tempDir.path}/audio_evidence_${DateTime.now().millisecondsSinceEpoch}.m4a';
+
+        await _audioRecorder.start(
+          const RecordConfig(
+            encoder: AudioEncoder.aacLc,
+            bitRate: 128000,
+            sampleRate: 44100,
+          ),
+          path: filePath,
+        );
+
+        setState(() {
+          _isRecording = true;
+          _recordingDuration = Duration.zero;
+        });
+
+        _recordingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+          setState(() {
+            _recordingDuration += const Duration(seconds: 1);
+          });
+        });
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Microphone permission is required to record audio'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error starting recording: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _stopRecording() async {
+    try {
+      _recordingTimer?.cancel();
+      final path = await _audioRecorder.stop();
+      if (path != null) {
+        setState(() {
+          _selectedAudios.add(File(path));
+          _isRecording = false;
+          _recordingDuration = Duration.zero;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isRecording = false;
+        _recordingDuration = Duration.zero;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error stopping recording: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final minutes = twoDigits(duration.inMinutes.remainder(60));
+    final seconds = twoDigits(duration.inSeconds.remainder(60));
+    return '$minutes:$seconds';
   }
 
   /// Generate a unique tracking token for anonymous reports
@@ -330,9 +437,49 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     List<String> urls = [];
     
     for (var file in files) {
+      print('DEBUG: Attempting video upload for: ${file.path}');
       final url = await CloudinaryService.uploadVideo(file.path);
       if (url != null) {
         urls.add(url);
+        print('DEBUG: Video upload succeeded: $url');
+      } else {
+        print('DEBUG: Video upload FAILED. Error: ${CloudinaryService.lastError}');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Video upload failed: ${CloudinaryService.lastError ?? "Unknown error"}'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 5),
+            ),
+          );
+        }
+      }
+    }
+    
+    return urls;
+  }
+
+  /// Upload audio files to Cloudinary
+  Future<List<String>> _uploadAudios(List<File> files) async {
+    List<String> urls = [];
+    
+    for (var file in files) {
+      print('DEBUG: Attempting audio upload for: ${file.path}');
+      final url = await CloudinaryService.uploadAudio(file.path);
+      if (url != null) {
+        urls.add(url);
+        print('DEBUG: Audio upload succeeded: $url');
+      } else {
+        print('DEBUG: Audio upload FAILED. Error: ${CloudinaryService.lastError}');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Audio upload failed: ${CloudinaryService.lastError ?? "Unknown error"}'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 5),
+            ),
+          );
+        }
       }
     }
     
@@ -406,6 +553,9 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
             _uploadStatus = 'Uploading images...';
           });
           imageUrls = await _uploadImages(_selectedImages);
+          if (imageUrls.length < _selectedImages.length) {
+            print('WARNING: Only ${imageUrls.length}/${_selectedImages.length} images uploaded');
+          }
           setState(() {
             _uploadProgress = 0.4;
           });
@@ -416,10 +566,71 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
           setState(() {
             _uploadStatus = 'Uploading videos...';
           });
+          print('DEBUG: Uploading ${_selectedVideos.length} videos');
           videoUrls = await _uploadVideos(_selectedVideos);
+          print('DEBUG: Video upload complete. Got ${videoUrls.length} URLs: $videoUrls');
+          if (videoUrls.length < _selectedVideos.length) {
+            print('WARNING: Only ${videoUrls.length}/${_selectedVideos.length} videos uploaded');
+          }
+          setState(() {
+            _uploadProgress = 0.55;
+          });
+        }
+
+        List<String> audioUrls = [];
+        if (_selectedAudios.isNotEmpty) {
+          setState(() {
+            _uploadStatus = 'Uploading audio recordings...';
+          });
+          print('DEBUG: Uploading ${_selectedAudios.length} audios');
+          for (var a in _selectedAudios) {
+            print('DEBUG: Audio file path=${a.path}, exists=${await a.exists()}, size=${await a.length()} bytes');
+          }
+          audioUrls = await _uploadAudios(_selectedAudios);
+          print('DEBUG: Audio upload complete. Got ${audioUrls.length} URLs: $audioUrls');
+          if (audioUrls.length < _selectedAudios.length) {
+            print('WARNING: Only ${audioUrls.length}/${_selectedAudios.length} audios uploaded');
+          }
           setState(() {
             _uploadProgress = 0.7;
           });
+        }
+
+        // Warn user if some evidence failed to upload
+        final int totalSelected = _selectedImages.length + _selectedVideos.length + _selectedAudios.length;
+        final int totalUploaded = imageUrls.length + videoUrls.length + audioUrls.length;
+        if (totalSelected > 0 && totalUploaded < totalSelected) {
+          if (mounted) {
+            final bool proceed = await showDialog<bool>(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: const Text('Upload Warning'),
+                content: Text(
+                  '$totalUploaded out of $totalSelected evidence files uploaded successfully. '
+                  '${totalSelected - totalUploaded} file(s) failed to upload.\n\n'
+                  'Do you want to submit the report anyway?',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx, false),
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx, true),
+                    child: const Text('Submit Anyway'),
+                  ),
+                ],
+              ),
+            ) ?? false;
+            if (!proceed) {
+              setState(() {
+                _isUploading = false;
+                _uploadProgress = 0.0;
+                _uploadStatus = '';
+              });
+              return;
+            }
+          }
         }
 
         setState(() {
@@ -456,6 +667,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
           'category': incidentTypeString, // Combined category string
           'imageUrls': imageUrls,
           'videoUrls': videoUrls,
+          'audioUrls': audioUrls,
           'timestamp': FieldValue.serverTimestamp(),
           'createdAt': FieldValue.serverTimestamp(), // Add createdAt for ordering
           'status': 'pending',
@@ -1102,6 +1314,9 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                               ),
                             ],
                           ),
+                          const SizedBox(height: 12),
+                          // Audio Recording Section
+                          _buildAudioRecordingSection(),
                           
                           // Selected Images Preview
                           if (_selectedImages.isNotEmpty) ... [
@@ -1187,6 +1402,52 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                                     ),
                                     IconButton(
                                       onPressed: () => _removeVideo(index),
+                                      icon: const Icon(
+                                        Icons.delete_outline,
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }),
+                          ],
+
+                          // Selected Audio Previews
+                          if (_selectedAudios.isNotEmpty) ... [
+                            const SizedBox(height: 16),
+                            ...List.generate(_selectedAudios.length, (index) {
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 8),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.deepPurple.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Icon(
+                                        Icons.audiotrack,
+                                        color: Colors.deepPurple,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        'Audio ${index + 1}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      onPressed: () => _removeAudio(index),
                                       icon: const Icon(
                                         Icons.delete_outline,
                                         color: Colors.red,
@@ -1337,6 +1598,136 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                 fontWeight: count > 0 ? FontWeight.bold : FontWeight.normal,
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAudioRecordingSection() {
+    return GestureDetector(
+      onTap: _toggleRecording,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: _isRecording ? Colors.red.shade50 : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: _isRecording
+                ? Colors.red
+                : _selectedAudios.isNotEmpty
+                    ? Colors.deepPurple
+                    : Colors.grey[300]!,
+            width: 2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: _isRecording
+                  ? Colors.red.withOpacity(0.15)
+                  : Colors.grey.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Stack(
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: _isRecording
+                        ? Colors.red.withOpacity(0.15)
+                        : _selectedAudios.isNotEmpty
+                            ? Colors.deepPurple.withOpacity(0.1)
+                            : Colors.grey.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    _isRecording ? Icons.stop_rounded : Icons.mic_rounded,
+                    size: 28,
+                    color: _isRecording
+                        ? Colors.red
+                        : _selectedAudios.isNotEmpty
+                            ? Colors.deepPurple
+                            : Colors.grey[400],
+                  ),
+                ),
+                if (_selectedAudios.isNotEmpty && !_isRecording)
+                  Positioned(
+                    right: -4,
+                    top: -4,
+                    child: Container(
+                      padding: const EdgeInsets.all(5),
+                      decoration: const BoxDecoration(
+                        color: Colors.deepPurple,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(
+                        '${_selectedAudios.length}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _isRecording
+                        ? 'Recording... Tap to stop'
+                        : _selectedAudios.isNotEmpty
+                            ? '${_selectedAudios.length} audio recording(s)'
+                            : 'Record Audio',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: _isRecording
+                          ? Colors.red
+                          : _selectedAudios.isNotEmpty
+                              ? Colors.deepPurple
+                              : Colors.grey[600],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _isRecording
+                        ? _formatDuration(_recordingDuration)
+                        : 'Tap to start recording audio evidence',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: _isRecording ? Colors.red[400] : Colors.grey[400],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (_isRecording)
+              Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.red.withOpacity(0.5),
+                      blurRadius: 6,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
       ),

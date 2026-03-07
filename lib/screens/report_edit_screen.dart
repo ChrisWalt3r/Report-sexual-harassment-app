@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:record/record.dart';
+import 'package:path_provider/path_provider.dart';
 import '../constants/app_colors.dart';
 import '../services/imgbb_service.dart';
 import '../services/cloudinary_service.dart';
@@ -37,14 +40,23 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
   // Existing attachments from the report
   late List<String> _existingImageUrls;
   late List<String> _existingVideoUrls;
+  late List<String> _existingAudioUrls;
   
   // New attachments to upload
   final List<File> _newImages = [];
   final List<File> _newVideos = [];
+  final List<File> _newAudios = [];
   
   // URLs marked for removal
   final List<String> _removedImageUrls = [];
   final List<String> _removedVideoUrls = [];
+  final List<String> _removedAudioUrls = [];
+
+  // Audio recording state
+  final AudioRecorder _audioRecorder = AudioRecorder();
+  bool _isRecording = false;
+  Duration _recordingDuration = Duration.zero;
+  Timer? _recordingTimer;
 
   @override
   void initState() {
@@ -68,12 +80,15 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
     // Initialize existing attachments
     _existingImageUrls = List<String>.from(widget.reportData['imageUrls'] ?? []);
     _existingVideoUrls = List<String>.from(widget.reportData['videoUrls'] ?? []);
+    _existingAudioUrls = List<String>.from(widget.reportData['audioUrls'] ?? []);
   }
 
   @override
   void dispose() {
     _descriptionController.dispose();
     _locationController.dispose();
+    _audioRecorder.dispose();
+    _recordingTimer?.cancel();
     _perpetratorController.dispose();
     _witnessesController.dispose();
     _responseController.dispose();
@@ -618,10 +633,10 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
     }
 
     // In evidence-only mode, ensure new evidence is actually being added
-    if (widget.evidenceOnly && _newImages.isEmpty && _newVideos.isEmpty) {
+    if (widget.evidenceOnly && _newImages.isEmpty && _newVideos.isEmpty && _newAudios.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please add at least one image or video as evidence.'),
+          content: Text('Please add at least one image, video, or audio as evidence.'),
         ),
       );
       return;
@@ -642,14 +657,22 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
         newVideoUrls = await _uploadVideos(_newVideos);
       }
 
+      // Upload new audio files
+      List<String> newAudioUrls = [];
+      if (_newAudios.isNotEmpty) {
+        newAudioUrls = await _uploadAudios(_newAudios);
+      }
+
       // Combine existing (minus removed) with new URLs
       final List<String> finalImageUrls = [..._existingImageUrls, ...newImageUrls];
       final List<String> finalVideoUrls = [..._existingVideoUrls, ...newVideoUrls];
+      final List<String> finalAudioUrls = [..._existingAudioUrls, ...newAudioUrls];
 
       // In evidence-only mode, only update evidence fields
       final Map<String, dynamic> updateData = {
         'imageUrls': finalImageUrls,
         'videoUrls': finalVideoUrls,
+        'audioUrls': finalAudioUrls,
         'updatedAt': FieldValue.serverTimestamp(),
       };
 
@@ -742,6 +765,108 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
     });
   }
 
+  void _removeNewAudio(int index) {
+    setState(() {
+      _newAudios.removeAt(index);
+    });
+  }
+
+  void _removeExistingAudio(int index) {
+    setState(() {
+      _removedAudioUrls.add(_existingAudioUrls[index]);
+      _existingAudioUrls.removeAt(index);
+    });
+  }
+
+  Future<void> _toggleRecording() async {
+    if (_isRecording) {
+      await _stopRecording();
+    } else {
+      await _startRecording();
+    }
+  }
+
+  Future<void> _startRecording() async {
+    try {
+      if (await _audioRecorder.hasPermission()) {
+        final tempDir = await getTemporaryDirectory();
+        final filePath = '${tempDir.path}/audio_evidence_${DateTime.now().millisecondsSinceEpoch}.m4a';
+
+        await _audioRecorder.start(
+          const RecordConfig(
+            encoder: AudioEncoder.aacLc,
+            bitRate: 128000,
+            sampleRate: 44100,
+          ),
+          path: filePath,
+        );
+
+        setState(() {
+          _isRecording = true;
+          _recordingDuration = Duration.zero;
+        });
+
+        _recordingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+          setState(() {
+            _recordingDuration += const Duration(seconds: 1);
+          });
+        });
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Microphone permission is required to record audio'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error starting recording: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _stopRecording() async {
+    try {
+      _recordingTimer?.cancel();
+      final path = await _audioRecorder.stop();
+      if (path != null) {
+        setState(() {
+          _newAudios.add(File(path));
+          _isRecording = false;
+          _recordingDuration = Duration.zero;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isRecording = false;
+        _recordingDuration = Duration.zero;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error stopping recording: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  String _formatRecordingDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final minutes = twoDigits(duration.inMinutes.remainder(60));
+    final seconds = twoDigits(duration.inSeconds.remainder(60));
+    return '$minutes:$seconds';
+  }
+
   /// Upload images to ImgBB
   Future<List<String>> _uploadImages(List<File> files) async {
     List<String> urls = [];
@@ -770,14 +895,31 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
     return urls;
   }
 
+  /// Upload audio files to Cloudinary
+  Future<List<String>> _uploadAudios(List<File> files) async {
+    List<String> urls = [];
+    
+    for (var file in files) {
+      final url = await CloudinaryService.uploadAudio(file.path);
+      if (url != null) {
+        urls.add(url);
+      }
+    }
+    
+    return urls;
+  }
+
   Widget _buildAttachmentsSection() {
     final int existingImageCount = _existingImageUrls.length;
     final int existingVideoCount = _existingVideoUrls.length;
+    final int existingAudioCount = _existingAudioUrls.length;
     final int newImageCount = _newImages.length;
     final int newVideoCount = _newVideos.length;
+    final int newAudioCount = _newAudios.length;
     final int totalImages = existingImageCount + newImageCount;
     final int totalVideos = existingVideoCount + newVideoCount;
-    final bool hasAttachments = totalImages > 0 || totalVideos > 0;
+    final int totalAudios = existingAudioCount + newAudioCount;
+    final bool hasAttachments = totalImages > 0 || totalVideos > 0 || totalAudios > 0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -804,6 +946,9 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
             ),
           ],
         ),
+        const SizedBox(height: 12),
+        // Audio Recording Button
+        _buildAudioRecordingButton(totalAudios),
         
         if (!hasAttachments) ...[
           const SizedBox(height: 16),
@@ -1034,6 +1179,97 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
             );
           }),
         ],
+        
+        // Existing Audio Preview
+        if (_existingAudioUrls.isNotEmpty) ...[
+          const SizedBox(height: 20),
+          _buildSubsectionHeader('Existing Audio', Icons.audiotrack, Colors.deepPurple),
+          const SizedBox(height: 10),
+          ...List.generate(_existingAudioUrls.length, (index) {
+            return Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.deepPurple.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.deepPurple.withOpacity(0.2)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.deepPurple.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.audiotrack,
+                      color: Colors.deepPurple,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Audio ${index + 1}',
+                      style: const TextStyle(fontSize: 14),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (!widget.evidenceOnly)
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.red, size: 20),
+                      onPressed: () => _removeExistingAudio(index),
+                    ),
+                ],
+              ),
+            );
+          }),
+        ],
+
+        // New Audio Preview
+        if (_newAudios.isNotEmpty) ...[
+          const SizedBox(height: 20),
+          _buildSubsectionHeader('New Audio', Icons.mic, AppColors.mustGreen),
+          const SizedBox(height: 10),
+          ...List.generate(_newAudios.length, (index) {
+            return Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.mustGreen.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.mustGreen.withOpacity(0.2)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.mustGreen.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.audiotrack,
+                      color: AppColors.mustGreen,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      _newAudios[index].path.split(Platform.pathSeparator).last,
+                      style: const TextStyle(fontSize: 14),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.red, size: 20),
+                    onPressed: () => _removeNewAudio(index),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
       ],
     );
   }
@@ -1143,6 +1379,132 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAudioRecordingButton(int totalAudios) {
+    return GestureDetector(
+      onTap: _toggleRecording,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+        decoration: BoxDecoration(
+          color: _isRecording ? Colors.red.shade50 : (totalAudios > 0 ? Colors.deepPurple.withOpacity(0.05) : Colors.grey[50]),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: _isRecording
+                ? Colors.red
+                : totalAudios > 0
+                    ? Colors.deepPurple.withOpacity(0.3)
+                    : Colors.grey.shade200,
+            width: _isRecording || totalAudios > 0 ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: _isRecording
+                        ? Colors.red.withOpacity(0.15)
+                        : totalAudios > 0
+                            ? Colors.deepPurple.withOpacity(0.1)
+                            : Colors.grey.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    _isRecording ? Icons.stop_rounded : Icons.mic_rounded,
+                    size: 28,
+                    color: _isRecording
+                        ? Colors.red
+                        : totalAudios > 0
+                            ? Colors.deepPurple
+                            : Colors.grey[400],
+                  ),
+                ),
+                if (totalAudios > 0 && !_isRecording)
+                  Positioned(
+                    right: -6,
+                    top: -6,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.deepPurple, Colors.deepPurple.withOpacity(0.8)],
+                        ),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.deepPurple.withOpacity(0.4),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        '$totalAudios',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _isRecording
+                        ? 'Recording... Tap to stop'
+                        : 'Record Audio (evidence)',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: _isRecording
+                          ? Colors.red
+                          : totalAudios > 0
+                              ? Colors.deepPurple
+                              : Colors.grey[600],
+                    ),
+                  ),
+                  if (_isRecording)
+                    Text(
+                      _formatRecordingDuration(_recordingDuration),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.red[400],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            if (_isRecording)
+              Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.red.withOpacity(0.5),
+                      blurRadius: 6,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+              ),
+          ],
         ),
       ),
     );

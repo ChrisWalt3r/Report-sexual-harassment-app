@@ -762,7 +762,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }) {
     return DropdownButtonFormField<String>(
       isExpanded: true,
-      initialValue: value as String?,
+      value: value as String?,
       decoration: InputDecoration(
         hintText: hint,
         prefixIcon: Icon(icon, color: AppColors.mustBlue, size: 20),
