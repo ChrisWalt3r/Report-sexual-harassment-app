@@ -81,7 +81,7 @@ class ReportHarassmentApp extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              cardTheme: CardTheme(
+              cardTheme: CardThemeData(
                 color: AppColors.card,
                 elevation: 2,
                 shadowColor: AppColors.primaryDark.withOpacity(0.1),
@@ -133,7 +133,7 @@ class ReportHarassmentApp extends StatelessWidget {
                 ),
                 contentPadding: const EdgeInsets.all(16),
               ),
-              bottomNavigationBarTheme: const BottomNavigationBarTheme(
+              bottomNavigationBarTheme: const BottomNavigationBarThemeData(
                 backgroundColor: AppColors.white,
                 selectedItemColor: AppColors.royalBlue,
                 unselectedItemColor: AppColors.textSecondary,
@@ -163,7 +163,7 @@ class ReportHarassmentApp extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              cardTheme: CardTheme(
+              cardTheme: CardThemeData(
                 color: AppColors.darkSurface,
                 elevation: 2,
                 shadowColor: Colors.black.withOpacity(0.3),
@@ -215,7 +215,7 @@ class ReportHarassmentApp extends StatelessWidget {
                 ),
                 contentPadding: const EdgeInsets.all(16),
               ),
-              bottomNavigationBarTheme: BottomNavigationBarTheme(
+              bottomNavigationBarTheme: BottomNavigationBarThemeData(
                 backgroundColor: AppColors.darkAppBar,
                 selectedItemColor: AppColors.royalBlue,
                 unselectedItemColor: AppColors.textSecondary,
