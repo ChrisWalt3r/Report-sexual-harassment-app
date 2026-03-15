@@ -113,48 +113,27 @@ class AppStyles {
     color: AppColors.error,
   );
 
-  // Gradients (Key Visual Elements)
-  static const LinearGradient primaryGradient = LinearGradient(
-    colors: [AppColors.primaryGreen, AppColors.gradientLightGreen],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
+  // FLAT DESIGN - NO GRADIENTS (like MUST website)
+  // Using solid colors for clean, professional appearance
   
-  static const LinearGradient accentGradient = LinearGradient(
-    colors: [AppColors.secondaryOrange, AppColors.gradientLightOrange],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-  
-  static const LinearGradient blueGradient = LinearGradient(
-    colors: [AppColors.royalBlue, AppColors.gradientMaterialBlue],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-
-  // Card styles
+  // Card styles - FLAT DESIGN
   static BoxDecoration cardDecoration = BoxDecoration(
     color: AppColors.card,
-    borderRadius: BorderRadius.circular(12),
-    boxShadow: [
-      BoxShadow(
-        color: AppColors.primaryDark.withOpacity(0.1),
-        blurRadius: 4,
-        offset: const Offset(0, 2),
-      ),
-    ],
+    borderRadius: BorderRadius.circular(8), // Reduced from 12 for cleaner look
+    border: Border.all(
+      color: AppColors.borderLight,
+      width: 1,
+    ),
   );
 
-  static BoxDecoration gradientCardDecoration = BoxDecoration(
-    gradient: primaryGradient,
-    borderRadius: BorderRadius.circular(12),
-    boxShadow: [
-      BoxShadow(
-        color: AppColors.primaryDark.withOpacity(0.2),
-        blurRadius: 8,
-        offset: const Offset(0, 4),
-      ),
-    ],
+  // Featured card decoration - SOLID COLOR
+  static BoxDecoration featuredCardDecoration = BoxDecoration(
+    color: AppColors.primaryGreen, // Solid green, no gradient
+    borderRadius: BorderRadius.circular(8),
+    border: Border.all(
+      color: AppColors.primaryDark,
+      width: 1,
+    ),
   );
 
   // Input field decoration

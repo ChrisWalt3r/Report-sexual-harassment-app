@@ -43,11 +43,9 @@ class AppColors {
   static const Color borderLight = Color(0xFFE0E0E0); // Light Gray dividers
   static const Color borderMedium = Color(0xFFBDBDBD);
 
-  // Gradient Colors
-  static const Color gradientLightGreen = Color(0xFF9CCC65);
-  static const Color gradientLightOrange = Color(0xFFFFB74D);
-  static const Color gradientMaterialBlue = Color(0xFF1976D2);
-
+  // Gradients - REMOVED FOR FLAT DESIGN (like MUST website)
+  // Using solid colors only for clean, professional appearance
+  
   // Support service colors (updated with MUST theme)
   static const Color emergency = error;
   static const Color danger = error;
@@ -80,5 +78,5 @@ class AppColors {
   static const Color mustBlue = royalBlue;
   static const Color mustBlueMedium = Color(0xFF1A4D80);
   static const Color mustGreen = primaryGreen;
-  static const Color mustGreenLight = gradientLightGreen;
+  static const Color mustGreenLight = Color(0xFF9CCC65); // Kept for compatibility but no gradients
 }

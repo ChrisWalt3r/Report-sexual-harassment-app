@@ -72,8 +72,7 @@ class ReportHarassmentApp extends StatelessWidget {
               scaffoldBackgroundColor: AppColors.background,
               appBarTheme: AppBarTheme(
                 backgroundColor: AppColors.primaryGreen,
-                elevation: 2,
-                shadowColor: AppColors.primaryDark.withOpacity(0.3),
+                elevation: 0, // Flat design - no shadow
                 iconTheme: const IconThemeData(color: AppColors.textLight),
                 titleTextStyle: const TextStyle(
                   color: AppColors.textLight,
@@ -83,10 +82,13 @@ class ReportHarassmentApp extends StatelessWidget {
               ),
               cardTheme: CardThemeData(
                 color: AppColors.card,
-                elevation: 2,
-                shadowColor: AppColors.primaryDark.withOpacity(0.1),
+                elevation: 0, // Flat design - no shadow
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(8), // Smaller radius for cleaner look
+                  side: BorderSide(
+                    color: AppColors.borderLight,
+                    width: 1,
+                  ),
                 ),
               ),
               elevatedButtonTheme: ElevatedButtonThemeData(
