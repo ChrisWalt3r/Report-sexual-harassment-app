@@ -61,42 +61,166 @@ class ReportHarassmentApp extends StatelessWidget {
             themeMode: themeService.themeMode,
             theme: ThemeData(
               colorScheme: ColorScheme.fromSeed(
-                seedColor: AppColors.primaryBlue,
-                primary: AppColors.primaryBlue,
+                seedColor: AppColors.primaryGreen,
+                primary: AppColors.primaryGreen,
+                secondary: AppColors.secondaryOrange,
+                surface: AppColors.surface,
+                background: AppColors.background,
+                error: AppColors.error,
                 brightness: Brightness.light,
               ),
               scaffoldBackgroundColor: AppColors.background,
-              appBarTheme: const AppBarTheme(
-                backgroundColor: AppColors.white,
-                elevation: 0,
-                iconTheme: IconThemeData(color: AppColors.textDark),
-                titleTextStyle: TextStyle(
-                  color: AppColors.textDark,
-                  fontSize: 18,
+              appBarTheme: AppBarTheme(
+                backgroundColor: AppColors.primaryGreen,
+                elevation: 2,
+                shadowColor: AppColors.primaryDark.withOpacity(0.3),
+                iconTheme: const IconThemeData(color: AppColors.textLight),
+                titleTextStyle: const TextStyle(
+                  color: AppColors.textLight,
+                  fontSize: 20,
                   fontWeight: FontWeight.w600,
                 ),
+              ),
+              cardTheme: CardTheme(
+                color: AppColors.card,
+                elevation: 2,
+                shadowColor: AppColors.primaryDark.withOpacity(0.1),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              elevatedButtonTheme: ElevatedButtonThemeData(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.secondaryOrange,
+                  foregroundColor: AppColors.textLight,
+                  elevation: 2,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              textButtonTheme: TextButtonThemeData(
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.primaryGreen,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                ),
+              ),
+              outlinedButtonTheme: OutlinedButtonThemeData(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primaryGreen,
+                  side: const BorderSide(color: AppColors.primaryGreen),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              inputDecorationTheme: InputDecorationTheme(
+                filled: true,
+                fillColor: AppColors.inputFill,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.borderLight),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.borderLight),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.primaryGreen, width: 2),
+                ),
+                contentPadding: const EdgeInsets.all(16),
+              ),
+              bottomNavigationBarTheme: const BottomNavigationBarTheme(
+                backgroundColor: AppColors.white,
+                selectedItemColor: AppColors.royalBlue,
+                unselectedItemColor: AppColors.textSecondary,
+                elevation: 8,
               ),
               useMaterial3: true,
               fontFamily: 'Roboto',
             ),
             darkTheme: ThemeData(
               colorScheme: ColorScheme.fromSeed(
-                seedColor: AppColors.primaryBlue,
-                primary: AppColors.primaryBlue,
+                seedColor: AppColors.primaryGreen,
+                primary: AppColors.primaryGreen,
+                secondary: AppColors.secondaryOrange,
+                surface: AppColors.darkSurface,
+                background: AppColors.darkBackground,
+                error: AppColors.error,
                 brightness: Brightness.dark,
               ),
-              scaffoldBackgroundColor: const Color(0xFF121212),
+              scaffoldBackgroundColor: AppColors.darkBackground,
               appBarTheme: const AppBarTheme(
-                backgroundColor: Color(0xFF1E1E1E),
-                elevation: 0,
-                iconTheme: IconThemeData(color: Colors.white),
+                backgroundColor: AppColors.darkAppBar,
+                elevation: 2,
+                iconTheme: IconThemeData(color: AppColors.textLight),
                 titleTextStyle: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
+                  color: AppColors.textLight,
+                  fontSize: 20,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              cardColor: const Color(0xFF1E1E1E),
+              cardTheme: CardTheme(
+                color: AppColors.darkSurface,
+                elevation: 2,
+                shadowColor: Colors.black.withOpacity(0.3),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              elevatedButtonTheme: ElevatedButtonThemeData(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.secondaryOrange,
+                  foregroundColor: AppColors.textLight,
+                  elevation: 2,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              textButtonTheme: TextButtonThemeData(
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.primaryGreen,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                ),
+              ),
+              outlinedButtonTheme: OutlinedButtonThemeData(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primaryGreen,
+                  side: const BorderSide(color: AppColors.primaryGreen),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              inputDecorationTheme: InputDecorationTheme(
+                filled: true,
+                fillColor: AppColors.darkSurface,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppColors.textSecondary.withOpacity(0.3)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppColors.textSecondary.withOpacity(0.3)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.primaryGreen, width: 2),
+                ),
+                contentPadding: const EdgeInsets.all(16),
+              ),
+              bottomNavigationBarTheme: BottomNavigationBarTheme(
+                backgroundColor: AppColors.darkAppBar,
+                selectedItemColor: AppColors.royalBlue,
+                unselectedItemColor: AppColors.textSecondary,
+                elevation: 8,
+              ),
               useMaterial3: true,
               fontFamily: 'Roboto',
             ),
