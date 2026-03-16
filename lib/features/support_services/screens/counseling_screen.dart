@@ -90,25 +90,20 @@ class _CounselingScreenState extends State<CounselingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
         title: const Text(
           'Counseling Support',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
         ),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: AppColors.mustBlue,
+        backgroundColor: AppColors.primaryGreen,
         foregroundColor: Colors.white,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
+        toolbarHeight: 65,
       ),
       body: _buildBody(),
     );
@@ -142,71 +137,12 @@ class _CounselingScreenState extends State<CounselingScreen> {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _buildHeroSection(),
-          const SizedBox(height: 20),
-          _buildQuickInfo(),
-          const SizedBox(height: 20),
-          _buildSectionHeader('Available Counselors', Icons.people_rounded),
-          const SizedBox(height: 12),
-          ..._services.map((service) => _buildServiceCard(service)),
-          const SizedBox(height: 16),
-          _buildSafeSpaceNotice(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeroSection() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [AppColors.mustBlueMedium, AppColors.mustBlue],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.mustBlue.withOpacity(0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.psychology_rounded,
-              color: Colors.white,
-              size: 48,
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'You\'re Not Alone',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
           const SizedBox(height: 8),
-          Text(
-            'Professional counselors are here to listen and support you through this difficult time.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.95),
-              fontSize: 14,
-              height: 1.5,
-            ),
-          ),
+          _buildSectionHeader('Available Counselors', Icons.people_rounded),
+          const SizedBox(height: 16),
+          ..._services.map((service) => _buildServiceCard(service)),
+          const SizedBox(height: 20),
+          _buildSafeSpaceNotice(),
         ],
       ),
     );
@@ -220,7 +156,7 @@ class _CounselingScreenState extends State<CounselingScreen> {
             icon: Icons.favorite_rounded,
             title: 'Safe',
             subtitle: 'Space',
-            color: AppColors.mustGold,
+            color: AppColors.primaryGreen,
           ),
         ),
         const SizedBox(width: 12),
@@ -229,7 +165,7 @@ class _CounselingScreenState extends State<CounselingScreen> {
             icon: Icons.lock_rounded,
             title: 'Private',
             subtitle: 'Sessions',
-            color: AppColors.mustBlue,
+            color: AppColors.royalBlue,
           ),
         ),
         const SizedBox(width: 12),
@@ -238,7 +174,7 @@ class _CounselingScreenState extends State<CounselingScreen> {
             icon: Icons.emoji_people_rounded,
             title: 'Trained',
             subtitle: 'Experts',
-            color: AppColors.mustGreen,
+            color: AppColors.secondaryOrange,
           ),
         ),
       ],
@@ -300,18 +236,18 @@ class _CounselingScreenState extends State<CounselingScreen> {
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: AppColors.mustBlue.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
+            color: AppColors.royalBlue.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, color: AppColors.mustBlue, size: 20),
+          child: Icon(icon, color: AppColors.royalBlue, size: 22),
         ),
         const SizedBox(width: 12),
         Text(
           title,
           style: TextStyle(
-            fontSize: 18,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
             color: Colors.grey[800],
           ),
@@ -322,51 +258,39 @@ class _CounselingScreenState extends State<CounselingScreen> {
 
   Widget _buildServiceCard(CounselingService service) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.royalBlue.withOpacity(0.2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header with gradient
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [AppColors.mustBlue.withOpacity(0.06), Colors.white],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            ),
-            child: Row(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [AppColors.mustBlueMedium, AppColors.mustBlue],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
+                    color: AppColors.royalBlue,
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
                     Icons.psychology_rounded,
                     color: Colors.white,
-                    size: 24,
+                    size: 20,
                   ),
                 ),
-                const SizedBox(width: 14),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -379,17 +303,16 @@ class _CounselingScreenState extends State<CounselingScreen> {
                           color: Colors.grey[800],
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4),
                       Wrap(
                         spacing: 6,
-                        runSpacing: 4,
                         children: [
                           if (service.isAvailable24Hours)
-                            _buildMiniTag('24/7', Colors.green),
+                            _buildMiniTag('24/7', AppColors.primaryGreen),
                           if (service.isFree)
-                            _buildMiniTag('Free', Colors.blue),
+                            _buildMiniTag('Free', AppColors.royalBlue),
                           if (service.isConfidential)
-                            _buildMiniTag('Confidential', Colors.orange),
+                            _buildMiniTag('Private', AppColors.secondaryOrange),
                         ],
                       ),
                     ],
@@ -397,65 +320,58 @@ class _CounselingScreenState extends State<CounselingScreen> {
                 ),
               ],
             ),
-          ),
-          // Content
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            const SizedBox(height: 12),
+            Text(
+              service.description,
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 14,
+                height: 1.4,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 16),
+            Row(
               children: [
-                Text(
-                  service.description,
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 14,
-                    height: 1.5,
+                if (service.contactNumber != 'N/A')
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _makePhoneCall(service.contactNumber),
+                      icon: const Icon(Icons.phone, size: 16),
+                      label: const Text('Call'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.secondaryOrange,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        elevation: 0,
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                // Action buttons
-                Row(
-                  children: [
-                    if (service.contactNumber != 'N/A')
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => _makePhoneCall(service.contactNumber),
-                          icon: const Icon(Icons.phone_rounded, size: 18),
-                          label: const Text('Call'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green[600],
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 0,
-                          ),
+                if (service.contactNumber != 'N/A' && service.website != null)
+                  const SizedBox(width: 12),
+                if (service.website != null)
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _openWebsite(service.website!),
+                      icon: Icon(Icons.language, size: 16, color: AppColors.royalBlue),
+                      label: Text('Website', style: TextStyle(color: AppColors.royalBlue)),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        side: BorderSide(color: AppColors.royalBlue.withOpacity(0.3)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                    if (service.contactNumber != 'N/A' && service.website != null)
-                      const SizedBox(width: 12),
-                    if (service.website != null)
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () => _openWebsite(service.website!),
-                          icon: Icon(Icons.language_rounded, size: 18, color: AppColors.mustBlue),
-                          label: Text('Website', style: TextStyle(color: AppColors.mustBlue)),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            side: BorderSide(color: AppColors.mustBlue.withOpacity(0.4)),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
+                    ),
+                  ),
               ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -483,22 +399,22 @@ class _CounselingScreenState extends State<CounselingScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.mustBlue.withOpacity(0.06), Colors.white],
+          colors: [AppColors.royalBlue.withOpacity(0.06), Colors.white],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppColors.royalBlue.withOpacity(0.2)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.mustBlue.withOpacity(0.1),
+              color: AppColors.royalBlue.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(Icons.spa_rounded, color: AppColors.mustBlue, size: 28),
+            child: Icon(Icons.spa_rounded, color: AppColors.royalBlue, size: 28),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -508,7 +424,7 @@ class _CounselingScreenState extends State<CounselingScreen> {
                 Text(
                   'This is a Safe Space',
                   style: TextStyle(
-                    color: Colors.grey[800],
+                    color: AppColors.royalBlue,
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
                   ),
@@ -517,7 +433,7 @@ class _CounselingScreenState extends State<CounselingScreen> {
                 Text(
                   'Reach out when you\'re ready. There\'s no pressure and no judgment here.',
                   style: TextStyle(
-                    color: Colors.grey[600],
+                    color: Colors.grey[700],
                     fontSize: 13,
                   ),
                 ),

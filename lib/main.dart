@@ -8,7 +8,7 @@ import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/settings_screen.dart';
-import 'screens/security_wrapper.dart';
+import 'screens/welcome_screen.dart';
 import 'services/enhanced_ai_service.dart';
 import 'services/auth_service.dart';
 import 'services/notification_service.dart';
@@ -31,12 +31,8 @@ void main() async {
     // Firebase already initialized (e.g., by native plugin)
   }
   
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
-    ),
-  );
+  // Don't set system UI overlay style here - let it be handled by the theme
+  // SystemChrome.setSystemUIOverlayStyle will be handled dynamically
   runApp(const ReportHarassmentApp());
 }
 
@@ -55,6 +51,23 @@ class ReportHarassmentApp extends StatelessWidget {
       child: Builder(
         builder: (context) {
           final themeService = context.watch<ThemeService>();
+          
+          // Show loading screen while theme is being initialized
+          if (!themeService.isInitialized) {
+            return MaterialApp(
+              title: 'SafeReport',
+              debugShowCheckedModeBanner: false,
+              home: const Scaffold(
+                backgroundColor: AppColors.background,
+                body: Center(
+                  child: CircularProgressIndicator(
+                    color: AppColors.primaryGreen,
+                  ),
+                ),
+              ),
+            );
+          }
+          
           return MaterialApp(
             title: 'SafeReport',
             debugShowCheckedModeBanner: false,
@@ -71,13 +84,19 @@ class ReportHarassmentApp extends StatelessWidget {
               ),
               scaffoldBackgroundColor: AppColors.background,
               appBarTheme: AppBarTheme(
-                backgroundColor: AppColors.royalBlue, // Deep blue app bar
-                elevation: 0, // Flat design - no shadow
-                iconTheme: const IconThemeData(color: AppColors.textLight),
+                backgroundColor: AppColors.primaryGreen,
+                elevation: 0,
+                iconTheme: const IconThemeData(color: Colors.white),
                 titleTextStyle: const TextStyle(
-                  color: AppColors.textLight,
+                  color: Colors.white,
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
+                ),
+                systemOverlayStyle: const SystemUiOverlayStyle(
+                  statusBarColor: Colors.transparent,
+                  statusBarIconBrightness: Brightness.light, // White icons on green app bar
+                  systemNavigationBarColor: Colors.white,
+                  systemNavigationBarIconBrightness: Brightness.dark,
                 ),
               ),
               cardTheme: CardThemeData(
@@ -99,6 +118,10 @@ class ReportHarassmentApp extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
+                  ),
+                  textStyle: const TextStyle(
+                    color: Colors.white, // Force white text
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -156,21 +179,30 @@ class ReportHarassmentApp extends StatelessWidget {
               ),
               scaffoldBackgroundColor: AppColors.darkBackground,
               appBarTheme: const AppBarTheme(
-                backgroundColor: AppColors.darkAppBar,
-                elevation: 2,
-                iconTheme: IconThemeData(color: AppColors.textLight),
+                backgroundColor: AppColors.primaryGreen,
+                elevation: 0,
+                iconTheme: IconThemeData(color: Colors.white),
                 titleTextStyle: TextStyle(
-                  color: AppColors.textLight,
+                  color: Colors.white,
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
+                ),
+                systemOverlayStyle: SystemUiOverlayStyle(
+                  statusBarColor: Colors.transparent,
+                  statusBarIconBrightness: Brightness.light, // White icons on green app bar
+                  systemNavigationBarColor: AppColors.darkBackground,
+                  systemNavigationBarIconBrightness: Brightness.light,
                 ),
               ),
               cardTheme: CardThemeData(
                 color: AppColors.darkSurface,
-                elevation: 2,
-                shadowColor: Colors.black.withOpacity(0.3),
+                elevation: 0, // Flat design
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(8),
+                  side: BorderSide(
+                    color: AppColors.textSecondary.withOpacity(0.2),
+                    width: 1,
+                  ),
                 ),
               ),
               elevatedButtonTheme: ElevatedButtonThemeData(
@@ -181,6 +213,10 @@ class ReportHarassmentApp extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
+                  ),
+                  textStyle: const TextStyle(
+                    color: Colors.white, // Force white text
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -218,15 +254,30 @@ class ReportHarassmentApp extends StatelessWidget {
                 contentPadding: const EdgeInsets.all(16),
               ),
               bottomNavigationBarTheme: BottomNavigationBarThemeData(
-                backgroundColor: AppColors.darkAppBar,
-                selectedItemColor: AppColors.royalBlue, // Deep blue in dark mode
+                backgroundColor: AppColors.darkSurface,
+                selectedItemColor: AppColors.primaryGreen, // Primary Green in dark mode
                 unselectedItemColor: AppColors.textSecondary,
                 elevation: 0, // Flat design
+              ),
+              // Text theme for dark mode
+              textTheme: const TextTheme(
+                bodyLarge: TextStyle(color: Colors.white),
+                bodyMedium: TextStyle(color: Colors.white),
+                bodySmall: TextStyle(color: Colors.white70),
+                headlineLarge: TextStyle(color: Colors.white),
+                headlineMedium: TextStyle(color: Colors.white),
+                headlineSmall: TextStyle(color: Colors.white),
+                titleLarge: TextStyle(color: Colors.white),
+                titleMedium: TextStyle(color: Colors.white),
+                titleSmall: TextStyle(color: Colors.white),
+                labelLarge: TextStyle(color: Colors.white),
+                labelMedium: TextStyle(color: Colors.white70),
+                labelSmall: TextStyle(color: Colors.white70),
               ),
               useMaterial3: true,
               fontFamily: 'Roboto',
             ),
-            home: const SecurityWrapper(),
+            home: const WelcomeScreen(),
             routes: {
               '/welcome': (context) => const WelcomeScreen(),
               '/home': (context) => const HomeScreen(),

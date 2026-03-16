@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_styles.dart';
 import '../widgets/bottom_nav_bar.dart';
@@ -195,7 +196,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Profile updated successfully'),
-            backgroundColor: AppColors.mustGreen,
+            backgroundColor: AppColors.primaryGreen,
           ),
         );
       }
@@ -230,18 +231,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: isDark ? AppColors.darkBackground : Colors.white,
       appBar: AppBar(
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
+        backgroundColor: AppColors.primaryGreen,
+        foregroundColor: Colors.white,
+        toolbarHeight: 65,
         elevation: 0,
         leading: TextButton(
           onPressed: () => Navigator.pop(context),
@@ -290,7 +287,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         color: Colors.white,
                       ),
                     )
-                  : const Icon(Icons.check, color: AppColors.mustGoldLight),
+                  : const Icon(Icons.check, color: Colors.white),
               tooltip: 'Save',
               onPressed: _isSaving ? null : _saveProfile,
             ),
@@ -299,7 +296,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       body:
           _isLoading
-              ? Center(child: CircularProgressIndicator(color: AppColors.mustBlue))
+              ? Center(child: CircularProgressIndicator(color: AppColors.primaryGreen))
               : _userData == null
               ? const Center(child: Text('No user data found'))
               : SingleChildScrollView(
@@ -352,9 +349,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.mustBlue.withOpacity(0.08),
+              color: AppColors.primaryGreen.withOpacity(0.1),
               borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: AppColors.mustGold, width: 1),
+              border: Border.all(color: AppColors.secondaryOrange, width: 1),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -362,7 +359,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Icon(
                   Icons.school_outlined,
                   size: 14,
-                  color: AppColors.mustBlue,
+                  color: AppColors.primaryGreen,
                 ),
                 const SizedBox(width: 4),
                 Text(
@@ -370,7 +367,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   style: AppStyles.bodySmall.copyWith(
                     fontWeight: FontWeight.w600,
                     fontSize: 11,
-                    color: AppColors.mustBlue,
+                    color: AppColors.primaryGreen,
                   ),
                 ),
               ],
@@ -385,36 +382,63 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppColors.mustGold, AppColors.mustGoldLight],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  color: AppColors.primaryGreen,
                   shape: BoxShape.circle,
                 ),
-                child: const Center(
-                  child: Icon(
-                    Icons.person,
-                    color: Colors.white,
-                    size: 50,
-                  ),
+                child: ClipOval(
+                  child: (_userData?['photoUrl'] != null && _userData!['photoUrl'].toString().isNotEmpty)
+                      ? Image.network(
+                          _userData!['photoUrl'].toString(),
+                          fit: BoxFit.cover,
+                          width: 100,
+                          height: 100,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Center(
+                              child: Icon(
+                                Icons.person,
+                                color: Colors.white,
+                                size: 50,
+                              ),
+                            );
+                          },
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return const Center(
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            );
+                          },
+                        )
+                      : const Center(
+                          child: Icon(
+                            Icons.person,
+                            color: Colors.white,
+                            size: 50,
+                          ),
+                        ),
                 ),
               ),
               Positioned(
                 right: 0,
                 bottom: 0,
-                child: Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: AppColors.mustBlue,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.white, width: 3),
-                  ),
-                  child: const Icon(
-                    Icons.edit,
-                    color: AppColors.white,
-                    size: 14,
+                child: InkWell(
+                  onTap: _showProfilePhotoActions,
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: AppColors.royalBlue,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.white, width: 3),
+                    ),
+                    child: const Icon(
+                      Icons.edit,
+                      color: AppColors.white,
+                      size: 14,
+                    ),
                   ),
                 ),
               ),
@@ -434,13 +458,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
             decoration: BoxDecoration(
-              color: AppColors.mustBlue.withOpacity(0.08),
+              color: AppColors.royalBlue.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
               _userData?['role'] ?? 'Student',
               style: AppStyles.bodySmall.copyWith(
-                color: AppColors.mustBlue,
+                color: AppColors.royalBlue,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -462,13 +486,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      color: AppColors.background,
+      color: Colors.grey[50],
       child: Text(
         title,
         style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: AppColors.mustBlue,
+          color: AppColors.royalBlue,
           letterSpacing: 0.5,
         ),
       ),
@@ -544,7 +568,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: AppColors.background,
+              color: Colors.grey[50],
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: AppColors.borderLight),
             ),
@@ -577,7 +601,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: AppColors.background,
+              color: Colors.grey[50],
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: AppColors.borderLight),
             ),
@@ -662,8 +686,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: ElevatedButton(
                 onPressed: _isSaving ? null : _saveProfile,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.mustGold,
-                  foregroundColor: AppColors.mustBlue,
+                  backgroundColor: AppColors.secondaryOrange,
+                  foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -675,7 +699,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         height: 22,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: AppColors.mustBlue,
+                          color: Colors.white,
                         ),
                       )
                     : const Text(
@@ -732,7 +756,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       keyboardType: keyboardType,
       decoration: InputDecoration(
         hintText: hint,
-        prefixIcon: Icon(icon, color: AppColors.mustBlue, size: 20),
+        prefixIcon: Icon(icon, color: AppColors.primaryGreen, size: 20),
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
@@ -744,7 +768,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: AppColors.mustBlue, width: 2),
+          borderSide: const BorderSide(color: AppColors.primaryGreen, width: 2),
         ),
         filled: true,
         fillColor: Colors.white,
@@ -765,7 +789,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       value: value as String?,
       decoration: InputDecoration(
         hintText: hint,
-        prefixIcon: Icon(icon, color: AppColors.mustBlue, size: 20),
+        prefixIcon: Icon(icon, color: AppColors.primaryGreen, size: 20),
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
@@ -777,7 +801,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: AppColors.mustBlue, width: 2),
+          borderSide: const BorderSide(color: AppColors.primaryGreen, width: 2),
         ),
         filled: true,
         fillColor: Colors.white,
@@ -866,15 +890,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   Icon(
                     Icons.info_outline,
-                    color: AppColors.mustBlue,
-                    size: 28,
+                    color: AppColors.royalBlue,
+                    size: 20,
                   ),
-                  const SizedBox(width: 12),
-                  const Text('Password Not Available'),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'No Password',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
                 ],
               ),
               content: const Text(
-                'This account uses a provider like Google sign-in. It does not have a password you can change here.',
+                'This account uses Google sign-in and doesn\'t have a password to change.',
+                style: TextStyle(fontSize: 14),
               ),
               actions: [
                 TextButton(
@@ -887,10 +917,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _showPasswordResetDialog();
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.mustBlue,
+                    backgroundColor: AppColors.royalBlue,
                     foregroundColor: Colors.white,
                   ),
-                  child: const Text('Reset Password'),
+                  child: const Text('Reset'),
                 ),
               ],
             ),
@@ -920,7 +950,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   children: [
                     Icon(
                       Icons.lock_outline,
-                      color: AppColors.mustBlue,
+                      color: AppColors.royalBlue,
                       size: 28,
                     ),
                     const SizedBox(width: 12),
@@ -1104,7 +1134,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               }
                             },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.mustBlue,
+                      backgroundColor: AppColors.royalBlue,
                       foregroundColor: Colors.white,
                     ),
                     child:
@@ -1154,7 +1184,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             title: Row(
               children: [
-                Icon(Icons.lock_reset, color: AppColors.mustBlue, size: 28),
+                Icon(Icons.lock_reset, color: AppColors.royalBlue, size: 28),
                 const SizedBox(width: 12),
                 const Text('Reset Password'),
               ],
@@ -1203,7 +1233,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Navigator.pop(dialogContext, email);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.mustBlue,
+                  backgroundColor: AppColors.royalBlue,
                   foregroundColor: Colors.white,
                 ),
                 child: const Text('Send Reset Link'),
@@ -1254,7 +1284,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            // Handle delete account
+            _showDeleteAccountDialog();
           },
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -1325,5 +1355,388 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _showDeleteAccountDialog() async {
+    final passwordController = TextEditingController();
+    final user = _authService.currentUser;
+
+    final isGoogleSignIn =
+        user?.providerData.any((p) => p.providerId == 'google.com') ?? false;
+    bool obscurePassword = true;
+
+    final result = await showDialog<String?>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: Row(
+              children: [
+                Icon(
+                  Icons.warning_amber_rounded,
+                  color: Colors.red[600],
+                  size: 24,
+                ),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text(
+                    'Delete Account',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'This action cannot be undone!',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'This will permanently remove:\n• Your profile\n• All reports\n• Chat history\n• All data',
+                    style: TextStyle(fontSize: 12, height: 1.4),
+                  ),
+                  const SizedBox(height: 12),
+                  if (!isGoogleSignIn) ...[
+                    const Text(
+                      'Enter password to confirm:',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: passwordController,
+                      obscureText: obscurePassword,
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        prefixIcon: const Icon(Icons.lock_outline, size: 18),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            obscurePassword
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                            size: 18,
+                          ),
+                          onPressed: () => setDialogState(
+                            () => obscurePassword = !obscurePassword,
+                          ),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                      ),
+                    ),
+                  ] else ...[
+                    const Text(
+                      'You will be asked to sign in with Google to confirm.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, null),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  if (!isGoogleSignIn && passwordController.text.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please enter your password'),
+                        backgroundColor: Colors.orange,
+                      ),
+                    );
+                    return;
+                  }
+                  Navigator.pop(
+                    dialogContext,
+                    isGoogleSignIn ? 'google' : passwordController.text,
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red[600],
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Delete'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    passwordController.dispose();
+    if (result == null || !mounted) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => PopScope(
+        canPop: false,
+        child: const Center(child: CircularProgressIndicator()),
+      ),
+    );
+
+    try {
+      await _authService.deleteAccount(result);
+      if (!mounted) return;
+      Navigator.pop(context);
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+        (route) => false,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context);
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.error_outline, color: Colors.red, size: 24),
+              SizedBox(width: 8),
+              Text('Error', style: TextStyle(fontSize: 16)),
+            ],
+          ),
+          content: Text(e.toString(), style: const TextStyle(fontSize: 14)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  Future<void> _showProfilePhotoActions() async {
+    if (!mounted) return;
+
+    showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Profile Picture',
+                  style: AppStyles.heading3,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryGreen.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.photo_library_outlined, color: AppColors.primaryGreen),
+                  ),
+                  title: const Text('Choose from gallery'),
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    _pickAndUploadProfilePhoto(ImageSource.gallery);
+                  },
+                ),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.royalBlue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.photo_camera_outlined, color: AppColors.royalBlue),
+                  ),
+                  title: const Text('Take a photo'),
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    _pickAndUploadProfilePhoto(ImageSource.camera);
+                  },
+                ),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.delete_outline, color: Colors.red),
+                  ),
+                  title: const Text('Remove photo'),
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    _removeProfilePhoto();
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickAndUploadProfilePhoto(ImageSource source) async {
+    try {
+      final ImagePicker imagePicker = ImagePicker();
+      final picked = await imagePicker.pickImage(
+        source: source,
+        imageQuality: 85,
+        maxWidth: 1024,
+      );
+      if (picked == null) return;
+      if (!mounted) return;
+
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => PopScope(
+          canPop: false,
+          child: const Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 12),
+                Text(
+                  'Uploading...',
+                  style: TextStyle(color: Colors.white, fontSize: 14),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      try {
+        await _authService.updateProfilePhoto(imageFile: picked);
+        await _loadUserData();
+
+        if (mounted) {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Profile picture updated successfully'),
+              backgroundColor: AppColors.primaryGreen,
+            ),
+          );
+        }
+      } catch (storageError) {
+        if (mounted) {
+          Navigator.pop(context);
+          
+          // Show more specific error message
+          String errorMessage = 'Failed to upload profile picture';
+          if (storageError.toString().contains('StorageException')) {
+            errorMessage = 'Storage service unavailable. Please check your internet connection and try again.';
+          } else if (storageError.toString().contains('permission')) {
+            errorMessage = 'Permission denied. Please contact support.';
+          } else if (storageError.toString().contains('cancelled')) {
+            errorMessage = 'Upload was cancelled. Please try again.';
+          }
+          
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Upload Failed'),
+              content: Text(errorMessage),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _pickAndUploadProfilePhoto(source); // Retry
+                  },
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error selecting photo: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _removeProfilePhoto() async {
+    try {
+      if (!mounted) return;
+
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => PopScope(
+          canPop: false,
+          child: const Center(child: CircularProgressIndicator()),
+        ),
+      );
+
+      await _authService.removeProfilePhoto();
+      await _loadUserData();
+
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile picture removed'),
+            backgroundColor: AppColors.primaryGreen,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 }

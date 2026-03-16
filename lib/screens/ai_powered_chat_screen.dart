@@ -60,10 +60,12 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return ChangeNotifierProvider.value(
       value: _aiService,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF7F7F7),
+        backgroundColor: isDark ? AppColors.darkBackground : Colors.white,
         appBar: _buildAppBar(),
         body: Column(
           children: [
@@ -109,57 +111,31 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
   }
 
   PreferredSizeWidget _buildAppBar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return AppBar(
-      elevation: 0,
+      backgroundColor: AppColors.primaryGreen,
       foregroundColor: Colors.white,
+      elevation: 0,
+      toolbarHeight: 65,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, color: Colors.white),
         onPressed: () => Navigator.pop(context),
       ),
-      flexibleSpace: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-      ),
       title: Row(
         children: [
-          Stack(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.psychology,
-                  color: Colors.white,
-                  size: 20,
-                ),
-              ),
-              Positioned(
-                bottom: 2,
-                right: 2,
-                child: Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: Colors.green,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
-                  ),
-                ),
-              ),
-            ],
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.psychology,
+              color: Colors.white,
+              size: 20,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -167,10 +143,10 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'AI Support Counselor',
+                  'AI Support Assistant',
                   style: TextStyle(
                     fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                 ),
@@ -178,9 +154,9 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
                   builder: (context, aiService, child) {
                     return Text(
                       aiService.isConnected 
-                          ? 'AI-Powered • Encrypted • ${aiService.currentScenario.replaceAll('_', ' ').toUpperCase()}'
-                          : 'Connecting to AI...',
-                      style: TextStyle(
+                          ? 'Online • Secure • Confidential'
+                          : 'Connecting...',
+                      style: const TextStyle(
                         fontSize: 11,
                         color: Colors.white70,
                       ),
@@ -193,35 +169,23 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
         ],
       ),
       actions: [
-        IconButton(
-          icon: const Icon(Icons.analytics, color: Colors.white70),
-          onPressed: _showAnalytics,
-        ),
         PopupMenuButton<String>(
-          icon: const Icon(Icons.more_vert, color: Colors.white70),
+          icon: const Icon(Icons.more_vert, color: Colors.white),
           onSelected: _handleMenuAction,
           itemBuilder: (context) => [
             const PopupMenuItem(
               value: 'model_info',
               child: ListTile(
-                leading: Icon(Icons.info),
-                title: Text('AI Model Info'),
-                contentPadding: EdgeInsets.zero,
-              ),
-            ),
-            const PopupMenuItem(
-              value: 'quality_feedback',
-              child: ListTile(
-                leading: Icon(Icons.feedback),
-                title: Text('Response Quality'),
+                leading: Icon(Icons.info, color: AppColors.primaryGreen),
+                title: Text('AI Information'),
                 contentPadding: EdgeInsets.zero,
               ),
             ),
             const PopupMenuItem(
               value: 'transcript',
               child: ListTile(
-                leading: Icon(Icons.description),
-                title: Text('Save Transcript'),
+                leading: Icon(Icons.description, color: AppColors.primaryGreen),
+                title: Text('Save Chat'),
                 contentPadding: EdgeInsets.zero,
               ),
             ),
@@ -236,29 +200,29 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.red.shade50,
+        color: AppColors.error.withOpacity(0.1),
         border: Border(
-          bottom: BorderSide(color: Colors.red.shade200, width: 1),
+          bottom: BorderSide(color: AppColors.error.withOpacity(0.3), width: 1),
         ),
       ),
       child: Row(
         children: [
-          Icon(Icons.warning_amber, color: Colors.red.shade600, size: 18),
+          Icon(Icons.emergency, color: AppColors.error, size: 18),
           const SizedBox(width: 8),
-          Expanded(
+          const Expanded(
             child: Text(
-              'In immediate danger?',
+              'In immediate danger? Call emergency services',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
-                color: Colors.red.shade700,
+                color: Colors.black,
               ),
             ),
           ),
           ElevatedButton(
             onPressed: _callEmergency,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade600,
+              backgroundColor: AppColors.error,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               minimumSize: Size.zero,
@@ -266,10 +230,15 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
+              elevation: 0,
             ),
             child: const Text(
               'Emergency',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                fontSize: 12, 
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
             ),
           ),
         ],
@@ -284,21 +253,22 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: AppColors.mustBlue.withOpacity(0.06),
+            color: AppColors.primaryGreen.withOpacity(0.1),
             border: Border(
-              bottom: BorderSide(color: AppColors.mustBlue.withOpacity(0.15), width: 1),
+              bottom: BorderSide(color: AppColors.primaryGreen.withOpacity(0.2), width: 1),
             ),
           ),
           child: Row(
             children: [
-              Icon(Icons.psychology, color: AppColors.mustBlue, size: 16),
+              Icon(Icons.psychology, color: AppColors.primaryGreen, size: 16),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'AI-powered responses • Scenario: ${aiService.currentScenario.replaceAll('_', ' ')}',
+                  'AI Assistant • Confidential Support • MUST Campus',
                   style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.mustBlue,
+                    color: AppColors.primaryGreen,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
@@ -308,7 +278,7 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
                   height: 16,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation(AppColors.mustBlue),
+                    valueColor: AlwaysStoppedAnimation(AppColors.primaryGreen),
                   ),
                 ),
             ],
@@ -323,44 +293,71 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
       children: [
         Container(
           margin: const EdgeInsets.only(bottom: 20),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [AppColors.mustBlue.withOpacity(0.06), AppColors.mustBlue.withOpacity(0.06)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            color: AppColors.primaryGreen.withOpacity(0.1),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.mustBlue.withOpacity(0.15)),
+            border: Border.all(color: AppColors.primaryGreen.withOpacity(0.2)),
           ),
-          child: Row(
+          child: Column(
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.mustBlue.withOpacity(0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(Icons.psychology, color: AppColors.mustBlue, size: 16),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'AI-Powered Support',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.mustBlue,
-                      ),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryGreen,
+                      shape: BoxShape.circle,
                     ),
-                    Text(
-                      'Trained specifically for sexual harassment support • End-to-end encrypted',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: AppColors.mustBlue,
+                    child: const Icon(Icons.psychology, color: Colors.white, size: 20),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'SafeReport AI Assistant',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'I\'m here to provide confidential support and guidance. Your privacy is protected.',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.black87,
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.primaryGreen.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.security, color: AppColors.primaryGreen, size: 16),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        'End-to-end encrypted • Confidential • MUST Campus Support',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.black87,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ],
@@ -385,49 +382,63 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
       'I want to remain anonymous',
     ];
 
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: quickActions.map((action) {
-        return InkWell(
-          onTap: () => _sendQuickAction(action),
-          borderRadius: BorderRadius.circular(20),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.grey.shade300),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  _getActionIcon(action),
-                  size: 14,
-                  color: AppColors.mustBlue,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  action,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Quick Actions',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
           ),
-        );
-      }).toList(),
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: quickActions.map((action) {
+            return InkWell(
+              onTap: () => _sendQuickAction(action),
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.primaryGreen.withOpacity(0.3)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _getActionIcon(action),
+                      size: 14,
+                      color: AppColors.primaryGreen,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      action,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 
@@ -463,14 +474,14 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
-                    color: isUser ? AppColors.mustBlue : _getMessageBubbleColor(message),
+                    color: isUser ? AppColors.primaryGreen : _getMessageBubbleColor(message),
                     borderRadius: BorderRadius.circular(20).copyWith(
                       topLeft: isUser ? const Radius.circular(20) : const Radius.circular(6),
                       topRight: isUser ? const Radius.circular(6) : const Radius.circular(20),
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.08),
+                        color: Colors.black.withOpacity(0.08),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -529,19 +540,19 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
 
     if (isUser) {
       icon = Icons.person;
-      backgroundColor = AppColors.mustBlue.withOpacity(0.15);
-      iconColor = AppColors.mustBlue;
+      backgroundColor = AppColors.primaryGreen.withOpacity(0.15);
+      iconColor = AppColors.primaryGreen;
     } else {
       switch (messageType) {
         case ChatMessageType.system:
           icon = Icons.info;
-          backgroundColor = Colors.orange.shade100;
-          iconColor = Colors.orange.shade600;
+          backgroundColor = AppColors.secondaryOrange.withOpacity(0.15);
+          iconColor = AppColors.secondaryOrange;
           break;
         default:
           icon = Icons.psychology;
-          backgroundColor = AppColors.mustGold.withOpacity(0.15);
-          iconColor = AppColors.mustGold;
+          backgroundColor = AppColors.royalBlue.withOpacity(0.15);
+          iconColor = AppColors.royalBlue;
       }
     }
 
@@ -599,7 +610,7 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
           children: [
             Icon(
               Icons.info_outline,
-              color: Colors.orange.shade600,
+              color: AppColors.secondaryOrange,
               size: 16,
             ),
             const SizedBox(width: 8),
@@ -608,7 +619,7 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
                 message.text,
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.orange.shade700,
+                  color: AppColors.secondaryOrange,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -732,7 +743,7 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
                                 color: _isTyping 
-                                    ? AppColors.mustGold
+                                    ? AppColors.secondaryOrange
                                     : Colors.grey.shade400,
                                 shape: BoxShape.circle,
                               ),
@@ -763,49 +774,32 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            _buildInputAction(Icons.photo_camera, 'Photo', () {}),
-            const SizedBox(width: 20),
-            _buildInputAction(Icons.description, 'File', () {}),
-            const SizedBox(width: 20),
-            _buildInputAction(Icons.mic, 'Voice', () {}),
-          ],
+        // Simplified actions - just show attachment hint
+        Text(
+          'Tap + to attach files, photos, or voice notes',
+          style: TextStyle(
+            fontSize: 11,
+            color: Colors.grey.shade600,
+          ),
         ),
         TextButton.icon(
           onPressed: _showEndChatDialog,
-          icon: Icon(Icons.logout, size: 16, color: Colors.red.shade600),
+          icon: Icon(Icons.logout, size: 16, color: AppColors.error),
           label: Text(
             'End Chat',
-            style: TextStyle(color: Colors.red.shade600, fontSize: 13),
+            style: TextStyle(
+              color: AppColors.error, 
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildInputAction(IconData icon, String label, VoidCallback onPressed) {
-    return InkWell(
-      onTap: onPressed,
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 16, color: Colors.grey.shade600),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey.shade600,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -945,7 +939,7 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
       ),
       builder: (context) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -958,31 +952,120 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
                 ),
               ),
               const SizedBox(height: 20),
-              const Text(
-                'Share Evidence Securely',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Row(
+                children: [
+                  Icon(Icons.attach_file, color: AppColors.primaryGreen, size: 24),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'Share Evidence Securely',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'All attachments are encrypted and confidential',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              const SizedBox(height: 20),
+              
+              // Grid of options
+              GridView.count(
+                shrinkWrap: true,
+                crossAxisCount: 3,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: 1.0,
+                children: [
+                  _buildAttachmentGridOption(
+                    Icons.photo_camera,
+                    'Camera',
+                    AppColors.primaryGreen,
+                    () {},
+                  ),
+                  _buildAttachmentGridOption(
+                    Icons.photo_library,
+                    'Gallery',
+                    AppColors.royalBlue,
+                    () {},
+                  ),
+                  _buildAttachmentGridOption(
+                    Icons.description,
+                    'Document',
+                    AppColors.secondaryOrange,
+                    () {},
+                  ),
+                  _buildAttachmentGridOption(
+                    Icons.mic,
+                    'Voice Note',
+                    AppColors.maroon,
+                    () {},
+                  ),
+                  _buildAttachmentGridOption(
+                    Icons.videocam,
+                    'Video',
+                    AppColors.primaryGreen,
+                    () {},
+                  ),
+                  _buildAttachmentGridOption(
+                    Icons.location_on,
+                    'Location',
+                    AppColors.royalBlue,
+                    () {},
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
-              _buildAttachmentOption(
-                Icons.photo_camera,
-                'Camera',
-                'Take a photo as evidence',
-                () {},
-              ),
-              _buildAttachmentOption(
-                Icons.photo_library,
-                'Photo Library',
-                'Choose from gallery',
-                () {},
-              ),
-              _buildAttachmentOption(
-                Icons.description,
-                'Document',
-                'Share a document or screenshot',
-                () {},
-              ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAttachmentGridOption(
+    IconData icon,
+    String title,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return InkWell(
+      onTap: () {
+        Navigator.pop(context);
+        onTap();
+      },
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withOpacity(0.3)),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: Colors.white, size: 24),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
       ),
     );
@@ -999,10 +1082,10 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
         width: 48,
         height: 48,
         decoration: BoxDecoration(
-          color: AppColors.mustBlue.withValues(alpha: 0.1),
+          color: AppColors.primaryGreen.withOpacity(0.1),
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, color: AppColors.mustBlue),
+        child: Icon(icon, color: AppColors.primaryGreen),
       ),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
       subtitle: Text(subtitle, style: TextStyle(color: Colors.grey.shade600)),

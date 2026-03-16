@@ -8,7 +8,7 @@ class EmergencyConstants {
   static const String emergencyNumber = '911';
   
   /// Emergency label for display
-  static const String emergencyLabel = 'Call Emergency Services';
+  static const String emergencyLabel = 'Emergency Call';
   
   /// Immediate danger label
   static const String immediateDangerLabel = 'Call $emergencyNumber - Immediate Danger';

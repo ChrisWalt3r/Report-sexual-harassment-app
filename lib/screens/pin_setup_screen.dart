@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../constants/app_colors.dart';
 import '../services/security_service.dart';
+import '../services/theme_service.dart';
 
 class PinSetupScreen extends StatefulWidget {
   final bool isChanging;
@@ -59,9 +60,9 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
       if (success && mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('PIN changed successfully'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.primaryGreen,
           ),
         );
       } else {
@@ -74,9 +75,9 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
       if (success && mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('PIN setup successfully'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.primaryGreen,
           ),
         );
       } else {
@@ -89,32 +90,30 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red,
+        backgroundColor: AppColors.error,
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: isDark ? AppColors.darkBackground : Colors.white,
       appBar: AppBar(
-        elevation: 0,
+        backgroundColor: AppColors.primaryGreen,
         foregroundColor: Colors.white,
+        elevation: 0,
+        toolbarHeight: 65,
         title: Text(
           widget.isChanging ? 'Change PIN' : 'Setup PIN',
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
           ),
         ),
+        centerTitle: true,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -124,59 +123,84 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
             const SizedBox(height: 12),
             Center(
               child: Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.mustBlue.withOpacity(0.08),
-                  border: Border.all(color: AppColors.mustGold, width: 2.5),
+                  color: AppColors.primaryGreen.withOpacity(0.1),
+                  border: Border.all(color: AppColors.secondaryOrange, width: 3),
                 ),
-                child: const Icon(
-                  Icons.pin_rounded,
-                  size: 40,
-                  color: AppColors.mustBlue,
+                child: Icon(
+                  Icons.security,
+                  size: 48,
+                  color: AppColors.primaryGreen,
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             Center(
               child: Text(
                 widget.isChanging ? 'Change Your Security PIN' : 'Create a Security PIN',
-                style: const TextStyle(
-                  fontSize: 20,
+                style: TextStyle(
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.mustBlue,
+                  color: isDark ? Colors.white : AppColors.royalBlue,
                 ),
               ),
             ),
             const SizedBox(height: 8),
             Center(
               child: Text(
-                'Use a 4-digit PIN to add an extra layer of security',
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                'Use a 4-digit PIN to add an extra layer of security to your account',
+                style: TextStyle(
+                  fontSize: 14, 
+                  color: isDark ? Colors.white70 : AppColors.textSecondary,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
             const SizedBox(height: 32),
             
             if (widget.isChanging) ...[
-              const Text('Old PIN', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.mustBlue)),
+              Text(
+                'Old PIN', 
+                style: TextStyle(
+                  fontWeight: FontWeight.w600, 
+                  color: isDark ? Colors.white : AppColors.royalBlue,
+                  fontSize: 16,
+                ),
+              ),
               const SizedBox(height: 8),
               TextField(
                 controller: _oldPinController,
                 obscureText: true,
                 keyboardType: TextInputType.number,
                 maxLength: 4,
+                style: TextStyle(
+                  color: isDark ? Colors.white : AppColors.textDark,
+                  fontSize: 16,
+                ),
                 decoration: InputDecoration(
                   hintText: 'Enter old PIN',
+                  hintStyle: TextStyle(
+                    color: isDark ? Colors.white54 : AppColors.textSecondary,
+                  ),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: isDark ? AppColors.darkSurface : Colors.white,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
+                    borderSide: BorderSide(
+                      color: isDark ? AppColors.textSecondary.withOpacity(0.3) : AppColors.borderLight,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: isDark ? AppColors.textSecondary.withOpacity(0.3) : AppColors.borderLight,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.mustGold, width: 2),
+                    borderSide: BorderSide(color: AppColors.primaryGreen, width: 2),
                   ),
                   counterText: '',
                 ),
@@ -184,86 +208,117 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
               const SizedBox(height: 24),
             ],
             
-            const Text('New PIN', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.mustBlue)),
+            Text(
+              'New PIN', 
+              style: TextStyle(
+                fontWeight: FontWeight.w600, 
+                color: isDark ? Colors.white : AppColors.royalBlue,
+                fontSize: 16,
+              ),
+            ),
             const SizedBox(height: 8),
             TextField(
               controller: _newPinController,
               obscureText: true,
               keyboardType: TextInputType.number,
               maxLength: 4,
+              style: TextStyle(
+                color: isDark ? Colors.white : AppColors.textDark,
+                fontSize: 16,
+              ),
               decoration: InputDecoration(
                 hintText: 'Enter 4-digit PIN',
+                hintStyle: TextStyle(
+                  color: isDark ? Colors.white54 : AppColors.textSecondary,
+                ),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: isDark ? AppColors.darkSurface : Colors.white,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+                  borderSide: BorderSide(
+                    color: isDark ? AppColors.textSecondary.withOpacity(0.3) : AppColors.borderLight,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: isDark ? AppColors.textSecondary.withOpacity(0.3) : AppColors.borderLight,
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.mustGold, width: 2),
+                  borderSide: BorderSide(color: AppColors.primaryGreen, width: 2),
                 ),
                 counterText: '',
               ),
             ),
             const SizedBox(height: 24),
             
-            const Text('Confirm PIN', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.mustBlue)),
+            Text(
+              'Confirm PIN', 
+              style: TextStyle(
+                fontWeight: FontWeight.w600, 
+                color: isDark ? Colors.white : AppColors.royalBlue,
+                fontSize: 16,
+              ),
+            ),
             const SizedBox(height: 8),
             TextField(
               controller: _confirmPinController,
               obscureText: true,
               keyboardType: TextInputType.number,
               maxLength: 4,
+              style: TextStyle(
+                color: isDark ? Colors.white : AppColors.textDark,
+                fontSize: 16,
+              ),
               decoration: InputDecoration(
                 hintText: 'Re-enter PIN',
+                hintStyle: TextStyle(
+                  color: isDark ? Colors.white54 : AppColors.textSecondary,
+                ),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: isDark ? AppColors.darkSurface : Colors.white,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+                  borderSide: BorderSide(
+                    color: isDark ? AppColors.textSecondary.withOpacity(0.3) : AppColors.borderLight,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: isDark ? AppColors.textSecondary.withOpacity(0.3) : AppColors.borderLight,
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.mustGold, width: 2),
+                  borderSide: BorderSide(color: AppColors.primaryGreen, width: 2),
                 ),
                 counterText: '',
               ),
             ),
-            const SizedBox(height: 36),
-            Container(
+            const SizedBox(height: 40),
+            SizedBox(
               width: double.infinity,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppColors.mustGold, AppColors.mustGoldLight],
-                ),
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.mustGold.withOpacity(0.4),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
+              height: 56,
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _setupPin,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  shadowColor: Colors.transparent,
-                  foregroundColor: AppColors.mustBlue,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: AppColors.secondaryOrange,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                 ),
                 child: _isLoading
                     ? const SizedBox(
-                        height: 20,
-                        width: 20,
+                        height: 24,
+                        width: 24,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.mustBlue),
+                          color: Colors.white,
                         ),
                       )
                     : Text(
@@ -271,8 +326,58 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
+                          color: Colors.white, // Explicit white color
                         ),
                       ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            // Security tips
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark 
+                    ? AppColors.primaryGreen.withOpacity(0.1) 
+                    : AppColors.primaryGreen.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.primaryGreen.withOpacity(0.3),
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.lightbulb_outline,
+                    color: AppColors.primaryGreen,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Security Tips',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : AppColors.textDark,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '• Choose a PIN that\'s easy to remember but hard to guess\n• Don\'t use obvious combinations like 1234 or 0000\n• Keep your PIN private and secure',
+                          style: TextStyle(
+                            color: isDark ? Colors.white70 : AppColors.textSecondary,
+                            fontSize: 12,
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

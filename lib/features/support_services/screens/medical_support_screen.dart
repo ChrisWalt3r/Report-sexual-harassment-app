@@ -63,25 +63,17 @@ class _MedicalSupportScreenState extends State<MedicalSupportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
           'Medical Support',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: AppColors.mustBlue,
+        backgroundColor: AppColors.primaryGreen,
         foregroundColor: Colors.white,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
+        toolbarHeight: 65,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -90,10 +82,6 @@ class _MedicalSupportScreenState extends State<MedicalSupportScreen> {
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  _buildHeroSection(),
-                  const SizedBox(height: 20),
-                  _buildQuickInfo(),
-                  const SizedBox(height: 20),
                   _buildSectionHeader('Healthcare Facilities', Icons.local_hospital_rounded),
                   const SizedBox(height: 12),
                   ..._resources.map((r) => _buildResourceCard(r)),
@@ -105,213 +93,64 @@ class _MedicalSupportScreenState extends State<MedicalSupportScreen> {
     );
   }
 
-  Widget _buildHeroSection() {
+  Widget _buildSectionHeader(String title, IconData icon) {
     return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [AppColors.mustBlueMedium, AppColors.mustBlue],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.mustBlue.withOpacity(0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.health_and_safety_rounded,
-              color: Colors.white,
-              size: 48,
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'Your Health Matters',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Confidential medical care and support available 24/7. You deserve proper healthcare.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.95),
-              fontSize: 14,
-              height: 1.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQuickInfo() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildInfoCard(
-            icon: Icons.access_time_rounded,
-            title: '24/7',
-            subtitle: 'Available',
-            color: AppColors.mustGreen,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildInfoCard(
-            icon: Icons.shield_rounded,
-            title: 'Private',
-            subtitle: 'Confidential',
-            color: AppColors.mustBlue,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildInfoCard(
-            icon: Icons.volunteer_activism_rounded,
-            title: 'Free',
-            subtitle: 'Services',
-            color: AppColors.mustGold,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInfoCard({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: AppColors.primaryGreen.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: color, size: 24),
+            child: Icon(icon, color: AppColors.primaryGreen, size: 24),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(width: 12),
           Text(
             title,
-            style: TextStyle(
+            style: const TextStyle(
+              fontSize: 20,
               fontWeight: FontWeight.bold,
-              fontSize: 16,
-              color: Colors.grey[800],
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            subtitle,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[500],
+              color: AppColors.royalBlue,
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildSectionHeader(String title, IconData icon) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppColors.mustBlue.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(icon, color: AppColors.mustBlue, size: 20),
-        ),
-        const SizedBox(width: 12),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.grey[800],
-          ),
-        ),
-      ],
     );
   }
 
   Widget _buildResourceCard(MedicalSupport resource) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.primaryGreen.withOpacity(0.3), width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header with gradient
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [AppColors.mustBlue.withOpacity(0.06), Colors.white],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            ),
-            child: Row(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [AppColors.mustBlueMedium, AppColors.mustBlue],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
+                    color: AppColors.primaryGreen.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Icon(
                     Icons.local_hospital_rounded,
-                    color: Colors.white,
+                    color: AppColors.primaryGreen,
                     size: 24,
                   ),
                 ),
@@ -322,25 +161,25 @@ class _MedicalSupportScreenState extends State<MedicalSupportScreen> {
                     children: [
                       Text(
                         resource.facilityName,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
-                          color: Colors.grey[800],
+                          color: AppColors.royalBlue,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: AppColors.mustBlue.withOpacity(0.15),
+                          color: AppColors.secondaryOrange.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
                           resource.serviceType.displayName,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
-                            color: AppColors.mustBlue,
+                            color: AppColors.secondaryOrange,
                           ),
                         ),
                       ),
@@ -349,57 +188,49 @@ class _MedicalSupportScreenState extends State<MedicalSupportScreen> {
                 ),
               ],
             ),
-          ),
-          // Content
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            const SizedBox(height: 12),
+            Text(
+              resource.description,
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 14,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 12),
+            // Tags
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
               children: [
-                Text(
-                  resource.description,
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 14,
-                    height: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                // Tags
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    if (resource.hasSpecializedUnit)
-                      _buildTag('Specialized Care', AppColors.mustGold, Icons.star_rounded),
-                    if (resource.isConfidential)
-                      _buildTag('Confidential', AppColors.mustBlue, Icons.lock_rounded),
-                  ],
-                ),
-                if (resource.phoneNumber != null) ...[
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () => _makePhoneCall(resource.phoneNumber!),
-                      icon: const Icon(Icons.phone_rounded, size: 20),
-                      label: const Text('Call Now'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green[600],
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                      ),
-                    ),
-                  ),
-                ],
+                if (resource.hasSpecializedUnit)
+                  _buildTag('Specialized Care', AppColors.royalBlue, Icons.star_rounded),
+                if (resource.isConfidential)
+                  _buildTag('Confidential', AppColors.primaryGreen, Icons.lock_rounded),
               ],
             ),
-          ),
-        ],
+            if (resource.phoneNumber != null) ...[
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => _makePhoneCall(resource.phoneNumber!),
+                  icon: const Icon(Icons.phone_rounded, size: 20),
+                  label: const Text('Call Now'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryGreen,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    elevation: 0,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -433,33 +264,29 @@ class _MedicalSupportScreenState extends State<MedicalSupportScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [AppColors.mustBlue.withOpacity(0.06), Colors.white],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        color: AppColors.royalBlue.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.royalBlue.withOpacity(0.2)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.mustBlue.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: AppColors.royalBlue.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(Icons.verified_user_rounded, color: AppColors.mustBlue, size: 28),
+            child: const Icon(Icons.verified_user_rounded, color: AppColors.royalBlue, size: 24),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Your Privacy is Protected',
                   style: TextStyle(
-                    color: Colors.grey[800],
+                    color: AppColors.royalBlue,
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
                   ),
