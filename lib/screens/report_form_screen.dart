@@ -166,6 +166,50 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     });
   }
 
+  Future<void> _playAudio(String path) async {
+    try {
+      if (_isPlaying && _currentlyPlayingPath == path) {
+        await _audioPlayer.stop();
+        setState(() {
+          _isPlaying = false;
+          _currentlyPlayingPath = null;
+        });
+      } else {
+        if (_isPlaying) {
+          await _audioPlayer.stop();
+        }
+        await _audioPlayer.play(DeviceFileSource(path));
+        setState(() {
+          _isPlaying = true;
+          _currentlyPlayingPath = path;
+        });
+        
+        _audioPlayer.onPlayerComplete.listen((_) {
+          setState(() {
+            _isPlaying = false;
+            _currentlyPlayingPath = null;
+          });
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error playing audio: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+    String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+    return '$twoDigitMinutes:$twoDigitSeconds';
+  }
+
   Future<void> _toggleRecording() async {
     if (_isRecording) {
       await _stopRecording();
@@ -1063,6 +1107,318 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                               ),
                             ],
                           ),
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 24),
+                      
+                      // Evidence/Attachment Section
+                      _buildSectionTitle('Attach Evidence (Optional)', Icons.attach_file),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.1),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Attachment buttons
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    onPressed: _pickImages,
+                                    icon: const Icon(Icons.photo_library, size: 18),
+                                    label: const Text('Photos'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.primaryGreen,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    onPressed: _pickVideo,
+                                    icon: const Icon(Icons.videocam, size: 18),
+                                    label: const Text('Video'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.royalBlue,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    onPressed: _toggleRecording,
+                                    icon: Icon(
+                                      _isRecording ? Icons.stop : Icons.mic,
+                                      size: 18,
+                                    ),
+                                    label: Text(_isRecording ? 'Stop' : 'Record'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: _isRecording ? Colors.red : AppColors.secondaryOrange,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            
+                            // Recording indicator
+                            if (_isRecording) ...[
+                              const SizedBox(height: 12),
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.red.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.red.withOpacity(0.3)),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 12,
+                                      height: 12,
+                                      decoration: const BoxDecoration(
+                                        color: Colors.red,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Recording: ${_formatDuration(_recordingDuration)}',
+                                      style: const TextStyle(
+                                        color: Colors.red,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                            
+                            // Selected images
+                            if (_selectedImages.isNotEmpty) ...[
+                              const SizedBox(height: 16),
+                              Text(
+                                'Selected Photos (${_selectedImages.length})',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              SizedBox(
+                                height: 80,
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: _selectedImages.length,
+                                  itemBuilder: (context, index) {
+                                    return Container(
+                                      margin: const EdgeInsets.only(right: 8),
+                                      child: Stack(
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(8),
+                                            child: Image.file(
+                                              _selectedImages[index],
+                                              width: 80,
+                                              height: 80,
+                                              fit: BoxFit.cover,
+                                            ),
+                                          ),
+                                          Positioned(
+                                            top: 4,
+                                            right: 4,
+                                            child: GestureDetector(
+                                              onTap: () => _removeImage(index),
+                                              child: Container(
+                                                padding: const EdgeInsets.all(4),
+                                                decoration: const BoxDecoration(
+                                                  color: Colors.red,
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                child: const Icon(
+                                                  Icons.close,
+                                                  color: Colors.white,
+                                                  size: 12,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                            
+                            // Selected videos
+                            if (_selectedVideos.isNotEmpty) ...[
+                              const SizedBox(height: 16),
+                              Text(
+                                'Selected Videos (${_selectedVideos.length})',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Column(
+                                children: _selectedVideos.asMap().entries.map((entry) {
+                                  int index = entry.key;
+                                  File video = entry.value;
+                                  return Container(
+                                    margin: const EdgeInsets.only(bottom: 8),
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.royalBlue.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: AppColors.royalBlue.withOpacity(0.3)),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.videocam,
+                                          color: AppColors.royalBlue,
+                                          size: 20,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            'Video ${index + 1}',
+                                            style: TextStyle(
+                                              color: AppColors.royalBlue,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                        GestureDetector(
+                                          onTap: () => _removeVideo(index),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(4),
+                                            decoration: const BoxDecoration(
+                                              color: Colors.red,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(
+                                              Icons.close,
+                                              color: Colors.white,
+                                              size: 12,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+                            
+                            // Selected audio recordings
+                            if (_selectedAudios.isNotEmpty) ...[
+                              const SizedBox(height: 16),
+                              Text(
+                                'Audio Recordings (${_selectedAudios.length})',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Column(
+                                children: _selectedAudios.asMap().entries.map((entry) {
+                                  int index = entry.key;
+                                  File audio = entry.value;
+                                  return Container(
+                                    margin: const EdgeInsets.only(bottom: 8),
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.secondaryOrange.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: AppColors.secondaryOrange.withOpacity(0.3)),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.mic,
+                                          color: AppColors.secondaryOrange,
+                                          size: 20,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            'Audio Recording ${index + 1}',
+                                            style: TextStyle(
+                                              color: AppColors.secondaryOrange,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                        GestureDetector(
+                                          onTap: () => _playAudio(audio.path),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(6),
+                                            decoration: BoxDecoration(
+                                              color: AppColors.secondaryOrange,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Icon(
+                                              _isPlaying && _currentlyPlayingPath == audio.path
+                                                  ? Icons.pause
+                                                  : Icons.play_arrow,
+                                              color: Colors.white,
+                                              size: 16,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        GestureDetector(
+                                          onTap: () => _removeAudio(index),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(4),
+                                            decoration: const BoxDecoration(
+                                              color: Colors.red,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(
+                                              Icons.close,
+                                              color: Colors.white,
+                                              size: 12,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
                       
