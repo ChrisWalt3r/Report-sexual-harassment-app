@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // MUST University Brand Colors
-  static const Color primaryGreen = Color(0xFF7CB342); // Main brand color (Lime Green)
-  static const Color primaryDark = Color(0xFF689F38); // Darker Lime Green for depth
-  static const Color secondaryOrange = Color(0xFFFFA726); // Warm Orange accent
-  static const Color royalBlue = Color(0xFF0000CC); // MUST VLE Blue for navigation
+  // MUST University Brand Colors - Updated with exact colors from image
+  static const Color primaryGreen = Color(0xFF32CD32); // Bright Lime Green
+  static const Color primaryDark = Color(0xFF228B22); // Darker Lime Green for depth
+  static const Color secondaryOrange = Color(0xFFFFA500); // Bright Orange from image
+  static const Color royalBlue = Color(0xFF1E3A8A); // Deep Blue from image
   static const Color maroon = Color(0xFF800000); // Traditional university color
 
   // Primary colors (using MUST branding)
@@ -16,14 +16,14 @@ class AppColors {
 
   // Secondary colors
   static const Color secondary = secondaryOrange;
-  static const Color secondaryDark = Color(0xFFFF8F00);
+  static const Color secondaryDark = Color(0xFFFF8C00); // Darker orange
   static const Color accent = secondaryOrange;
 
   // Semantic Colors
-  static const Color success = Color(0xFF4CAF50); // Green
-  static const Color warning = Color(0xFFFFA726); // Orange
+  static const Color success = Color(0xFF32CD32); // Bright Lime Green
+  static const Color warning = Color(0xFFFFA500); // Bright Orange
   static const Color error = Color(0xFFE53935); // Red
-  static const Color info = Color(0xFF1565C0); // Blue
+  static const Color info = Color(0xFF1E3A8A); // Deep Blue
 
   // Text Colors
   static const Color textPrimary = Color(0xFF212121); // Dark Gray
@@ -73,10 +73,10 @@ class AppColors {
   static const Color darkAppBar = Color(0xFF1E1E1E);
 
   // Legacy MUST colors (for backward compatibility)
-  static const Color mustGold = Color(0xFFD4A843);
-  static const Color mustGoldLight = Color(0xFFFFD54F);
+  static const Color mustGold = secondaryOrange; // Using bright orange instead of gold
+  static const Color mustGoldLight = Color(0xFFFFB347); // Light orange
   static const Color mustBlue = royalBlue;
-  static const Color mustBlueMedium = Color(0xFF1A4D80);
+  static const Color mustBlueMedium = Color(0xFF2563EB); // Medium blue
   static const Color mustGreen = primaryGreen;
-  static const Color mustGreenLight = Color(0xFF9CCC65); // Kept for compatibility but no gradients
+  static const Color mustGreenLight = Color(0xFF90EE90); // Light lime green
 }

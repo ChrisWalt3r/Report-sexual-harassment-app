@@ -71,7 +71,7 @@ class ReportHarassmentApp extends StatelessWidget {
               ),
               scaffoldBackgroundColor: AppColors.background,
               appBarTheme: AppBarTheme(
-                backgroundColor: AppColors.primaryGreen,
+                backgroundColor: AppColors.royalBlue, // Deep blue app bar
                 elevation: 0, // Flat design - no shadow
                 iconTheme: const IconThemeData(color: AppColors.textLight),
                 titleTextStyle: const TextStyle(
@@ -93,9 +93,9 @@ class ReportHarassmentApp extends StatelessWidget {
               ),
               elevatedButtonTheme: ElevatedButtonThemeData(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.secondaryOrange,
-                  foregroundColor: AppColors.textLight,
-                  elevation: 2,
+                  backgroundColor: AppColors.secondaryOrange, // Bright orange buttons
+                  foregroundColor: Colors.white, // White text on orange
+                  elevation: 0, // Flat design
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -104,13 +104,13 @@ class ReportHarassmentApp extends StatelessWidget {
               ),
               textButtonTheme: TextButtonThemeData(
                 style: TextButton.styleFrom(
-                  foregroundColor: AppColors.primaryGreen,
+                  foregroundColor: AppColors.royalBlue, // Deep blue text buttons
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 ),
               ),
               outlinedButtonTheme: OutlinedButtonThemeData(
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.primaryGreen,
+                  foregroundColor: AppColors.primaryGreen, // Lime green outlined buttons
                   side: const BorderSide(color: AppColors.primaryGreen),
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   shape: RoundedRectangleBorder(
@@ -131,15 +131,15 @@ class ReportHarassmentApp extends StatelessWidget {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.primaryGreen, width: 2),
+                  borderSide: const BorderSide(color: AppColors.primaryGreen, width: 2), // Lime green focus
                 ),
                 contentPadding: const EdgeInsets.all(16),
               ),
               bottomNavigationBarTheme: const BottomNavigationBarThemeData(
                 backgroundColor: AppColors.white,
-                selectedItemColor: AppColors.royalBlue,
+                selectedItemColor: AppColors.royalBlue, // Deep blue selected items
                 unselectedItemColor: AppColors.textSecondary,
-                elevation: 8,
+                elevation: 0, // Flat design
               ),
               useMaterial3: true,
               fontFamily: 'Roboto',
@@ -175,9 +175,9 @@ class ReportHarassmentApp extends StatelessWidget {
               ),
               elevatedButtonTheme: ElevatedButtonThemeData(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.secondaryOrange,
-                  foregroundColor: AppColors.textLight,
-                  elevation: 2,
+                  backgroundColor: AppColors.secondaryOrange, // Bright orange in dark mode too
+                  foregroundColor: Colors.white, // White text
+                  elevation: 0, // Flat design
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -219,9 +219,9 @@ class ReportHarassmentApp extends StatelessWidget {
               ),
               bottomNavigationBarTheme: BottomNavigationBarThemeData(
                 backgroundColor: AppColors.darkAppBar,
-                selectedItemColor: AppColors.royalBlue,
+                selectedItemColor: AppColors.royalBlue, // Deep blue in dark mode
                 unselectedItemColor: AppColors.textSecondary,
-                elevation: 8,
+                elevation: 0, // Flat design
               ),
               useMaterial3: true,
               fontFamily: 'Roboto',

@@ -391,17 +391,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              AppColors.mustBlue,
-              AppColors.mustBlueMedium,
-            ],
-            stops: [0.0, 0.4],
-          ),
-        ),
+        color: AppColors.mustBlue, // Flat blue background instead of gradient
         child: Column(
           children: [
             // Custom App Bar area
@@ -440,7 +430,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ],
                       border: Border.all(
-                        color: AppColors.mustGold,
+                        color: AppColors.secondaryOrange, // Bright orange border
                         width: 2,
                       ),
                     ),
@@ -559,8 +549,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleLogin,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.mustGold,
-                      foregroundColor: AppColors.mustBlue,
+                      backgroundColor: AppColors.secondaryOrange, // Bright orange button
+                      foregroundColor: Colors.white, // White text on orange
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
