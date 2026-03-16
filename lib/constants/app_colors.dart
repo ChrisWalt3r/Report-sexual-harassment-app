@@ -7,7 +7,7 @@ class AppColors {
   static const Color primaryGreen = Color(0xFF32CD32); // Bright Lime Green
   static const Color primaryDark = Color(0xFF228B22); // Darker Lime Green for depth
   static const Color secondaryOrange = Color(0xFFFFA500); // Bright Orange from image
-  static const Color royalBlue = Color(0xFF0033CC); // Exact blue from the image
+  static const Color royalBlue = Color(0xFF1E3A8A); // Exact blue from your image
   static const Color maroon = Color(0xFF800000); // Traditional university color
 
   // Primary colors (using MUST branding)

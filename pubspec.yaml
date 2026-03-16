@@ -138,6 +138,7 @@ flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/icon/sha_icon.jpeg"  # Using the SHA image as app icon
-  adaptive_icon_background: "#32CD32"  # Lime green background
+  adaptive_icon_background: "#FFFFFF"  # White background to prevent stretching
   adaptive_icon_foreground: "assets/icon/sha_icon.jpeg"
   remove_alpha_ios: true
+  min_sdk_android: 21 # Minimum SDK for adaptive icons

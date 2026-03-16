@@ -56,7 +56,7 @@ class ReportHarassmentApp extends StatelessWidget {
         builder: (context) {
           final themeService = context.watch<ThemeService>();
           return MaterialApp(
-            title: 'Report Harassment',
+            title: 'SafeReport',
             debugShowCheckedModeBanner: false,
             themeMode: themeService.themeMode,
             theme: ThemeData(
@@ -123,11 +123,11 @@ class ReportHarassmentApp extends StatelessWidget {
                 fillColor: AppColors.inputFill,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.borderLight),
+                  borderSide: const BorderSide(color: AppColors.primaryGreen), // Lime green border
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.borderLight),
+                  borderSide: const BorderSide(color: AppColors.primaryGreen), // Lime green enabled border
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),

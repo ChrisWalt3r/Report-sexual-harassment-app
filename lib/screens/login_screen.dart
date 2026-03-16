@@ -392,7 +392,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        color: AppColors.mustBlue, // Flat blue background instead of gradient
+        color: AppColors.royalBlue, // Exact blue background for splash/login
         child: Column(
           children: [
             // Custom App Bar area
@@ -431,10 +431,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ],
                     ),
-                    child: const MustLogo(
-                      size: 48,
-                      backgroundColor: Colors.white,
-                      borderColor: AppColors.secondaryOrange,
+                    child: ClipOval(
+                      child: Image.asset(
+                        'assets/icon/sha_icon.jpeg',
+                        width: 48,
+                        height: 48,
+                        fit: BoxFit.cover, // Proper fitting without stretching
+                      ),
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -639,14 +642,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Google Sign-In Button
                 SizedBox(
                   height: 56,
-                  child: OutlinedButton.icon(
+                  child: ElevatedButton.icon(
                     onPressed: _isLoading ? null : _handleGoogleSignIn,
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      side: BorderSide(color: Colors.grey[300]!),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryGreen, // Lime green for balance
+                      foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
+                      elevation: 0, // Flat design
                     ),
                     icon: Container(
                       width: 24,
@@ -654,7 +658,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: Colors.grey[300]!),
                       ),
                       child: const Center(
                         child: Text(
@@ -672,7 +675,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                        color: Colors.white,
                       ),
                     ),
                   ),

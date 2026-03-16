@@ -164,17 +164,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              AppColors.mustBlue,
-              AppColors.mustBlueMedium,
-            ],
-            stops: [0.0, 0.4],
-          ),
-        ),
+        color: AppColors.royalBlue, // Exact blue background like login
         child: Column(
           children: [
             // Custom App Bar area
@@ -210,15 +200,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           offset: const Offset(0, 6),
                         ),
                       ],
-                      border: Border.all(
-                        color: AppColors.mustGold,
-                        width: 2,
-                      ),
                     ),
-                    child: const Icon(
-                      Icons.person_add_outlined,
-                      size: 28,
-                      color: AppColors.mustBlue,
+                    child: ClipOval(
+                      child: Image.asset(
+                        'assets/icon/sha_icon.jpeg',
+                        width: 28,
+                        height: 28,
+                        fit: BoxFit.cover, // Proper fitting without stretching
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),
