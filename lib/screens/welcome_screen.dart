@@ -10,18 +10,7 @@ class WelcomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              AppColors.mustBlue,
-              AppColors.mustBlueMedium,
-              AppColors.mustGreen,
-            ],
-            stops: [0.0, 0.55, 1.0],
-          ),
-        ),
+        color: Colors.white, // White background as requested
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -33,24 +22,24 @@ class WelcomeScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(22),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.royalBlue, // Deep blue background for icon
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.15),
-                        blurRadius: 24,
-                        offset: const Offset(0, 10),
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 16,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                     border: Border.all(
-                      color: AppColors.mustGold,
+                      color: AppColors.secondaryOrange, // Orange border
                       width: 3,
                     ),
                   ),
                   child: const Icon(
                     Icons.shield_outlined,
                     size: 80,
-                    color: AppColors.mustBlue,
+                    color: Colors.white, // White icon on blue background
                   ),
                 ),
                 
@@ -62,7 +51,7 @@ class WelcomeScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w300,
-                    color: Colors.white,
+                    color: AppColors.textPrimary, // Dark text on white background
                     letterSpacing: 1.2,
                   ),
                 ),
@@ -74,7 +63,7 @@ class WelcomeScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 42,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.mustGoldLight,
+                    color: AppColors.royalBlue, // Deep blue title
                     letterSpacing: 1.5,
                   ),
                 ),
@@ -82,12 +71,12 @@ class WelcomeScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 
                 // Subtitle
-                Text(
+                const Text(
                   'Your voice matters. Report harassment safely and confidentially.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.white.withOpacity(0.9),
+                    color: AppColors.textSecondary, // Gray subtitle
                     height: 1.5,
                   ),
                 ),
@@ -106,9 +95,9 @@ class WelcomeScreen extends StatelessWidget {
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.mustGold,
-                      foregroundColor: AppColors.mustBlue,
-                      elevation: 2,
+                      backgroundColor: AppColors.secondaryOrange, // Bright orange button
+                      foregroundColor: Colors.white, // White text
+                      elevation: 0, // Flat design
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -145,8 +134,8 @@ class WelcomeScreen extends StatelessWidget {
                       );
                     },
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      side: const BorderSide(color: AppColors.mustGoldLight, width: 2),
+                      foregroundColor: AppColors.royalBlue, // Deep blue text
+                      side: const BorderSide(color: AppColors.royalBlue, width: 2), // Deep blue border
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -175,10 +164,10 @@ class WelcomeScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
+                    color: AppColors.primaryGreen.withOpacity(0.1), // Light lime green background
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: AppColors.mustGold.withOpacity(0.3),
+                      color: AppColors.primaryGreen.withOpacity(0.3), // Lime green border
                       width: 1,
                     ),
                   ),
@@ -186,7 +175,7 @@ class WelcomeScreen extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.lock_outline,
-                        color: AppColors.mustGoldLight.withOpacity(0.9),
+                        color: AppColors.primaryGreen, // Lime green lock icon
                         size: 20,
                       ),
                       const SizedBox(width: 12),
@@ -195,7 +184,7 @@ class WelcomeScreen extends StatelessWidget {
                           'Your privacy is protected. All reports are confidential.',
                           style: TextStyle(
                             fontSize: 13,
-                            color: Colors.white.withOpacity(0.9),
+                            color: AppColors.textPrimary, // Dark text
                             height: 1.4,
                           ),
                         ),
