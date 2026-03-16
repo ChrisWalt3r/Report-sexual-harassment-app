@@ -11,17 +11,7 @@ class WelcomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              AppColors.primaryGreen, // Lime green on top
-              AppColors.royalBlue,    // Blue at bottom
-            ],
-            stops: [0.0, 1.0],
-          ),
-        ),
+        color: Colors.white, // White background as requested
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -61,7 +51,7 @@ class WelcomeScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w300,
-                    color: Colors.white, // White text on gradient background
+                    color: AppColors.textPrimary, // Dark text on white background
                     letterSpacing: 1.2,
                   ),
                 ),
@@ -73,7 +63,7 @@ class WelcomeScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 42,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white, // White title
+                    color: AppColors.royalBlue, // Blue title
                     letterSpacing: 1.5,
                   ),
                 ),
@@ -86,7 +76,7 @@ class WelcomeScreen extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.white, // White subtitle
+                    color: AppColors.textSecondary, // Gray subtitle
                     height: 1.5,
                   ),
                 ),
@@ -144,8 +134,8 @@ class WelcomeScreen extends StatelessWidget {
                       );
                     },
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white, // White text
-                      side: const BorderSide(color: Colors.white, width: 2), // White border
+                      foregroundColor: AppColors.royalBlue, // Blue text
+                      side: const BorderSide(color: AppColors.royalBlue, width: 2), // Blue border
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -174,10 +164,10 @@ class WelcomeScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2), // Semi-transparent white
+                    color: AppColors.primaryGreen.withOpacity(0.15), // Light lime green background
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.5), // Semi-transparent white border
+                      color: AppColors.primaryGreen, // Lime green border
                       width: 2,
                     ),
                   ),
@@ -206,7 +196,7 @@ class WelcomeScreen extends StatelessWidget {
                           'Your privacy is protected. All reports are confidential.',
                           style: TextStyle(
                             fontSize: 13,
-                            color: Colors.white, // White text on gradient
+                            color: AppColors.textPrimary, // Dark text
                             fontWeight: FontWeight.w600,
                             height: 1.4,
                           ),
