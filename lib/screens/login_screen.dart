@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:report_harassment/constants/app_colors.dart';
 import 'package:report_harassment/services/auth_service.dart';
 import 'package:report_harassment/widgets/custom_text_field.dart';
@@ -660,17 +661,24 @@ class _LoginScreenState extends State<LoginScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    icon: Image.asset(
-                      'assets/google_logo.png',
-                      height: 24,
+                    icon: Container(
                       width: 24,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Icon(
-                          Icons.g_mobiledata,
-                          size: 24,
-                          color: Colors.red,
-                        );
-                      },
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: Colors.grey[300]!),
+                      ),
+                      child: const Center(
+                        child: Text(
+                          'G',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ),
                     ),
                     label: Text(
                       'Continue with Google',
@@ -698,19 +706,33 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      await _authService.signInWithGoogle();
-
-      if (mounted) {
+      print('DEBUG: Starting Google Sign-In from UI...');
+      
+      final userCredential = await _authService.signInWithGoogle();
+      
+      if (userCredential != null && mounted) {
+        print('DEBUG: Google Sign-In successful, navigating to home...');
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
       }
     } catch (e) {
+      print('DEBUG: Google Sign-In error in UI: $e');
+      
       if (mounted) {
+        String errorMessage = e.toString();
+        
+        // Don't show error for user cancellation
+        if (errorMessage.contains('cancelled') || errorMessage.contains('canceled')) {
+          return;
+        }
+        
+        // Show simple error message for any other errors
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(e.toString()),
-            backgroundColor: Colors.red,
+            content: Text('Google Sign-In temporarily unavailable. Please use email sign-in.'),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 3),
           ),
         );
       }
@@ -718,4 +740,6 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) setState(() => _isLoading = false);
     }
   }
+
+
 }

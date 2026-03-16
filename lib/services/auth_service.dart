@@ -122,33 +122,48 @@ class AuthService {
 
   // Sign in with Google
   Future<UserCredential?> signInWithGoogle() async {
-    try {      // Sign out first to ensure account picker is shown
+    try {
+      print('DEBUG: Starting Google Sign-In process...');
+      
+      // Sign out first to ensure account picker is shown
       await _googleSignIn.signOut();
-            // Trigger the Google Sign-In flow
+      
+      print('DEBUG: Triggering Google Sign-In flow...');
+      // Trigger the Google Sign-In flow
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
       if (googleUser == null) {
         // User canceled the sign-in
-        throw 'Sign in cancelled';
+        print('DEBUG: User cancelled Google Sign-In');
+        throw 'Sign in cancelled by user';
       }
 
+      print('DEBUG: Google user signed in: ${googleUser.email}');
+      
       // Obtain the auth details from the request
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
 
+      print('DEBUG: Got Google authentication tokens');
+      
       // Create a new credential
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
+      print('DEBUG: Created Firebase credential, signing in...');
+      
       // Sign in to Firebase with the Google credential
       UserCredential userCredential = await _auth.signInWithCredential(
         credential,
       );
 
+      print('DEBUG: Firebase sign-in successful: ${userCredential.user?.email}');
+
       // Check if this is a new user, if so create their profile
       if (userCredential.additionalUserInfo?.isNewUser ?? false) {
+        print('DEBUG: New user, creating profile...');
         await _firestore.collection('users').doc(userCredential.user!.uid).set({
           'fullName': googleUser.displayName ?? '',
           'email': googleUser.email,
@@ -159,12 +174,40 @@ class AuthService {
           'isVerified': false,
           'signInMethod': 'google',
         });
+        print('DEBUG: User profile created successfully');
       }
 
       return userCredential;
     } on FirebaseAuthException catch (e) {
+      print('DEBUG: FirebaseAuthException - Code: ${e.code}, Message: ${e.message}');
+      
+      if (e.code == 'account-exists-with-different-credential') {
+        throw 'An account already exists with the same email address but different sign-in credentials. Please try signing in with email/password.';
+      }
+      if (e.code == 'invalid-credential') {
+        throw 'The Google sign-in credentials are invalid or expired. Please try again.';
+      }
+      if (e.code == 'operation-not-allowed') {
+        throw 'Google sign-in is not enabled. Please contact support.';
+      }
+      if (e.code == 'user-disabled') {
+        throw 'This account has been disabled. Please contact support.';
+      }
+      
       throw _handleAuthException(e);
     } catch (e) {
+      print('DEBUG: General error during Google Sign-In: $e');
+      
+      if (e.toString().contains('cancelled') || e.toString().contains('canceled')) {
+        throw 'Sign in cancelled by user';
+      }
+      if (e.toString().contains('network')) {
+        throw 'Network error. Please check your internet connection and try again.';
+      }
+      if (e.toString().contains('PlatformException')) {
+        throw 'Google Sign-In configuration error. Please contact support.';
+      }
+      
       rethrow;
     }
   }
