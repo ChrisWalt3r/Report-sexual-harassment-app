@@ -292,48 +292,6 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     }
   }
 
-  Future<void> _playAudio(String filePath) async {
-    try {
-      if (_isPlaying && _currentlyPlayingPath == filePath) {
-        await _audioPlayer.stop();
-        setState(() {
-          _isPlaying = false;
-          _currentlyPlayingPath = null;
-        });
-      } else {
-        await _audioPlayer.stop();
-        await _audioPlayer.play(DeviceFileSource(filePath));
-        setState(() {
-          _isPlaying = true;
-          _currentlyPlayingPath = filePath;
-        });
-        
-        _audioPlayer.onPlayerComplete.listen((_) {
-          setState(() {
-            _isPlaying = false;
-            _currentlyPlayingPath = null;
-          });
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error playing audio: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
-  String _formatDuration(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final minutes = twoDigits(duration.inMinutes.remainder(60));
-    final seconds = twoDigits(duration.inSeconds.remainder(60));
-    return '$minutes:$seconds';
-  }
-
   /// Generate a unique tracking token for anonymous reports
   String _generateTrackingToken() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
