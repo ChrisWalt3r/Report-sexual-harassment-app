@@ -3,6 +3,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:report_harassment/constants/app_colors.dart';
 import 'package:report_harassment/services/auth_service.dart';
 import 'package:report_harassment/widgets/custom_text_field.dart';
+import 'package:report_harassment/widgets/must_logo.dart';
 import 'package:report_harassment/screens/register_screen.dart';
 import 'package:report_harassment/screens/home_screen.dart';
 
@@ -418,7 +419,7 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
@@ -429,15 +430,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           offset: const Offset(0, 6),
                         ),
                       ],
-                      border: Border.all(
-                        color: AppColors.secondaryOrange, // Bright orange border
-                        width: 2,
-                      ),
                     ),
-                    child: const Icon(
-                      Icons.shield_outlined,
-                      size: 32,
-                      color: AppColors.mustBlue,
+                    child: const MustLogo(
+                      size: 48,
+                      backgroundColor: Colors.white,
+                      borderColor: AppColors.secondaryOrange,
                     ),
                   ),
                   const SizedBox(height: 10),

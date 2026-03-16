@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
+import '../widgets/must_logo.dart';
 import 'login_screen.dart';
 import 'anonymous_info_screen.dart';
 
@@ -18,11 +19,11 @@ class WelcomeScreen extends StatelessWidget {
               children: [
                 const Spacer(),
                 
-                // App Logo/Icon
+                // App Logo/Icon - MUST University Logo
                 Container(
-                  padding: const EdgeInsets.all(22),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.royalBlue, // Deep blue background for icon
+                    color: Colors.white,
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
@@ -31,15 +32,11 @@ class WelcomeScreen extends StatelessWidget {
                         offset: const Offset(0, 4),
                       ),
                     ],
-                    border: Border.all(
-                      color: AppColors.secondaryOrange, // Orange border
-                      width: 3,
-                    ),
                   ),
-                  child: const Icon(
-                    Icons.shield_outlined,
-                    size: 80,
-                    color: Colors.white, // White icon on blue background
+                  child: const MustLogo(
+                    size: 100,
+                    backgroundColor: Colors.white,
+                    borderColor: AppColors.primaryGreen,
                   ),
                 ),
                 
@@ -164,19 +161,31 @@ class WelcomeScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryGreen.withOpacity(0.1), // Light lime green background
+                    color: AppColors.primaryGreen.withOpacity(0.15), // Exact lime green background
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: AppColors.primaryGreen.withOpacity(0.3), // Lime green border
-                      width: 1,
+                      color: AppColors.primaryGreen, // Exact lime green border
+                      width: 2,
                     ),
                   ),
                   child: Row(
                     children: [
-                      Icon(
-                        Icons.lock_outline,
-                        color: AppColors.primaryGreen, // Lime green lock icon
-                        size: 20,
+                      // SHA icon from your image
+                      Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: Image.asset(
+                            'assets/icon/sha_icon.jpeg',
+                            width: 24,
+                            height: 24,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -185,6 +194,7 @@ class WelcomeScreen extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 13,
                             color: AppColors.textPrimary, // Dark text
+                            fontWeight: FontWeight.w600,
                             height: 1.4,
                           ),
                         ),
