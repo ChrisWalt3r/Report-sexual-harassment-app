@@ -1,16 +1,15 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'cloudinary_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
-  final FirebaseStorage _storage = FirebaseStorage.instance;
 
   // Get current user
   User? get currentUser => _auth.currentUser;
@@ -301,38 +300,37 @@ class AuthService {
       }
 
       final uid = user.uid;
-      final objectPath =
-          'user_profile_photos/$uid/${DateTime.now().millisecondsSinceEpoch}.jpg';
-      final ref = _storage.ref().child(objectPath);
+      String? downloadUrl;
 
-      UploadTask uploadTask;
       if (kIsWeb) {
+        // For web, upload bytes
         final bytes = await imageFile.readAsBytes();
-        uploadTask = ref.putData(
-          bytes,
-          SettableMetadata(contentType: 'image/jpeg'),
-        );
+        final filename = 'profile_$uid.jpg';
+        downloadUrl = await CloudinaryService.uploadImageBytes(bytes, filename);
       } else {
-        uploadTask = ref.putFile(
-          File(imageFile.path),
-          SettableMetadata(contentType: 'image/jpeg'),
-        );
+        // For mobile, upload file
+        downloadUrl = await CloudinaryService.uploadImage(imageFile.path);
       }
 
-      final snapshot = await uploadTask;
-      final downloadUrl = await snapshot.ref.getDownloadURL();
+      if (downloadUrl == null) {
+        throw 'Failed to upload image to Cloudinary: ${CloudinaryService.lastError ?? "Unknown error"}';
+      }
 
+      // Update Firestore with new photo URL
       await _firestore.collection('users').doc(uid).update({
         'photoUrl': downloadUrl,
         'photoUpdatedAt': FieldValue.serverTimestamp(),
       });
 
+      // Update Firebase Auth profile
       await user.updatePhotoURL(downloadUrl);
+      
       return downloadUrl;
-    } on FirebaseException catch (e) {
-      throw 'Failed to upload profile photo: ${e.message ?? e.code}';
     } catch (e) {
-      rethrow;
+      if (e.toString().contains('Cloudinary')) {
+        rethrow;
+      }
+      throw 'Failed to upload profile photo: $e';
     }
   }
 
@@ -344,16 +342,17 @@ class AuthService {
       }
 
       final uid = user.uid;
+      
+      // Update Firestore to remove photo URL
       await _firestore.collection('users').doc(uid).update({
         'photoUrl': FieldValue.delete(),
         'photoUpdatedAt': FieldValue.serverTimestamp(),
       });
 
+      // Update Firebase Auth profile
       await user.updatePhotoURL(null);
-    } on FirebaseException catch (e) {
-      throw 'Failed to remove profile photo: ${e.message ?? e.code}';
     } catch (e) {
-      rethrow;
+      throw 'Failed to remove profile photo: $e';
     }
   }
 

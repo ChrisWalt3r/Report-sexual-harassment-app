@@ -30,13 +30,19 @@ class ThemeService extends ChangeNotifier {
           case 'light':
             _themeMode = ThemeMode.light;
             break;
-          default:
+          case 'system':
             _themeMode = ThemeMode.system;
+            break;
+          default:
+            _themeMode = ThemeMode.light; // Default to light mode
         }
+      } else {
+        // Default to light mode if no saved preference
+        _themeMode = ThemeMode.light;
       }
     } catch (e) {
-      // Default to system theme on error
-      _themeMode = ThemeMode.system;
+      // Default to light theme on error
+      _themeMode = ThemeMode.light;
     }
     _isInitialized = true;
     notifyListeners();

@@ -11,6 +11,17 @@ class CloudinaryService {
   
   static const String _uploadUrl = 'https://api.cloudinary.com/v1_1';
 
+  /// Supported image extensions
+  static const List<String> supportedImageExtensions = [
+    '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.tiff', '.svg'
+  ];
+
+  /// Check if file is an image
+  static bool isImage(String filePath) {
+    final ext = filePath.toLowerCase();
+    return supportedImageExtensions.any((e) => ext.endsWith(e));
+  }
+
   /// Supported video extensions
   static const List<String> supportedVideoExtensions = [
     '.mp4', '.mov', '.avi', '.mkv', '.webm', '.m4v', '.3gp'
@@ -31,6 +42,95 @@ class CloudinaryService {
   static bool isAudio(String filePath) {
     final ext = filePath.toLowerCase();
     return supportedAudioExtensions.any((e) => ext.endsWith(e));
+  }
+
+  /// Upload a single image to Cloudinary
+  /// Returns the URL of the uploaded image or null if failed
+  static Future<String?> uploadImage(String imagePath) async {
+    try {
+      final file = File(imagePath);
+      if (!await file.exists()) {
+        lastError = 'Image file does not exist at $imagePath';
+        print('Cloudinary Error: $lastError');
+        return null;
+      }
+
+      final fileSize = await file.length();
+      print('Cloudinary: Uploading image from $imagePath ($fileSize bytes)');
+      print('Cloudinary: Cloud name=$_cloudName, preset=$_uploadPreset');
+
+      final url = Uri.parse('$_uploadUrl/$_cloudName/image/upload');
+      
+      final request = http.MultipartRequest('POST', url);
+      request.fields['upload_preset'] = _uploadPreset;
+      request.files.add(await http.MultipartFile.fromPath('file', imagePath));
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      print('Cloudinary: Image upload response status=${response.statusCode}');
+      print('Cloudinary: Image upload response body=${response.body}');
+
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
+        final imageUrl = jsonResponse['secure_url'] as String?;
+        if (imageUrl != null) {
+          print('Cloudinary: Image uploaded successfully: $imageUrl');
+          lastError = null;
+          return imageUrl;
+        }
+      }
+      
+      lastError = 'HTTP ${response.statusCode}: ${response.body}';
+      print('Cloudinary Error: $lastError');
+      return null;
+    } catch (e) {
+      lastError = 'Exception: $e';
+      print('Cloudinary Error: $lastError');
+      return null;
+    }
+  }
+
+  /// Upload image from bytes (for web or when you have image data)
+  static Future<String?> uploadImageBytes(List<int> bytes, String filename) async {
+    try {
+      print('Cloudinary: Uploading image bytes (${bytes.length} bytes)');
+      print('Cloudinary: Cloud name=$_cloudName, preset=$_uploadPreset');
+
+      final url = Uri.parse('$_uploadUrl/$_cloudName/image/upload');
+      
+      final request = http.MultipartRequest('POST', url);
+      request.fields['upload_preset'] = _uploadPreset;
+      request.files.add(http.MultipartFile.fromBytes(
+        'file',
+        bytes,
+        filename: filename,
+      ));
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      print('Cloudinary: Image bytes upload response status=${response.statusCode}');
+      print('Cloudinary: Image bytes upload response body=${response.body}');
+
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
+        final imageUrl = jsonResponse['secure_url'] as String?;
+        if (imageUrl != null) {
+          print('Cloudinary: Image bytes uploaded successfully: $imageUrl');
+          lastError = null;
+          return imageUrl;
+        }
+      }
+      
+      lastError = 'HTTP ${response.statusCode}: ${response.body}';
+      print('Cloudinary Error: $lastError');
+      return null;
+    } catch (e) {
+      lastError = 'Exception: $e';
+      print('Cloudinary Error: $lastError');
+      return null;
+    }
   }
 
   /// Upload a single video to Cloudinary

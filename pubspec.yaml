@@ -68,6 +68,9 @@ dependencies:
   # Audio Recording
   record: ^6.0.0
   path_provider: ^2.1.0
+  
+  # Audio Playback
+  audioplayers: ^6.1.0
 
   # Environment variables
   flutter_dotenv: ^5.2.1
@@ -106,6 +109,9 @@ flutter:
   assets:
     - .env
     - assets/icon/sha_icon.jpeg
+    - assets/icon/launcher/
+    - assets/icon/launcher/icon_launcher.jpeg
+    - assets/icon/app_icon_circle.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -135,9 +141,13 @@ flutter:
 
 # Flutter Launcher Icons configuration
 flutter_launcher_icons:
-  android: true
+  android: "ic_launcher"
   ios: true
-  image_path: "assets/icon/sha_icon.jpeg"
-  adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/icon/sha_icon.jpeg"
+  image_path: "assets/icon/launcher/icon_launcher.jpeg"
   remove_alpha_ios: true
+  min_sdk_android: 21
+  # Remove adaptive icons to use legacy method with white background
+  android_12:
+    image_path: "assets/icon/launcher/icon_launcher.jpeg"
+    adaptive_icon_background: "#FFFFFF"
+    adaptive_icon_foreground: "assets/icon/launcher/icon_launcher.jpeg"
