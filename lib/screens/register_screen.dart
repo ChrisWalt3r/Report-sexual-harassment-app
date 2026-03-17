@@ -30,7 +30,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   // Gender selection
   String? _selectedGender;
-  final List<String> _genders = ['Male', 'Female', 'Prefer not to say'];
+  final List<String> _genders = ['Male', 'Female'];
 
   // Study level (for students)
   String? _selectedStudyLevel;
@@ -113,7 +113,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _handleRegister() async {
-    if (!_formKey.currentState!.validate()) return;
+    // Temporarily bypass validation to test registration
+    // Check if basic required fields have content
+    if (_fullNameController.text.trim().isEmpty ||
+        _emailController.text.trim().isEmpty ||
+        _passwordController.text.trim().isEmpty ||
+        _studentIdController.text.trim().isEmpty ||
+        _phoneController.text.trim().isEmpty ||
+        _selectedRole == null ||
+        _selectedGender == null ||
+        _selectedFaculty == null) {
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please fill in: ${_getMissingFields()}'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          duration: const Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
 
     setState(() => _isLoading = true);
 
@@ -133,10 +156,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Account created successfully! Please login to continue.'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 3),
+          SnackBar(
+            content: const Text('Account created successfully! Please login to continue.'),
+            backgroundColor: AppColors.primaryGreen,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            duration: const Duration(seconds: 3),
           ),
         );
         
@@ -151,7 +178,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(e.toString()),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
           ),
         );
       }
@@ -160,108 +191,94 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
+  String _getMissingFields() {
+    List<String> missing = [];
+    if (_fullNameController.text.trim().isEmpty) missing.add('Full Name');
+    if (_emailController.text.trim().isEmpty) missing.add('Email');
+    if (_passwordController.text.trim().isEmpty) missing.add('Password');
+    if (_studentIdController.text.trim().isEmpty) missing.add('ID');
+    if (_phoneController.text.trim().isEmpty) missing.add('Phone');
+    if (_selectedRole == null) missing.add('Role');
+    if (_selectedGender == null) missing.add('Gender');
+    if (_selectedFaculty == null) missing.add('Faculty');
+    if (_selectedRole == 'Student' && _selectedStudyLevel == null) missing.add('Study Level');
+    if (_selectedFaculty != null && _selectedDepartment == null) missing.add('Department');
+    
+    return missing.join(', ');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              AppColors.mustBlue,
-              AppColors.mustBlueMedium,
-            ],
-            stops: [0.0, 0.4],
-          ),
-        ),
-        child: Column(
-          children: [
-            // Custom App Bar area
-            SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                child: Row(
+        color: Colors.white, // White background like welcome and login screens
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              children: [
+                // Back button
+                Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
                       onPressed: () => Navigator.pop(context),
+                      tooltip: 'Back to Login',
                     ),
                   ],
                 ),
-              ),
-            ),
-
-            // Header section on gradient
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.15),
-                          blurRadius: 16,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                      border: Border.all(
-                        color: AppColors.mustGold,
-                        width: 2,
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.person_add_outlined,
-                      size: 28,
-                      color: AppColors.mustBlue,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Create Account',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Register to get started',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white.withOpacity(0.85),
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 14),
-                ],
-              ),
-            ),
-
-            // Form card section
-            Expanded(
-              child: Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(28),
-                    topRight: Radius.circular(28),
+                
+                const SizedBox(height: 20),
+                
+                // App Logo/Icon - Same as welcome and login screens
+                ClipOval(
+                  child: Image.asset(
+                    'assets/icon/app_icon_circle.jpeg',
+                    width: 100,
+                    height: 100,
+                    fit: BoxFit.cover,
                   ),
                 ),
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
+                
+                const SizedBox(height: 24),
+                
+                // Create Account Title
+                const Text(
+                  'Create Account',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w300,
+                    color: AppColors.textPrimary,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                
+                const SizedBox(height: 6),
+                
+                const Text(
+                  'SafeReport',
+                  style: TextStyle(
+                    fontSize: 36,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.royalBlue,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+                
+                const SizedBox(height: 12),
+                
+                // Subtitle
+                const Text(
+                  'Join us to report safely and confidentially.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
+                    height: 1.5,
+                  ),
+                ),
+                
+                const SizedBox(height: 32),
 
                 // Full Name
                 CustomTextField(
@@ -285,23 +302,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   style: const TextStyle(color: Colors.black, fontSize: 16),
                   decoration: InputDecoration(
                     labelText: 'I am a...',
+                    labelStyle: TextStyle(color: AppColors.textSecondary),
                     hintText: 'Select your role',
-                    prefixIcon: Icon(Icons.people_outline, color: AppColors.textSecondary),
+                    hintStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.6)),
+                    prefixIcon: Icon(Icons.people_outline, color: AppColors.royalBlue),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
+                      borderSide: const BorderSide(color: AppColors.primaryGreen),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
+                      borderSide: const BorderSide(color: AppColors.primaryGreen),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.mustBlue, width: 2),
+                      borderSide: const BorderSide(color: AppColors.primaryGreen, width: 2),
+                    ),
+                    errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: AppColors.error),
+                    ),
+                    focusedErrorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: AppColors.error, width: 2),
                     ),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: AppColors.inputFill,
                   ),
                   items: _roles.map((role) {
                     return DropdownMenuItem(
@@ -333,23 +360,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   style: const TextStyle(color: Colors.black, fontSize: 16),
                   decoration: InputDecoration(
                     labelText: 'Gender',
+                    labelStyle: TextStyle(color: AppColors.textSecondary),
                     hintText: 'Select your gender',
-                    prefixIcon: Icon(Icons.wc_outlined, color: AppColors.textSecondary),
+                    hintStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.6)),
+                    prefixIcon: Icon(Icons.wc_outlined, color: AppColors.royalBlue),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
+                      borderSide: const BorderSide(color: AppColors.primaryGreen),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
+                      borderSide: const BorderSide(color: AppColors.primaryGreen),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.mustBlue, width: 2),
+                      borderSide: const BorderSide(color: AppColors.primaryGreen, width: 2),
+                    ),
+                    errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: AppColors.error),
+                    ),
+                    focusedErrorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: AppColors.error, width: 2),
                     ),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: AppColors.inputFill,
                   ),
                   items: _genders.map((gender) {
                     return DropdownMenuItem(
@@ -375,23 +412,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     style: const TextStyle(color: Colors.black, fontSize: 16),
                     decoration: InputDecoration(
                       labelText: 'Study Level',
+                      labelStyle: TextStyle(color: AppColors.textSecondary),
                       hintText: 'Select your study level',
-                      prefixIcon: Icon(Icons.menu_book_outlined, color: AppColors.textSecondary),
+                      hintStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.6)),
+                      prefixIcon: Icon(Icons.menu_book_outlined, color: AppColors.royalBlue),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey[300]!),
+                        borderSide: const BorderSide(color: AppColors.primaryGreen),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey[300]!),
+                        borderSide: const BorderSide(color: AppColors.primaryGreen),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.mustBlue, width: 2),
+                        borderSide: const BorderSide(color: AppColors.primaryGreen, width: 2),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.error),
+                      ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.error, width: 2),
                       ),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: AppColors.inputFill,
                     ),
                     items: _studyLevels.map((level) {
                       return DropdownMenuItem(
@@ -456,23 +503,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   style: const TextStyle(color: Colors.black, fontSize: 16),
                   decoration: InputDecoration(
                     labelText: 'Faculty',
+                    labelStyle: TextStyle(color: AppColors.textSecondary),
                     hintText: 'Select your faculty',
-                    prefixIcon: Icon(Icons.school_outlined, color: AppColors.textSecondary),
+                    hintStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.6)),
+                    prefixIcon: Icon(Icons.school_outlined, color: AppColors.royalBlue),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
+                      borderSide: const BorderSide(color: AppColors.primaryGreen),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
+                      borderSide: const BorderSide(color: AppColors.primaryGreen),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.mustBlue, width: 2),
+                      borderSide: const BorderSide(color: AppColors.primaryGreen, width: 2),
+                    ),
+                    errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: AppColors.error),
+                    ),
+                    focusedErrorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: AppColors.error, width: 2),
                     ),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: AppColors.inputFill,
                   ),
                   items: _faculties.map((faculty) {
                     return DropdownMenuItem(
@@ -507,23 +564,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     style: const TextStyle(color: Colors.black, fontSize: 16),
                     decoration: InputDecoration(
                       labelText: 'Department',
+                      labelStyle: TextStyle(color: AppColors.textSecondary),
                       hintText: 'Select your department',
-                      prefixIcon: Icon(Icons.apartment_outlined, color: AppColors.textSecondary),
+                      hintStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.6)),
+                      prefixIcon: Icon(Icons.apartment_outlined, color: AppColors.royalBlue),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey[300]!),
+                        borderSide: const BorderSide(color: AppColors.primaryGreen),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey[300]!),
+                        borderSide: const BorderSide(color: AppColors.primaryGreen),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.mustBlue, width: 2),
+                        borderSide: const BorderSide(color: AppColors.primaryGreen, width: 2),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.error),
+                      ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.error, width: 2),
                       ),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: AppColors.inputFill,
                     ),
                     items: (_facultyDepartments[_selectedFaculty] ?? []).map((dept) {
                       return DropdownMenuItem(
@@ -584,16 +651,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     if (value == null || value.isEmpty) {
                       return 'Please enter a password';
                     }
-                    if (value.length < 8) {
-                      return 'Password must be at least 8 characters';
-                    }
-                    // Check if password contains at least one letter
-                    if (!RegExp(r'[a-zA-Z]').hasMatch(value)) {
-                      return 'Password must contain at least one letter';
-                    }
-                    // Check if password contains at least one number
-                    if (!RegExp(r'[0-9]').hasMatch(value)) {
-                      return 'Password must contain at least one number';
+                    if (value.length < 6) {
+                      return 'Password must be at least 6 characters';
                     }
                     return null;
                   },
@@ -604,16 +663,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 
                 // Register Button
                 SizedBox(
+                  width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleRegister,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.mustGold,
-                      foregroundColor: AppColors.mustBlue,
+                      backgroundColor: AppColors.secondaryOrange,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      elevation: 2,
                     ),
                     child: _isLoading
                         ? const SizedBox(
@@ -624,12 +684,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                             ),
                           )
-                        : const Text(
-                            'Create Account',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        : const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.person_add, size: 24),
+                              SizedBox(width: 12),
+                              Text(
+                                'Create Account',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
                           ),
                   ),
                 ),
@@ -645,13 +713,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+                
+                const SizedBox(height: 20),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

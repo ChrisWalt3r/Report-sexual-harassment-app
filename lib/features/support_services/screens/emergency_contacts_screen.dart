@@ -58,6 +58,156 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
     }
   }
 
+  void _showContactDialog(EmergencyContact contact) {
+    final categoryColor = _getCategoryColor(contact.category);
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header with icon
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: categoryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    _getCategoryIcon(contact.category),
+                    color: categoryColor,
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                
+                // Contact name
+                Text(
+                  contact.name,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.royalBlue,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                
+                // Category badge
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.secondaryOrange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    contact.category.displayName,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.secondaryOrange,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                
+                // Description
+                if (contact.description != null) ...[
+                  Text(
+                    contact.description!,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                      height: 1.4,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                
+                // Phone number
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryGreen.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.primaryGreen.withOpacity(0.2)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.phone_rounded, color: AppColors.primaryGreen, size: 18),
+                      const SizedBox(width: 8),
+                      Text(
+                        contact.phoneNumber,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primaryGreen,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                
+                // Action buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            side: BorderSide(color: Colors.grey[300]!),
+                          ),
+                        ),
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          _makePhoneCall(contact.phoneNumber);
+                        },
+                        icon: const Icon(Icons.phone_rounded, size: 18),
+                        label: const Text('Call Now'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryGreen,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          elevation: 0,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   void dispose() {
     _supportService.dispose();
@@ -67,33 +217,23 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
           'Emergency Contacts',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: AppColors.mustBlue,
+        backgroundColor: AppColors.primaryGreen,
         foregroundColor: Colors.white,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
+        toolbarHeight: 65,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                _buildHeroSection(),
-                const SizedBox(height: 20),
                 _buildQuickActions(),
                 const SizedBox(height: 20),
                 _buildSectionHeader('Emergency Services', Icons.contact_phone_rounded),
@@ -106,62 +246,6 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
     );
   }
 
-  Widget _buildHeroSection() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.mustBlueMedium, AppColors.mustBlue],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.mustBlue.withOpacity(0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.emergency_rounded,
-              color: Colors.white,
-              size: 48,
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'Help is Available',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'If you\'re in immediate danger, don\'t hesitate to call for help. Your safety is the priority.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.95),
-              fontSize: 14,
-              height: 1.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildQuickActions() {
     return Column(
       children: [
@@ -169,17 +253,13 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
         Container(
           width: double.infinity,
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.red[600]!, Colors.red[800]!],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(16),
+            color: Colors.red[600],
+            borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.red.withOpacity(0.4),
-                blurRadius: 12,
-                offset: const Offset(0, 6),
+                color: Colors.red.withOpacity(0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
@@ -187,158 +267,79 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
             color: Colors.transparent,
             child: InkWell(
               onTap: () => _makePhoneCall(EmergencyConstants.emergencyNumber),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(10),
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(Icons.phone_rounded, color: Colors.white, size: 28),
+                      child: const Icon(Icons.phone_rounded, color: Colors.white, size: 20),
                     ),
-                    const SizedBox(width: 16),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          EmergencyConstants.immediateDangerLabel,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            EmergencyConstants.immediateDangerLabel,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Tap to call ${EmergencyConstants.emergencyNumber}',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
-                            fontSize: 13,
+                          const SizedBox(height: 2),
+                          Text(
+                            'Tap to call ${EmergencyConstants.emergencyNumber}',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 11,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                    const Spacer(),
-                    const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 16),
                   ],
                 ),
               ),
             ),
           ),
         ),
-        const SizedBox(height: 16),
-        // Quick info cards
-        Row(
-          children: [
-            Expanded(
-              child: _buildInfoCard(
-                icon: Icons.speed_rounded,
-                title: 'Fast',
-                subtitle: 'Response',
-                color: AppColors.mustGold,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildInfoCard(
-                icon: Icons.access_time_filled_rounded,
-                title: '24/7',
-                subtitle: 'Available',
-                color: AppColors.mustGreen,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildInfoCard(
-                icon: Icons.location_on_rounded,
-                title: 'Local',
-                subtitle: 'Services',
-                color: AppColors.mustBlue,
-              ),
-            ),
-          ],
-        ),
       ],
-    );
-  }
-
-  Widget _buildInfoCard({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: color, size: 24),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            title,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-              color: Colors.grey[800],
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            subtitle,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[500],
-            ),
-          ),
-        ],
-      ),
     );
   }
 
   Widget _buildSectionHeader(String title, IconData icon) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppColors.mustBlue.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.primaryGreen.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: AppColors.primaryGreen, size: 24),
           ),
-          child: Icon(icon, color: AppColors.mustBlue, size: 20),
-        ),
-        const SizedBox(width: 12),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.grey[800],
+          const SizedBox(width: 12),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: AppColors.royalBlue,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -349,89 +350,89 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.primaryGreen.withOpacity(0.3), width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => _makePhoneCall(contact.phoneNumber),
-          borderRadius: BorderRadius.circular(16),
+          onTap: () => _showContactDialog(contact),
+          borderRadius: BorderRadius.circular(12),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [categoryColor.withOpacity(0.8), categoryColor],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
+                    color: categoryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     _getCategoryIcon(contact.category),
-                    color: Colors.white,
-                    size: 24,
+                    color: categoryColor,
+                    size: 20,
                   ),
                 ),
-                const SizedBox(width: 14),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         contact.name,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                          color: Colors.grey[800],
+                          fontSize: 13,
+                          color: AppColors.royalBlue,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
                       Text(
                         contact.description ?? contact.category.displayName,
                         style: TextStyle(
                           color: Colors.grey[600],
-                          fontSize: 13,
+                          fontSize: 11,
                         ),
-                        maxLines: 2,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 3),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                         decoration: BoxDecoration(
-                          color: categoryColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(20),
+                          color: AppColors.secondaryOrange.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
                           contact.category.displayName,
-                          style: TextStyle(
-                            fontSize: 11,
+                          style: const TextStyle(
+                            fontSize: 9,
                             fontWeight: FontWeight.w600,
-                            color: categoryColor,
+                            color: AppColors.secondaryOrange,
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
+                const SizedBox(width: 6),
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    color: AppColors.primaryGreen.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(6),
                   ),
-                  child: Icon(Icons.phone_rounded, color: Colors.green[600], size: 22),
+                  child: const Icon(Icons.info_outline, color: AppColors.primaryGreen, size: 16),
                 ),
               ],
             ),
@@ -445,33 +446,29 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [AppColors.mustBlue.withOpacity(0.06), Colors.white],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        color: AppColors.royalBlue.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.royalBlue.withOpacity(0.2)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.mustGold.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(12),
+              color: AppColors.secondaryOrange.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.tips_and_updates_rounded, color: AppColors.mustGold, size: 28),
+            child: const Icon(Icons.tips_and_updates_rounded, color: AppColors.secondaryOrange, size: 24),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Safety First',
                   style: TextStyle(
-                    color: Colors.grey[800],
+                    color: AppColors.royalBlue,
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
                   ),

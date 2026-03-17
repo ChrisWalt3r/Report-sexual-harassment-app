@@ -21,7 +21,6 @@ class SupportHomeScreen extends StatefulWidget {
 class _SupportHomeScreenState extends State<SupportHomeScreen> {
   final SupportService _supportService = SupportService();
   List<EmergencyContact> _priorityContacts = [];
-  // ignore: unused_field
   bool _isLoading = true;
 
   @override
@@ -53,37 +52,31 @@ class _SupportHomeScreenState extends State<SupportHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
         title: const Text(
           'Support Services',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
         ),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: AppColors.mustBlue,
+        backgroundColor: AppColors.primaryGreen,
         foregroundColor: Colors.white,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [AppColors.mustBlueMedium, AppColors.mustBlue],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
+        toolbarHeight: 65,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Reassurance message
-              _buildReassuranceSection(),
+              const SizedBox(height: 20),
               
               // Emergency quick access
               if (_priorityContacts.isNotEmpty) ...[
-                _buildSectionHeader('Emergency Help', Icons.emergency_rounded),
+                _buildSectionHeader('Emergency Help', Icons.emergency_rounded, Colors.red),
                 const SizedBox(height: 12),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -97,21 +90,16 @@ class _SupportHomeScreenState extends State<SupportHomeScreen> {
               ],
               
               // Support service categories
-              _buildSectionHeader('Support Resources', Icons.support_agent_rounded),
+              _buildSectionHeader('Support Resources', Icons.support_agent_rounded, AppColors.royalBlue),
               const SizedBox(height: 12),
               _buildServiceGrid(),
-              
-              const SizedBox(height: 24),
-              
-              // Quick tips section
-              _buildQuickTipsSection(),
               
               const SizedBox(height: 24),
               
               // Confidentiality notice
               _buildConfidentialityNotice(),
               
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -119,108 +107,24 @@ class _SupportHomeScreenState extends State<SupportHomeScreen> {
     );
   }
 
-  Widget _buildReassuranceSection() {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            AppColors.mustBlueMedium,
-            AppColors.mustBlue,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.mustBlue.withOpacity(0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.favorite_rounded,
-              color: Colors.white,
-              size: 40,
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'You Are Not Alone',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'We\'re here to support you. All services are confidential and you can reach out at your own pace.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 15,
-              color: Colors.white.withOpacity(0.95),
-              height: 1.6,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(30),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: const [
-                Icon(Icons.verified_user_rounded, color: Colors.white, size: 18),
-                SizedBox(width: 8),
-                Text(
-                  '100% Confidential',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader(String title, IconData icon) {
+  Widget _buildSectionHeader(String title, IconData icon, Color color) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.mustBlue.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: AppColors.mustBlue, size: 20),
+            child: Icon(icon, color: color, size: 22),
           ),
           const SizedBox(width: 12),
           Text(
             title,
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
               color: Colors.grey[800],
             ),
@@ -234,21 +138,19 @@ class _SupportHomeScreenState extends State<SupportHomeScreen> {
     final services = [
       _ServiceItem(
         title: 'Counseling',
-        subtitle: 'Talk to a professional',
+        subtitle: 'Professional support',
         icon: Icons.psychology_rounded,
-        color: AppColors.mustBlue,
-        gradient: [AppColors.mustBlueMedium, AppColors.mustBlue],
+        color: AppColors.royalBlue,
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const CounselingScreen()),
         ),
       ),
       _ServiceItem(
-        title: 'Legal Guidance',
+        title: 'Legal Help',
         subtitle: 'Know your rights',
         icon: Icons.gavel_rounded,
-        color: AppColors.mustGold,
-        gradient: [AppColors.mustGoldLight, AppColors.mustGold],
+        color: AppColors.secondaryOrange,
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const LegalGuidanceScreen()),
@@ -256,10 +158,9 @@ class _SupportHomeScreenState extends State<SupportHomeScreen> {
       ),
       _ServiceItem(
         title: 'Emergency',
-        subtitle: 'Get help now',
+        subtitle: 'Immediate help',
         icon: Icons.emergency_rounded,
-        color: Colors.red,
-        gradient: [Colors.red.shade400, Colors.red.shade600],
+        color: Colors.red[600]!,
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const EmergencyContactsScreen()),
@@ -269,8 +170,7 @@ class _SupportHomeScreenState extends State<SupportHomeScreen> {
         title: 'Medical',
         subtitle: 'Health services',
         icon: Icons.local_hospital_rounded,
-        color: AppColors.mustGreen,
-        gradient: [AppColors.mustGreenLight, AppColors.mustGreen],
+        color: AppColors.primaryGreen,
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const MedicalSupportScreen()),
@@ -285,9 +185,9 @@ class _SupportHomeScreenState extends State<SupportHomeScreen> {
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          childAspectRatio: 1.0,
-          crossAxisSpacing: 14,
-          mainAxisSpacing: 14,
+          childAspectRatio: 1.3,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
         ),
         itemCount: services.length,
         itemBuilder: (context, index) {
@@ -302,72 +202,78 @@ class _SupportHomeScreenState extends State<SupportHomeScreen> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: service.color.withOpacity(0.15),
-            blurRadius: 15,
-            offset: const Offset(0, 6),
+            color: service.color.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
         ],
+        border: Border.all(
+          color: service.color.withOpacity(0.2),
+          width: 1,
+        ),
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: service.onTap,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(8),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(14),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: service.gradient,
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(16),
+                    color: service.color,
+                    borderRadius: BorderRadius.circular(8),
                     boxShadow: [
                       BoxShadow(
                         color: service.color.withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
                       ),
                     ],
                   ),
                   child: Icon(
                     service.icon,
                     color: Colors.white,
-                    size: 28,
+                    size: 20,
                   ),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 6),
                 Text(
                   service.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 15,
+                    fontSize: 13,
+                    color: Colors.grey[800],
                   ),
                   textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Text(
                   service.subtitle,
                   style: TextStyle(
-                    color: Colors.grey[500],
-                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontSize: 10,
                   ),
                   textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                   decoration: BoxDecoration(
                     color: service.color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(6),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -376,12 +282,12 @@ class _SupportHomeScreenState extends State<SupportHomeScreen> {
                         'Access',
                         style: TextStyle(
                           color: service.color,
-                          fontSize: 11,
+                          fontSize: 8,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(width: 4),
-                      Icon(Icons.arrow_forward_rounded, color: service.color, size: 12),
+                      const SizedBox(width: 2),
+                      Icon(Icons.arrow_forward_rounded, color: service.color, size: 8),
                     ],
                   ),
                 ),
@@ -483,35 +389,39 @@ class _SupportHomeScreenState extends State<SupportHomeScreen> {
   Widget _buildConfidentialityNotice() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.grey.shade100, Colors.grey.shade50],
+          colors: [
+            AppColors.royalBlue.withOpacity(0.05),
+            AppColors.royalBlue.withOpacity(0.02),
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.royalBlue.withOpacity(0.2)),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.mustBlue.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: AppColors.royalBlue.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.shield_rounded, color: AppColors.mustBlue, size: 28),
+            child: const Icon(Icons.shield_rounded, color: AppColors.royalBlue, size: 24),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   'Your Privacy Matters',
                   style: TextStyle(
-                    color: Colors.grey[800],
+                    color: AppColors.royalBlue,
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
                   ),
@@ -520,10 +430,12 @@ class _SupportHomeScreenState extends State<SupportHomeScreen> {
                 Text(
                   'All interactions are encrypted and confidential. Your safety is our priority.',
                   style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 13,
-                    height: 1.4,
+                    color: Colors.grey[700],
+                    fontSize: 12,
+                    height: 1.3,
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -539,7 +451,6 @@ class _ServiceItem {
   final String subtitle;
   final IconData icon;
   final Color color;
-  final List<Color> gradient;
   final VoidCallback onTap;
 
   _ServiceItem({
@@ -547,7 +458,6 @@ class _ServiceItem {
     required this.subtitle,
     required this.icon,
     required this.color,
-    required this.gradient,
     required this.onTap,
   });
 }

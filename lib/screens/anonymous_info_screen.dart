@@ -95,6 +95,7 @@ class _AnonymousInfoScreenState extends State<AnonymousInfoScreen> {
     required String label,
     required String hint,
     required IconData icon,
+    required bool isDark,
   }) {
     return InputDecoration(
       labelText: label,
@@ -114,7 +115,7 @@ class _AnonymousInfoScreenState extends State<AnonymousInfoScreen> {
         borderSide: const BorderSide(color: AppColors.mustBlue, width: 2),
       ),
       filled: true,
-      fillColor: Colors.white,
+      fillColor: isDark ? AppColors.darkSurface : Colors.white,
     );
   }
 
@@ -139,17 +140,18 @@ class _AnonymousInfoScreenState extends State<AnonymousInfoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              AppColors.mustBlue,
-              AppColors.mustBlueMedium,
-            ],
-            stops: [0.0, 0.4],
+            colors: isDark 
+                ? [AppColors.darkBackground, AppColors.darkSurface]
+                : [AppColors.mustBlue, AppColors.mustBlueMedium],
+            stops: const [0.0, 0.4],
           ),
         ),
         child: Column(
@@ -178,7 +180,7 @@ class _AnonymousInfoScreenState extends State<AnonymousInfoScreen> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: isDark ? AppColors.darkSurface : Colors.white,
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
@@ -225,9 +227,9 @@ class _AnonymousInfoScreenState extends State<AnonymousInfoScreen> {
             // Form card
             Expanded(
               child: Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkBackground : Colors.white,
+                  borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(28),
                     topRight: Radius.circular(28),
                   ),
@@ -292,6 +294,7 @@ class _AnonymousInfoScreenState extends State<AnonymousInfoScreen> {
                             label: 'I am a...',
                             hint: 'Select your role',
                             icon: Icons.people_outline,
+                            isDark: isDark,
                           ),
                           items: _roles.map((role) {
                             return DropdownMenuItem(
@@ -324,6 +327,7 @@ class _AnonymousInfoScreenState extends State<AnonymousInfoScreen> {
                               label: 'Specify your role',
                               hint: 'e.g. Cleaner, Security, Cook...',
                               icon: Icons.edit_outlined,
+                              isDark: isDark,
                             ),
                             validator: (value) {
                               if (_selectedRole == 'Other' && (value == null || value.trim().isEmpty)) {
@@ -343,6 +347,7 @@ class _AnonymousInfoScreenState extends State<AnonymousInfoScreen> {
                             label: 'Gender',
                             hint: 'Select your gender',
                             icon: Icons.wc_outlined,
+                            isDark: isDark,
                           ),
                           items: _genders.map((gender) {
                             return DropdownMenuItem(
@@ -383,6 +388,7 @@ class _AnonymousInfoScreenState extends State<AnonymousInfoScreen> {
                             label: 'Faculty (optional)',
                             hint: 'Select your faculty',
                             icon: Icons.school_outlined,
+                            isDark: isDark,
                           ),
                           items: _faculties.map((faculty) {
                             return DropdownMenuItem(
@@ -412,6 +418,7 @@ class _AnonymousInfoScreenState extends State<AnonymousInfoScreen> {
                               label: 'Department (optional)',
                               hint: 'Select your department',
                               icon: Icons.apartment_outlined,
+                              isDark: isDark,
                             ),
                             items: (_facultyDepartments[_selectedFaculty] ?? [])
                                 .map((dept) {

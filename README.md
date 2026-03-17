@@ -1,21 +1,46 @@
 # Report Safely - Sexual Harassment Management App
 
-A Flutter-based mobile application designed to provide confidential support and resources for survivors of sexual harassment at MUST Campus. The app offers AI-powered chat support, emergency services, and comprehensive support resources.
+A comprehensive Flutter-based mobile application designed to provide confidential support and resources for survivors of sexual harassment at MUST Campus. The app features AI-powered chat support, emergency services, comprehensive support resources, and a complete admin management system.
 
-## Features
+## 🚀 Current Status
+- ✅ Core app functionality implemented
+- ✅ Firebase integration configured
+- ✅ Admin dashboard and management system
+- ✅ Email notification system
+- ✅ AI-powered chat support
+- ✅ Comprehensive reporting system
+- 🔄 Final testing and deployment preparation
 
+## ✨ Features
+
+### For Users
 - **AI-Powered Chat Support** - Confidential conversations with an AI counselor trained in trauma-informed responses
 - **Emergency Services** - Quick access to campus security and emergency contacts
-- **Support Services** - Counseling, medical, and legal resources
-- **Incident Reporting** - Submit and track harassment reports
+- **Support Services** - Counseling, medical, and legal resources with detailed contact information
+- **Incident Reporting** - Submit and track harassment reports with multimedia evidence support
 - **Anonymous Options** - Report incidents without revealing your identity
+- **Profile Management** - Secure user profiles with privacy controls
+- **Notifications** - Real-time updates on report status and important information
 
-## Tech Stack
+### For Administrators
+- **Admin Dashboard** - Comprehensive overview of all reports and system analytics
+- **Report Management** - Review, update, and manage incident reports
+- **User Management** - Manage user accounts and permissions
+- **Analytics & Insights** - AI-powered insights and reporting trends
+- **Contact Management** - Manage official contacts and support services
+- **Policy Management** - Update and maintain harassment policies
+- **Email Notifications** - Automated notifications for new reports and status changes
 
-- Flutter 3.7+
-- Provider (State Management)
-- HTTP (Networking)
-- Hugging Face API (AI Chat)
+## 🛠 Tech Stack
+
+- **Frontend**: Flutter 3.41+ with Dart
+- **Backend**: Firebase (Firestore, Authentication, Storage, Cloud Functions)
+- **State Management**: Provider pattern
+- **AI Integration**: GROQ API for enhanced AI responses
+- **Image Handling**: ImgBB and Cloudinary services
+- **Email Services**: Firebase Cloud Functions with Nodemailer
+- **Security**: Firebase Security Rules, encrypted storage
+- **Analytics**: Built-in analytics dashboard with AI insights
 
 ## Getting Started
 

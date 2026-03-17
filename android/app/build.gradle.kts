@@ -55,9 +55,18 @@ android {
         }
     }
 
-    ndkVersion = "27.3.13750724"
+    ndkVersion = "28.2.13676358"
 }
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    implementation("com.google.firebase:firebase-bom:32.7.0")
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-storage")
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
+    implementation("androidx.multidex:multidex:2.0.1")
 }

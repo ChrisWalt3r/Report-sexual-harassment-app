@@ -1,16 +1,15 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'cloudinary_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
-  final FirebaseStorage _storage = FirebaseStorage.instance;
 
   // Get current user
   User? get currentUser => _auth.currentUser;
@@ -122,33 +121,48 @@ class AuthService {
 
   // Sign in with Google
   Future<UserCredential?> signInWithGoogle() async {
-    try {      // Sign out first to ensure account picker is shown
+    try {
+      print('DEBUG: Starting Google Sign-In process...');
+      
+      // Sign out first to ensure account picker is shown
       await _googleSignIn.signOut();
-            // Trigger the Google Sign-In flow
+      
+      print('DEBUG: Triggering Google Sign-In flow...');
+      // Trigger the Google Sign-In flow
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
       if (googleUser == null) {
         // User canceled the sign-in
-        throw 'Sign in cancelled';
+        print('DEBUG: User cancelled Google Sign-In');
+        throw 'Sign in cancelled by user';
       }
 
+      print('DEBUG: Google user signed in: ${googleUser.email}');
+      
       // Obtain the auth details from the request
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
 
+      print('DEBUG: Got Google authentication tokens');
+      
       // Create a new credential
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
+      print('DEBUG: Created Firebase credential, signing in...');
+      
       // Sign in to Firebase with the Google credential
       UserCredential userCredential = await _auth.signInWithCredential(
         credential,
       );
 
+      print('DEBUG: Firebase sign-in successful: ${userCredential.user?.email}');
+
       // Check if this is a new user, if so create their profile
       if (userCredential.additionalUserInfo?.isNewUser ?? false) {
+        print('DEBUG: New user, creating profile...');
         await _firestore.collection('users').doc(userCredential.user!.uid).set({
           'fullName': googleUser.displayName ?? '',
           'email': googleUser.email,
@@ -159,12 +173,40 @@ class AuthService {
           'isVerified': false,
           'signInMethod': 'google',
         });
+        print('DEBUG: User profile created successfully');
       }
 
       return userCredential;
     } on FirebaseAuthException catch (e) {
+      print('DEBUG: FirebaseAuthException - Code: ${e.code}, Message: ${e.message}');
+      
+      if (e.code == 'account-exists-with-different-credential') {
+        throw 'An account already exists with the same email address but different sign-in credentials. Please try signing in with email/password.';
+      }
+      if (e.code == 'invalid-credential') {
+        throw 'The Google sign-in credentials are invalid or expired. Please try again.';
+      }
+      if (e.code == 'operation-not-allowed') {
+        throw 'Google sign-in is not enabled. Please contact support.';
+      }
+      if (e.code == 'user-disabled') {
+        throw 'This account has been disabled. Please contact support.';
+      }
+      
       throw _handleAuthException(e);
     } catch (e) {
+      print('DEBUG: General error during Google Sign-In: $e');
+      
+      if (e.toString().contains('cancelled') || e.toString().contains('canceled')) {
+        throw 'Sign in cancelled by user';
+      }
+      if (e.toString().contains('network')) {
+        throw 'Network error. Please check your internet connection and try again.';
+      }
+      if (e.toString().contains('PlatformException')) {
+        throw 'Google Sign-In configuration error. Please contact support.';
+      }
+      
       rethrow;
     }
   }
@@ -258,38 +300,37 @@ class AuthService {
       }
 
       final uid = user.uid;
-      final objectPath =
-          'user_profile_photos/$uid/${DateTime.now().millisecondsSinceEpoch}.jpg';
-      final ref = _storage.ref().child(objectPath);
+      String? downloadUrl;
 
-      UploadTask uploadTask;
       if (kIsWeb) {
+        // For web, upload bytes
         final bytes = await imageFile.readAsBytes();
-        uploadTask = ref.putData(
-          bytes,
-          SettableMetadata(contentType: 'image/jpeg'),
-        );
+        final filename = 'profile_$uid.jpg';
+        downloadUrl = await CloudinaryService.uploadImageBytes(bytes, filename);
       } else {
-        uploadTask = ref.putFile(
-          File(imageFile.path),
-          SettableMetadata(contentType: 'image/jpeg'),
-        );
+        // For mobile, upload file
+        downloadUrl = await CloudinaryService.uploadImage(imageFile.path);
       }
 
-      final snapshot = await uploadTask;
-      final downloadUrl = await snapshot.ref.getDownloadURL();
+      if (downloadUrl == null) {
+        throw 'Failed to upload image to Cloudinary: ${CloudinaryService.lastError ?? "Unknown error"}';
+      }
 
+      // Update Firestore with new photo URL
       await _firestore.collection('users').doc(uid).update({
         'photoUrl': downloadUrl,
         'photoUpdatedAt': FieldValue.serverTimestamp(),
       });
 
+      // Update Firebase Auth profile
       await user.updatePhotoURL(downloadUrl);
+      
       return downloadUrl;
-    } on FirebaseException catch (e) {
-      throw 'Failed to upload profile photo: ${e.message ?? e.code}';
     } catch (e) {
-      rethrow;
+      if (e.toString().contains('Cloudinary')) {
+        rethrow;
+      }
+      throw 'Failed to upload profile photo: $e';
     }
   }
 
@@ -301,16 +342,17 @@ class AuthService {
       }
 
       final uid = user.uid;
+      
+      // Update Firestore to remove photo URL
       await _firestore.collection('users').doc(uid).update({
         'photoUrl': FieldValue.delete(),
         'photoUpdatedAt': FieldValue.serverTimestamp(),
       });
 
+      // Update Firebase Auth profile
       await user.updatePhotoURL(null);
-    } on FirebaseException catch (e) {
-      throw 'Failed to remove profile photo: ${e.message ?? e.code}';
     } catch (e) {
-      rethrow;
+      throw 'Failed to remove profile photo: $e';
     }
   }
 

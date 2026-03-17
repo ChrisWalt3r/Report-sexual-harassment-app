@@ -187,7 +187,6 @@ class _FAQScreenState extends State<FAQScreen> {
       category: 'General',
     ),
   ];
-
   List<FAQItem> get _filteredFAQs {
     return _faqs.where((faq) {
       final matchesCategory = _selectedCategory == 'All' || faq.category == _selectedCategory;
@@ -200,19 +199,24 @@ class _FAQScreenState extends State<FAQScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
+      backgroundColor: isDark ? AppColors.darkBackground : Colors.white,
       appBar: AppBar(
-        backgroundColor: AppColors.mustBlue,
+        backgroundColor: AppColors.primaryGreen,
+        foregroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
+        toolbarHeight: 65,
         title: const Text(
           'Frequently Asked Questions',
-          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Colors.white, 
+            fontSize: 18, 
+            fontWeight: FontWeight.bold,
+          ),
         ),
+        centerTitle: true,
       ),
       body: Column(
         children: [
@@ -220,11 +224,7 @@ class _FAQScreenState extends State<FAQScreen> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
+              color: AppColors.primaryGreen,
               borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(24),
                 bottomRight: Radius.circular(24),
@@ -235,7 +235,7 @@ class _FAQScreenState extends State<FAQScreen> {
                 // Search bar
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? AppColors.darkSurface : Colors.white,
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
@@ -248,13 +248,24 @@ class _FAQScreenState extends State<FAQScreen> {
                   child: TextField(
                     controller: _searchController,
                     onChanged: (value) => setState(() => _searchQuery = value),
+                    style: TextStyle(
+                      color: isDark ? Colors.white : AppColors.textDark,
+                    ),
                     decoration: InputDecoration(
                       hintText: 'Search FAQs...',
-                      hintStyle: TextStyle(color: Colors.grey[400]),
-                      prefixIcon: const Icon(Icons.search, color: AppColors.mustBlue),
+                      hintStyle: TextStyle(
+                        color: isDark ? Colors.white54 : Colors.grey[400],
+                      ),
+                      prefixIcon: Icon(
+                        Icons.search, 
+                        color: AppColors.primaryGreen,
+                      ),
                       suffixIcon: _searchQuery.isNotEmpty
                           ? IconButton(
-                              icon: const Icon(Icons.clear, color: Colors.grey),
+                              icon: Icon(
+                                Icons.clear, 
+                                color: isDark ? Colors.white70 : Colors.grey,
+                              ),
                               onPressed: () {
                                 _searchController.clear();
                                 setState(() => _searchQuery = '');
@@ -282,21 +293,21 @@ class _FAQScreenState extends State<FAQScreen> {
                           label: Text(
                             category,
                             style: TextStyle(
-                              color: isSelected ? AppColors.mustBlue : Colors.white,
+                              color: isSelected ? Colors.white : (isDark ? Colors.white : Colors.black),
                               fontSize: 12,
                               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                             ),
                           ),
                           selected: isSelected,
                           onSelected: (_) => setState(() => _selectedCategory = category),
-                          backgroundColor: Colors.white.withOpacity(0.25),
-                          selectedColor: AppColors.mustGold,
+                          backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+                          selectedColor: AppColors.secondaryOrange, // Orange background for selected
                           showCheckmark: false,
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                             side: BorderSide(
-                              color: isSelected ? Colors.transparent : Colors.white.withOpacity(0.5),
+                              color: isSelected ? AppColors.secondaryOrange : AppColors.primaryGreen,
                               width: 1.5,
                             ),
                           ),
@@ -316,16 +327,27 @@ class _FAQScreenState extends State<FAQScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.search_off, size: 64, color: Colors.grey[300]),
+                        Icon(
+                          Icons.search_off, 
+                          size: 64, 
+                          color: isDark ? Colors.white30 : Colors.grey[300],
+                        ),
                         const SizedBox(height: 16),
                         Text(
                           'No FAQs found',
-                          style: TextStyle(fontSize: 16, color: Colors.grey[500], fontWeight: FontWeight.w500),
+                          style: TextStyle(
+                            fontSize: 16, 
+                            color: isDark ? Colors.white70 : Colors.grey[500], 
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'Try adjusting your search or category',
-                          style: TextStyle(fontSize: 13, color: Colors.grey[400]),
+                          style: TextStyle(
+                            fontSize: 13, 
+                            color: isDark ? Colors.white54 : Colors.grey[400],
+                          ),
                         ),
                       ],
                     ),
@@ -338,12 +360,11 @@ class _FAQScreenState extends State<FAQScreen> {
                     },
                   ),
           ),
-
           // Quick Actions Footer
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDark ? AppColors.darkSurface : Colors.white,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.05),
@@ -356,7 +377,10 @@ class _FAQScreenState extends State<FAQScreen> {
               children: [
                 Text(
                   'Can\'t find what you\'re looking for?',
-                  style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                  style: TextStyle(
+                    fontSize: 13, 
+                    color: isDark ? Colors.white70 : Colors.grey[600],
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Row(
@@ -364,11 +388,22 @@ class _FAQScreenState extends State<FAQScreen> {
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () => _navigateTo('chat'),
-                        icon: const Icon(Icons.chat_bubble_outline, size: 18),
-                        label: const Text('Ask AI'),
+                        icon: Icon(
+                          Icons.chat_bubble_outline, 
+                          size: 18,
+                          color: AppColors.primaryGreen,
+                        ),
+                        label: Text(
+                          'Ask AI',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primaryGreen, // Explicit color
+                          ),
+                        ),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.mustBlue,
-                          side: const BorderSide(color: AppColors.mustBlue),
+                          foregroundColor: AppColors.primaryGreen,
+                          side: const BorderSide(color: AppColors.primaryGreen, width: 2),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
@@ -378,13 +413,21 @@ class _FAQScreenState extends State<FAQScreen> {
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: () => _navigateTo('support'),
-                        icon: const Icon(Icons.support_agent, size: 18),
-                        label: const Text('Get Help'),
+                        icon: const Icon(Icons.support_agent, size: 18, color: Colors.white),
+                        label: const Text(
+                          'Get Help',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white, // Always white text on orange button
+                          ),
+                        ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.mustBlue,
+                          backgroundColor: AppColors.secondaryOrange,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          elevation: 0,
                         ),
                       ),
                     ),
@@ -397,30 +440,42 @@ class _FAQScreenState extends State<FAQScreen> {
       ),
     );
   }
-
   Widget _buildFAQCard(FAQItem faq) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? AppColors.darkSurface : Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.primaryGreen.withOpacity(0.3),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Theme(
-        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        data: Theme.of(context).copyWith(
+          dividerColor: Colors.transparent,
+          unselectedWidgetColor: isDark ? Colors.white : Colors.black,
+        ),
         child: ExpansionTile(
           tilePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
           childrenPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+          backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+          collapsedBackgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+          textColor: isDark ? Colors.white : Colors.black,
+          collapsedTextColor: isDark ? Colors.white : Colors.black,
           leading: Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: _getCategoryColor(faq.category).withOpacity(0.1),
+              color: _getCategoryColor(faq.category).withOpacity(0.2),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
@@ -431,37 +486,41 @@ class _FAQScreenState extends State<FAQScreen> {
           ),
           title: Text(
             faq.question,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF1A1A2E),
+              color: isDark ? Colors.white : Colors.black,
             ),
           ),
           subtitle: Container(
             margin: const EdgeInsets.only(top: 6),
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
-              color: _getCategoryColor(faq.category).withOpacity(0.1),
+              color: _getCategoryColor(faq.category).withOpacity(0.15),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
               faq.category,
               style: TextStyle(
                 fontSize: 10,
-                color: _getCategoryColor(faq.category),
+                color: isDark ? Colors.white : Colors.black,
                 fontWeight: FontWeight.w500,
               ),
             ),
           ),
-          iconColor: AppColors.mustBlue,
-          collapsedIconColor: Colors.grey[400],
+          iconColor: isDark ? Colors.white : Colors.black,
+          collapsedIconColor: isDark ? Colors.white : Colors.black,
           children: [
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.grey[50],
+                color: isDark ? AppColors.darkBackground : Colors.grey[50],
                 borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.primaryGreen.withOpacity(0.2),
+                  width: 1,
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -470,7 +529,7 @@ class _FAQScreenState extends State<FAQScreen> {
                     faq.answer,
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey[700],
+                      color: isDark ? Colors.white : Colors.black,
                       height: 1.6,
                     ),
                   ),
@@ -480,13 +539,21 @@ class _FAQScreenState extends State<FAQScreen> {
                       width: double.infinity,
                       child: ElevatedButton.icon(
                         onPressed: () => _navigateTo(faq.destinationScreen!),
-                        icon: Icon(_getActionIcon(faq.destinationScreen!), size: 18),
-                        label: Text(faq.actionLabel!),
+                        icon: const Icon(Icons.arrow_forward, size: 18, color: Colors.white),
+                        label: Text(
+                          faq.actionLabel!,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white, // Always white text on colored buttons
+                          ),
+                        ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _getCategoryColor(faq.category),
-                          foregroundColor: Colors.white,
+                          foregroundColor: Colors.white, // Always white foreground
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          elevation: 0,
                         ),
                       ),
                     ),
@@ -503,20 +570,19 @@ class _FAQScreenState extends State<FAQScreen> {
   Color _getCategoryColor(String category) {
     switch (category) {
       case 'Reporting':
-        return AppColors.mustGold;
+        return AppColors.secondaryOrange;
       case 'Privacy & Anonymity':
-        return Colors.green;
+        return AppColors.primaryGreen;
       case 'Tracking':
-        return Colors.teal;
+        return AppColors.royalBlue;
       case 'Support':
-        return Colors.purple;
+        return AppColors.maroon;
       case 'General':
-        return AppColors.mustBlue;
+        return AppColors.primaryGreen;
       default:
-        return AppColors.mustBlue;
+        return AppColors.primaryGreen;
     }
   }
-
   IconData _getCategoryIcon(String category) {
     switch (category) {
       case 'Reporting':

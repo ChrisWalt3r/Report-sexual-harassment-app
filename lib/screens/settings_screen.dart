@@ -12,9 +12,11 @@ import '../widgets/settings_tile.dart';
 import 'login_screen.dart';
 import 'pin_setup_screen.dart';
 import 'profile_screen.dart';
-import 'onboarding_screen.dart';
+import 'welcome_screen.dart';
 import 'home_screen.dart';
 import 'faq_screen.dart';
+import 'privacy_screen.dart';
+import 'terms_of_service_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -67,18 +69,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: isDark ? AppColors.darkBackground : Colors.white,
       appBar: AppBar(
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
+        backgroundColor: AppColors.primaryGreen,
+        foregroundColor: Colors.white,
+        toolbarHeight: 65,
         elevation: 0,
         title: Text('Settings', style: AppStyles.heading2.copyWith(color: Colors.white)),
       ),
@@ -112,6 +110,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildUserProfileCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final photoUrl =
         _userData?['photoUrl'] ?? _authService.currentUser?.photoURL;
 
@@ -121,11 +120,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         margin: const EdgeInsets.symmetric(horizontal: 16),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: isDark ? AppColors.darkSurface : AppColors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -138,12 +137,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Container(
                   width: 56,
                   height: 56,
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [AppColors.mustGold, AppColors.mustGoldLight],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryGreen,
                     shape: BoxShape.circle,
                   ),
                   child: ClipOval(
@@ -178,7 +173,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     width: 14,
                     height: 14,
                     decoration: BoxDecoration(
-                      color: AppColors.onlineGreen,
+                      color: AppColors.primaryGreen,
                       shape: BoxShape.circle,
                       border: Border.all(color: AppColors.white, width: 2),
                     ),
@@ -194,7 +189,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       width: 18,
                       height: 18,
                       decoration: BoxDecoration(
-                        color: AppColors.mustBlue,
+                        color: AppColors.royalBlue,
                         shape: BoxShape.circle,
                         border: Border.all(color: AppColors.white, width: 2),
                       ),
@@ -265,8 +260,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             SettingsTileWithSwitch(
               icon: Icons.notifications,
-              iconBackgroundColor: AppColors.mustBlue.withOpacity(0.1),
-              iconColor: AppColors.mustBlue,
+              iconBackgroundColor: AppColors.primaryGreen.withOpacity(0.1),
+              iconColor: AppColors.primaryGreen,
               title: 'Notifications',
               value: _notificationsEnabled,
               onChanged: (value) {
@@ -275,15 +270,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             SettingsTileWithChevron(
               icon: Icons.lock,
-              iconBackgroundColor: AppColors.mustGreen.withOpacity(0.1),
-              iconColor: AppColors.mustGreen,
+              iconBackgroundColor: AppColors.royalBlue.withOpacity(0.1),
+              iconColor: AppColors.royalBlue,
               title: 'Change Password',
               onTap: _showChangePasswordDialog,
             ),
             SettingsTileWithValue(
               icon: Icons.language,
-              iconBackgroundColor: AppColors.mustBlue.withOpacity(0.1),
-              iconColor: AppColors.mustBlue,
+              iconBackgroundColor: AppColors.secondaryOrange.withOpacity(0.1),
+              iconColor: AppColors.secondaryOrange,
               title: 'Language',
               value: 'English',
               onTap: () {},
@@ -316,8 +311,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 SettingsTileWithValue(
                   icon: themeService.themeModeIcon,
-                  iconBackgroundColor: AppColors.mustGold.withOpacity(0.15),
-                  iconColor: AppColors.mustGold,
+                  iconBackgroundColor: AppColors.secondaryOrange.withOpacity(0.1),
+                  iconColor: AppColors.secondaryOrange,
                   title: 'Theme',
                   value: themeService.themeModeLabel,
                   onTap: () => _showThemeSelectionDialog(themeService),
@@ -331,65 +326,131 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showThemeSelectionDialog(ThemeService themeService) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Choose Theme'),
+        backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+        title: Text(
+          'Choose Theme',
+          style: TextStyle(
+            color: isDark ? Colors.white : AppColors.textDark,
+          ),
+        ),
+        contentPadding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            RadioListTile<ThemeMode>(
-              title: const Row(
-                children: [
-                  Icon(Icons.brightness_auto, size: 20),
-                  SizedBox(width: 12),
-                  Text('System Default'),
-                ],
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(
+                Icons.brightness_auto, 
+                size: 20,
+                color: isDark ? Colors.white : AppColors.textDark,
               ),
-              subtitle: const Text('Follows your device settings'),
-              value: ThemeMode.system,
-              groupValue: themeService.themeMode,
-              onChanged: (value) {
-                if (value != null) {
-                  themeService.setThemeMode(value);
-                  Navigator.pop(context);
-                }
+              title: Text(
+                'System Default', 
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isDark ? Colors.white : AppColors.textDark,
+                ),
+              ),
+              subtitle: Text(
+                'Follows device settings', 
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? Colors.white70 : AppColors.textSecondary,
+                ),
+              ),
+              trailing: Radio<ThemeMode>(
+                value: ThemeMode.system,
+                groupValue: themeService.themeMode,
+                activeColor: AppColors.primaryGreen,
+                onChanged: (value) {
+                  if (value != null) {
+                    themeService.setThemeMode(value);
+                    Navigator.pop(context);
+                  }
+                },
+              ),
+              onTap: () {
+                themeService.setThemeMode(ThemeMode.system);
+                Navigator.pop(context);
               },
             ),
-            RadioListTile<ThemeMode>(
-              title: const Row(
-                children: [
-                  Icon(Icons.light_mode, size: 20),
-                  SizedBox(width: 12),
-                  Text('Light'),
-                ],
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(
+                Icons.light_mode, 
+                size: 20,
+                color: isDark ? Colors.white : AppColors.textDark,
               ),
-              subtitle: const Text('Always use light theme'),
-              value: ThemeMode.light,
-              groupValue: themeService.themeMode,
-              onChanged: (value) {
-                if (value != null) {
-                  themeService.setThemeMode(value);
-                  Navigator.pop(context);
-                }
+              title: Text(
+                'Light', 
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isDark ? Colors.white : AppColors.textDark,
+                ),
+              ),
+              subtitle: Text(
+                'Always use light theme', 
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? Colors.white70 : AppColors.textSecondary,
+                ),
+              ),
+              trailing: Radio<ThemeMode>(
+                value: ThemeMode.light,
+                groupValue: themeService.themeMode,
+                activeColor: AppColors.primaryGreen,
+                onChanged: (value) {
+                  if (value != null) {
+                    themeService.setThemeMode(value);
+                    Navigator.pop(context);
+                  }
+                },
+              ),
+              onTap: () {
+                themeService.setThemeMode(ThemeMode.light);
+                Navigator.pop(context);
               },
             ),
-            RadioListTile<ThemeMode>(
-              title: const Row(
-                children: [
-                  Icon(Icons.dark_mode, size: 20),
-                  SizedBox(width: 12),
-                  Text('Dark'),
-                ],
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(
+                Icons.dark_mode, 
+                size: 20,
+                color: isDark ? Colors.white : AppColors.textDark,
               ),
-              subtitle: const Text('Always use dark theme'),
-              value: ThemeMode.dark,
-              groupValue: themeService.themeMode,
-              onChanged: (value) {
-                if (value != null) {
-                  themeService.setThemeMode(value);
-                  Navigator.pop(context);
-                }
+              title: Text(
+                'Dark', 
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isDark ? Colors.white : AppColors.textDark,
+                ),
+              ),
+              subtitle: Text(
+                'Always use dark theme', 
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? Colors.white70 : AppColors.textSecondary,
+                ),
+              ),
+              trailing: Radio<ThemeMode>(
+                value: ThemeMode.dark,
+                groupValue: themeService.themeMode,
+                activeColor: AppColors.primaryGreen,
+                onChanged: (value) {
+                  if (value != null) {
+                    themeService.setThemeMode(value);
+                    Navigator.pop(context);
+                  }
+                },
+              ),
+              onTap: () {
+                themeService.setThemeMode(ThemeMode.dark);
+                Navigator.pop(context);
               },
             ),
           ],
@@ -397,6 +458,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.primaryGreen,
+            ),
             child: const Text('Cancel'),
           ),
         ],
@@ -426,8 +490,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 SettingsTileWithSwitch(
                   icon: Icons.pin,
-                  iconBackgroundColor: AppColors.mustGold.withOpacity(0.15),
-                  iconColor: AppColors.mustGold,
+                  iconBackgroundColor: AppColors.secondaryOrange.withOpacity(0.1),
+                  iconColor: AppColors.secondaryOrange,
                   title: 'PIN Protection',
                   value: securityService.isPinEnabled,
                   onChanged: (value) async {
@@ -479,8 +543,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 if (securityService.isPinEnabled)
                   SettingsTileWithChevron(
                     icon: Icons.edit,
-                    iconBackgroundColor: AppColors.mustBlue.withOpacity(0.1),
-                    iconColor: AppColors.mustBlue,
+                    iconBackgroundColor: AppColors.royalBlue.withOpacity(0.1),
+                    iconColor: AppColors.royalBlue,
                     title: 'Change PIN',
                     onTap: () {
                       Navigator.push(
@@ -493,8 +557,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 SettingsTileWithSwitch(
                   icon: Icons.timer,
-                  iconBackgroundColor: AppColors.mustGreen.withOpacity(0.1),
-                  iconColor: AppColors.mustGreen,
+                  iconBackgroundColor: AppColors.primaryGreen.withOpacity(0.1),
+                  iconColor: AppColors.primaryGreen,
                   title: 'Auto Logout',
                   subtitle: securityService.isAutoLogoutEnabled
                       ? 'After ${securityService.autoLogoutMinutes} minutes'
@@ -616,15 +680,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             SettingsTileWithChevron(
               icon: Icons.play_circle_outline,
-              iconBackgroundColor: Colors.green.withOpacity(0.15),
-              iconColor: Colors.green,
+              iconBackgroundColor: AppColors.primaryGreen.withOpacity(0.1),
+              iconColor: AppColors.primaryGreen,
               title: 'App Guide',
               onTap: _showAppGuideOptions,
             ),
             SettingsTileWithChevron(
               icon: Icons.quiz_outlined,
-              iconBackgroundColor: Colors.deepPurple.withOpacity(0.15),
-              iconColor: Colors.deepPurple,
+              iconBackgroundColor: AppColors.royalBlue.withOpacity(0.1),
+              iconColor: AppColors.royalBlue,
               title: 'FAQs',
               onTap: () => Navigator.push(
                 context,
@@ -632,25 +696,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             SettingsTileWithChevron(
-              icon: Icons.help_outline,
-              iconBackgroundColor: AppColors.mustGold.withOpacity(0.15),
-              iconColor: AppColors.mustGold,
-              title: 'Help & Support',
-              onTap: () {},
-            ),
-            SettingsTileWithChevron(
               icon: Icons.shield_outlined,
-              iconBackgroundColor: AppColors.mustBlue.withOpacity(0.1),
-              iconColor: AppColors.mustBlue,
+              iconBackgroundColor: AppColors.royalBlue.withOpacity(0.1),
+              iconColor: AppColors.royalBlue,
               title: 'Privacy Policy',
-              onTap: () {},
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const PrivacyScreen()),
+              ),
             ),
             SettingsTileWithChevron(
               icon: Icons.description_outlined,
-              iconBackgroundColor: AppColors.mustBlue.withOpacity(0.05),
-              iconColor: AppColors.mustBlueMedium,
+              iconBackgroundColor: AppColors.primaryGreen.withOpacity(0.1),
+              iconColor: AppColors.primaryGreen,
               title: 'Terms of Service',
-              onTap: () {},
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const TermsOfServiceScreen()),
+              ),
             ),
           ],
         ),
@@ -675,10 +738,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.1),
+                    color: AppColors.primaryGreen.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.school, color: Colors.green, size: 24),
+                  child: const Icon(Icons.school, color: AppColors.primaryGreen, size: 24),
                 ),
                 const SizedBox(width: 14),
                 const Expanded(
@@ -703,10 +766,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               leading: Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppColors.mustBlue.withOpacity(0.1),
+                  color: AppColors.royalBlue.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.slideshow, color: AppColors.mustBlue, size: 22),
+                child: const Icon(Icons.slideshow, color: AppColors.royalBlue, size: 22),
               ),
               title: const Text('Watch Introduction', style: TextStyle(fontWeight: FontWeight.w600)),
               subtitle: const Text('Full onboarding tutorial', style: TextStyle(fontSize: 12)),
@@ -721,10 +784,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               leading: Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppColors.mustGold.withOpacity(0.1),
+                  color: AppColors.secondaryOrange.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.touch_app, color: AppColors.mustGold, size: 22),
+                child: const Icon(Icons.touch_app, color: AppColors.secondaryOrange, size: 22),
               ),
               title: const Text('Feature Highlights', style: TextStyle(fontWeight: FontWeight.w600)),
               subtitle: const Text('Quick tour of main features', style: TextStyle(fontSize: 12)),
@@ -746,9 +809,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => OnboardingScreen(
-          userId: user?.uid ?? '',
-        ),
+        builder: (context) => const WelcomeScreen(),
       ),
     );
   }
@@ -910,9 +971,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               title: Row(
                 children: [
-                  Icon(Icons.info_outline, color: AppColors.mustBlue, size: 28),
-                  const SizedBox(width: 12),
-                  const Text('Password Not Available'),
+                  Icon(Icons.info_outline, color: AppColors.royalBlue, size: 20),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'No Password',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
                 ],
               ),
               content: const Text(
@@ -929,7 +995,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _showPasswordResetDialog();
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.mustBlue,
+                    backgroundColor: AppColors.royalBlue,
                     foregroundColor: Colors.white,
                   ),
                   child: const Text('Reset Password'),
@@ -962,11 +1028,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   children: [
                     Icon(
                       Icons.lock_outline,
-                      color: AppColors.mustBlue,
-                      size: 28,
+                      color: AppColors.royalBlue,
+                      size: 18,
                     ),
-                    const SizedBox(width: 12),
-                    const Text('Change Password'),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        'Change Password',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
                   ],
                 ),
                 content: SingleChildScrollView(
@@ -1146,7 +1217,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               }
                             },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.mustBlue,
+                      backgroundColor: AppColors.royalBlue,
                       foregroundColor: Colors.white,
                     ),
                     child:
@@ -1195,7 +1266,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             title: Row(
               children: [
-                Icon(Icons.lock_reset, color: AppColors.mustBlue, size: 28),
+                Icon(Icons.lock_reset, color: AppColors.royalBlue, size: 28),
                 const SizedBox(width: 12),
                 const Text('Reset Password'),
               ],
@@ -1231,7 +1302,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Navigator.pop(dialogContext, value);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.mustBlue,
+                  backgroundColor: AppColors.royalBlue,
                   foregroundColor: Colors.white,
                 ),
                 child: const Text('Send Reset Link'),

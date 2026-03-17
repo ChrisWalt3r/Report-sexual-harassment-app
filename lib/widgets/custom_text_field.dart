@@ -76,15 +76,15 @@ class CustomTextField extends StatelessWidget {
               suffixIcon: suffixIcon,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.borderLight),
+                borderSide: const BorderSide(color: AppColors.primaryGreen), // Lime green border
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.borderLight),
+                borderSide: const BorderSide(color: AppColors.primaryGreen), // Lime green enabled
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.primaryBlue, width: 2),
+                borderSide: const BorderSide(color: AppColors.primaryGreen, width: 2), // Lime green focus
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
