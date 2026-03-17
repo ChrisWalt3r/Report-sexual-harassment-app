@@ -143,7 +143,7 @@ class _UsersManagementScreenState extends State<UsersManagementScreen> {
           // Search Bar
           Container(
             padding: const EdgeInsets.all(16),
-            color: Colors.white,
+            color: AppColors.background,
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
@@ -176,7 +176,9 @@ class _UsersManagementScreenState extends State<UsersManagementScreen> {
                 }
 
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                    child: CircularProgressIndicator(color: AppColors.primaryGreen),
+                  );
                 }
 
                 final users = snapshot.data!.docs.where((doc) {
@@ -193,8 +195,15 @@ class _UsersManagementScreenState extends State<UsersManagementScreen> {
                 }).toList();
 
                 if (users.isEmpty) {
-                  return const Center(
-                    child: Text('No users found'),
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.people_outline, size: 52, color: Colors.grey[350]),
+                        const SizedBox(height: 10),
+                        Text('No users found', style: TextStyle(color: Colors.grey[600], fontSize: 15)),
+                      ],
+                    ),
                   );
                 }
 
@@ -208,9 +217,10 @@ class _UsersManagementScreenState extends State<UsersManagementScreen> {
 
                     return Card(
                       margin: const EdgeInsets.only(bottom: 12),
-                      elevation: 2,
+                      elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
+                        side: const BorderSide(color: AppColors.borderLight),
                       ),
                       child: ListTile(
                         contentPadding: const EdgeInsets.symmetric(
@@ -219,7 +229,7 @@ class _UsersManagementScreenState extends State<UsersManagementScreen> {
                         ),
                         leading: CircleAvatar(
                           backgroundColor: isActive
-                              ? AppColors.mustBlue
+                              ? AppColors.primaryGreen
                               : Colors.grey,
                           child: Text(
                             (data['fullName'] ?? 'U')[0].toUpperCase(),
@@ -336,15 +346,10 @@ class _UsersManagementScreenState extends State<UsersManagementScreen> {
     if (widget.embedded) return _buildBody();
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('User Management', style: TextStyle(fontWeight: FontWeight.bold)),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
-            ),
-          ),
-        ),
+        backgroundColor: AppColors.primaryGreen,
         foregroundColor: Colors.white,
         elevation: 0,
       ),

@@ -22,13 +22,13 @@ class ReportsManagementScreen extends StatefulWidget {
 class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
   final _firestore = FirebaseFirestore.instance;
   final _searchController = TextEditingController();
-  final String _searchQuery = '';
-  final String _selectedStatus = 'all';
-  final String _selectedFaculty = 'all';
-  final String _selectedDepartment = 'all';
-  final String _selectedRole = 'all';
-  final String _selectedStudyLevel = 'all';
-  final bool _anonymousOnly = false;
+  String _searchQuery = '';
+  String _selectedStatus = 'all';
+  String _selectedFaculty = 'all';
+  String _selectedDepartment = 'all';
+  String _selectedRole = 'all';
+  String _selectedStudyLevel = 'all';
+  bool _anonymousOnly = false;
   DateTimeRange? _dateRange;
 
   // Cached user data for filtering
@@ -85,9 +85,9 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
 
   final Map<String, Color> _statusColors = {
     'pending': Colors.orange,
-    'submitted': AppColors.mustBlue,
-    'under_review': AppColors.mustGold,
-    'investigating': AppColors.mustBlueMedium,
+    'submitted': AppColors.primaryGreen,
+    'under_review': AppColors.secondaryOrange,
+    'investigating': AppColors.primaryDark,
     'resolved': AppColors.mustGreen,
     'closed': Colors.grey,
   };
@@ -366,11 +366,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                       Container(
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
+                          color: AppColors.primaryGreen,
                           borderRadius: const BorderRadius.only(
                             topLeft: Radius.circular(20),
                             topRight: Radius.circular(20),
@@ -480,7 +476,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                               _buildDetailCard(
                                                 'Report Information',
                                                 Icons.info_outline,
-                                                AppColors.mustBlue,
+                                                AppColors.primaryGreen,
                                                 [
                                                   _buildDetailRow('Report ID', reportDoc.id),
                                                   _buildDetailRow('Type', data['type'] ?? 'N/A'),
@@ -505,7 +501,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                                 _buildDetailCard(
                                                   'Reporter Information',
                                                   Icons.person_outline,
-                                                  AppColors.mustGold,
+                                                  AppColors.secondaryOrange,
                                                   [
                                                     _buildDetailRow('Full Name', userData?['fullName'] ?? data['reporterName'] ?? 'N/A'),
                                                     _buildDetailRow('Email', userData?['email'] ?? data['reporterEmail'] ?? 'N/A'),
@@ -558,7 +554,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                       _buildDetailCard(
                                         'Report Information',
                                         Icons.info_outline,
-                                        AppColors.mustBlue,
+                                        AppColors.primaryGreen,
                                         [
                                           _buildDetailRow('Report ID', reportDoc.id),
                                           _buildDetailRow('Type', data['type'] ?? 'N/A'),
@@ -578,7 +574,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                         _buildDetailCard(
                                           'Reporter Information',
                                           Icons.person_outline,
-                                          AppColors.mustGold,
+                                          AppColors.secondaryOrange,
                                           [
                                             _buildDetailRow('Full Name', userData?['fullName'] ?? data['reporterName'] ?? 'N/A'),
                                             _buildDetailRow('Email', userData?['email'] ?? data['reporterEmail'] ?? 'N/A'),
@@ -638,7 +634,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                               _buildDetailCard(
                                 'Incident Description',
                                 Icons.description_outlined,
-                                AppColors.mustBlueMedium,
+                                AppColors.primaryDark,
                                 [
                                   Container(
                                     width: double.infinity,
@@ -729,7 +725,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                                               return Container(
                                                                 width: 180, height: 200,
                                                                 color: Colors.grey[100],
-                                                                child: Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.mustGold)),
+                                                                child: Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.secondaryOrange)),
                                                               );
                                                             },
                                                             errorBuilder: (context, error, stack) => Container(
@@ -779,7 +775,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                       const SizedBox(height: 16),
                                     ],
 
-                                    if (videoUrls.isNotEmpty)
+                                    if (videoUrls.isNotEmpty) ...[
                                       _buildDetailCard(
                                         'Video Evidence (${videoUrls.length})',
                                         Icons.videocam_outlined,
@@ -833,65 +829,66 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                           }),
                                         ],
                                       ),
-                                            ),
-                                          )
-                                        }),
-                                      ]),
                                       const SizedBox(height: 20),
                                     ],
 
                                     // Audio Evidence
                                     if (audioUrls.isNotEmpty) ...[
-                                      _buildDetailSection('Audio Evidence (${audioUrls.length})', [
-                                        ...audioUrls.asMap().entries.map((entry) {
-                                          final audioUrl = entry.value;
-                                          final audioNum = entry.key + 1;
-                                          return Padding(
-                                            padding: const EdgeInsets.only(bottom: 8),
-                                            child: InkWell(
-                                              onTap: () async {
-                                                final uri = Uri.parse(audioUrl);
-                                                if (await canLaunchUrl(uri)) {
-                                                  await launchUrl(uri, mode: LaunchMode.externalApplication);
-                                                }
-                                              },
-                                              borderRadius: BorderRadius.circular(10),
-                                              child: Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.deepPurple.withOpacity(0.05),
-                                                  borderRadius: BorderRadius.circular(10),
-                                                  border: Border.all(color: Colors.deepPurple.withOpacity(0.2)),
-                                                ),
-                                                child: Row(
-                                                  children: [
-                                                    Container(
-                                                      padding: const EdgeInsets.all(8),
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.deepPurple.withOpacity(0.1),
-                                                        borderRadius: BorderRadius.circular(8),
+                                      _buildDetailCard(
+                                        'Audio Evidence (${audioUrls.length})',
+                                        Icons.headphones_rounded,
+                                        Colors.deepPurple,
+                                        [
+                                          ...audioUrls.asMap().entries.map((entry) {
+                                            final audioUrl = entry.value;
+                                            final audioNum = entry.key + 1;
+                                            return Padding(
+                                              padding: const EdgeInsets.only(bottom: 8),
+                                              child: InkWell(
+                                                onTap: () async {
+                                                  final uri = Uri.parse(audioUrl);
+                                                  if (await canLaunchUrl(uri)) {
+                                                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                                  }
+                                                },
+                                                borderRadius: BorderRadius.circular(10),
+                                                child: Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.deepPurple.withOpacity(0.05),
+                                                    borderRadius: BorderRadius.circular(10),
+                                                    border: Border.all(color: Colors.deepPurple.withOpacity(0.2)),
+                                                  ),
+                                                  child: Row(
+                                                    children: [
+                                                      Container(
+                                                        padding: const EdgeInsets.all(8),
+                                                        decoration: BoxDecoration(
+                                                          color: Colors.deepPurple.withOpacity(0.1),
+                                                          borderRadius: BorderRadius.circular(8),
+                                                        ),
+                                                        child: const Icon(Icons.headphones_rounded, color: Colors.deepPurple, size: 22),
                                                       ),
-                                                      child: const Icon(Icons.headphones_rounded, color: Colors.deepPurple, size: 22),
-                                                    ),
-                                                    const SizedBox(width: 12),
-                                                    Expanded(
-                                                      child: Column(
-                                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                                        children: [
-                                                          Text('Audio $audioNum', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                                                          const SizedBox(height: 2),
-                                                          Text('Tap to listen in browser', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
-                                                        ],
+                                                      const SizedBox(width: 12),
+                                                      Expanded(
+                                                        child: Column(
+                                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                                          children: [
+                                                            Text('Audio $audioNum', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                                                            const SizedBox(height: 2),
+                                                            Text('Tap to listen in browser', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                                                          ],
+                                                        ),
                                                       ),
-                                                    ),
-                                                    Icon(Icons.open_in_new, color: Colors.deepPurple.withOpacity(0.6), size: 20),
-                                                  ],
+                                                      Icon(Icons.open_in_new, color: Colors.deepPurple.withOpacity(0.6), size: 20),
+                                                    ],
+                                                  ),
                                                 ),
                                               ),
-                                            ),
-                                          );
-                                        }),
-                                      ]),
+                                            );
+                                          }),
+                                        ],
+                                      ),
                                       const SizedBox(height: 20),
                                     ],
                                   ],
@@ -962,15 +959,15 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                           Container(
                                             padding: const EdgeInsets.all(8),
                                             decoration: BoxDecoration(
-                                              color: AppColors.mustBlue.withOpacity(0.1),
+                                              color: AppColors.primaryGreen.withOpacity(0.1),
                                               borderRadius: BorderRadius.circular(8),
                                             ),
-                                            child: Icon(Icons.edit_note, color: AppColors.mustBlue, size: 20),
+                                            child: Icon(Icons.edit_note, color: AppColors.primaryGreen, size: 20),
                                           ),
                                           const SizedBox(width: 12),
                                           const Text(
                                             'Update Status',
-                                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.mustBlue),
+                                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primaryGreen),
                                           ),
                                         ],
                                       ),
@@ -1014,7 +1011,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                     ],
                   ),
                 ),
-              )
+              );
             },
           ),
     );
@@ -1118,14 +1115,14 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: AppColors.mustGold.withOpacity(0.1),
+                color: AppColors.secondaryOrange.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.mustGold.withOpacity(0.3)),
+                border: Border.all(color: AppColors.secondaryOrange.withOpacity(0.3)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.vpn_key, size: 16, color: AppColors.mustGold),
+                  Icon(Icons.vpn_key, size: 16, color: AppColors.secondaryOrange),
                   const SizedBox(width: 8),
                   Flexible(
                     child: SelectableText(
@@ -1134,7 +1131,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         fontFamily: 'monospace',
-                        color: AppColors.mustBlue,
+                        color: AppColors.primaryGreen,
                       ),
                     ),
                   ),
@@ -1183,7 +1180,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                         value: progress.expectedTotalBytes != null
                             ? progress.cumulativeBytesLoaded / progress.expectedTotalBytes!
                             : null,
-                        color: AppColors.mustGold,
+                        color: AppColors.secondaryOrange,
                       ),
                     );
                   },
@@ -1256,9 +1253,9 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
           colorScheme: const ColorScheme.light(
-            primary: AppColors.mustBlue,
+            primary: AppColors.primaryGreen,
             onPrimary: Colors.white,
-            secondary: AppColors.mustGold,
+            secondary: AppColors.secondaryOrange,
           ),
         ),
         child: child!,
@@ -1308,7 +1305,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.background,
             boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 4, offset: const Offset(0, 2))],
           ),
           child: Column(
@@ -1323,7 +1320,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                       ? IconButton(icon: const Icon(Icons.clear, size: 20), onPressed: () { _searchController.clear(); setState(() => _searchQuery = ''); })
                       : null,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[300]!)),
-                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.mustBlue, width: 2)),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primaryGreen, width: 2)),
                   filled: true,
                   fillColor: Colors.grey[50],
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -1341,16 +1338,16 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: _selectedStatus != 'all' ? AppColors.mustGold.withOpacity(0.1) : Colors.grey[100],
+                        color: _selectedStatus != 'all' ? AppColors.secondaryOrange.withOpacity(0.1) : Colors.grey[100],
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: _selectedStatus != 'all' ? AppColors.mustGold : Colors.grey[300]!),
+                        border: Border.all(color: _selectedStatus != 'all' ? AppColors.secondaryOrange : Colors.grey[300]!),
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           value: _selectedStatus,
                           isDense: true,
                           icon: const Icon(Icons.arrow_drop_down, size: 20),
-                          style: TextStyle(fontSize: 13, color: _selectedStatus != 'all' ? AppColors.mustBlue : Colors.grey[700], fontWeight: _selectedStatus != 'all' ? FontWeight.w600 : FontWeight.normal),
+                          style: TextStyle(fontSize: 13, color: _selectedStatus != 'all' ? AppColors.primaryGreen : Colors.grey[700], fontWeight: _selectedStatus != 'all' ? FontWeight.w600 : FontWeight.normal),
                           items: _statusLabels.entries.map((e) => DropdownMenuItem(value: e.key, child: Text(e.value))).toList(),
                           onChanged: (val) => setState(() => _selectedStatus = val ?? 'all'),
                         ),
@@ -1362,16 +1359,16 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: _selectedFaculty != 'all' ? AppColors.mustGold.withOpacity(0.1) : Colors.grey[100],
+                        color: _selectedFaculty != 'all' ? AppColors.secondaryOrange.withOpacity(0.1) : Colors.grey[100],
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: _selectedFaculty != 'all' ? AppColors.mustGold : Colors.grey[300]!),
+                        border: Border.all(color: _selectedFaculty != 'all' ? AppColors.secondaryOrange : Colors.grey[300]!),
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           value: _selectedFaculty,
                           isDense: true,
                           icon: const Icon(Icons.arrow_drop_down, size: 20),
-                          style: TextStyle(fontSize: 13, color: _selectedFaculty != 'all' ? AppColors.mustBlue : Colors.grey[700], fontWeight: _selectedFaculty != 'all' ? FontWeight.w600 : FontWeight.normal),
+                          style: TextStyle(fontSize: 13, color: _selectedFaculty != 'all' ? AppColors.primaryGreen : Colors.grey[700], fontWeight: _selectedFaculty != 'all' ? FontWeight.w600 : FontWeight.normal),
                           items: [
                             const DropdownMenuItem(value: 'all', child: Text('All Faculties')),
                             ..._faculties.map((f) => DropdownMenuItem(value: f, child: Text(f.replaceAll('Faculty of ', 'F. ')))),
@@ -1391,16 +1388,16 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: _selectedDepartment != 'all' ? AppColors.mustGold.withOpacity(0.1) : Colors.grey[100],
+                        color: _selectedDepartment != 'all' ? AppColors.secondaryOrange.withOpacity(0.1) : Colors.grey[100],
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: _selectedDepartment != 'all' ? AppColors.mustGold : Colors.grey[300]!),
+                        border: Border.all(color: _selectedDepartment != 'all' ? AppColors.secondaryOrange : Colors.grey[300]!),
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           value: _selectedDepartment,
                           isDense: true,
                           icon: const Icon(Icons.arrow_drop_down, size: 20),
-                          style: TextStyle(fontSize: 13, color: _selectedDepartment != 'all' ? AppColors.mustBlue : Colors.grey[700], fontWeight: _selectedDepartment != 'all' ? FontWeight.w600 : FontWeight.normal),
+                          style: TextStyle(fontSize: 13, color: _selectedDepartment != 'all' ? AppColors.primaryGreen : Colors.grey[700], fontWeight: _selectedDepartment != 'all' ? FontWeight.w600 : FontWeight.normal),
                           items: [
                             const DropdownMenuItem(value: 'all', child: Text('All Departments')),
                             ..._availableDepartments.map((d) => DropdownMenuItem(value: d, child: Text(d.length > 20 ? '${d.substring(0, 18)}...' : d))),
@@ -1415,16 +1412,16 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: _selectedRole != 'all' ? AppColors.mustGold.withOpacity(0.1) : Colors.grey[100],
+                        color: _selectedRole != 'all' ? AppColors.secondaryOrange.withOpacity(0.1) : Colors.grey[100],
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: _selectedRole != 'all' ? AppColors.mustGold : Colors.grey[300]!),
+                        border: Border.all(color: _selectedRole != 'all' ? AppColors.secondaryOrange : Colors.grey[300]!),
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           value: _selectedRole,
                           isDense: true,
                           icon: const Icon(Icons.arrow_drop_down, size: 20),
-                          style: TextStyle(fontSize: 13, color: _selectedRole != 'all' ? AppColors.mustBlue : Colors.grey[700], fontWeight: _selectedRole != 'all' ? FontWeight.w600 : FontWeight.normal),
+                          style: TextStyle(fontSize: 13, color: _selectedRole != 'all' ? AppColors.primaryGreen : Colors.grey[700], fontWeight: _selectedRole != 'all' ? FontWeight.w600 : FontWeight.normal),
                           items: [
                             const DropdownMenuItem(value: 'all', child: Text('All Roles')),
                             ..._roles.map((r) => DropdownMenuItem(value: r, child: Text(r))),
@@ -1439,16 +1436,16 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: _selectedStudyLevel != 'all' ? AppColors.mustGold.withOpacity(0.1) : Colors.grey[100],
+                        color: _selectedStudyLevel != 'all' ? AppColors.secondaryOrange.withOpacity(0.1) : Colors.grey[100],
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: _selectedStudyLevel != 'all' ? AppColors.mustGold : Colors.grey[300]!),
+                        border: Border.all(color: _selectedStudyLevel != 'all' ? AppColors.secondaryOrange : Colors.grey[300]!),
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           value: _selectedStudyLevel,
                           isDense: true,
                           icon: const Icon(Icons.arrow_drop_down, size: 20),
-                          style: TextStyle(fontSize: 13, color: _selectedStudyLevel != 'all' ? AppColors.mustBlue : Colors.grey[700], fontWeight: _selectedStudyLevel != 'all' ? FontWeight.w600 : FontWeight.normal),
+                          style: TextStyle(fontSize: 13, color: _selectedStudyLevel != 'all' ? AppColors.primaryGreen : Colors.grey[700], fontWeight: _selectedStudyLevel != 'all' ? FontWeight.w600 : FontWeight.normal),
                           items: [
                             const DropdownMenuItem(value: 'all', child: Text('All Study Levels')),
                             ..._studyLevels.map((l) => DropdownMenuItem(value: l, child: Text(l))),
@@ -1474,18 +1471,18 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
-                          color: _dateRange != null ? AppColors.mustGold.withOpacity(0.1) : Colors.grey[100],
+                          color: _dateRange != null ? AppColors.secondaryOrange.withOpacity(0.1) : Colors.grey[100],
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: _dateRange != null ? AppColors.mustGold : Colors.grey[300]!),
+                          border: Border.all(color: _dateRange != null ? AppColors.secondaryOrange : Colors.grey[300]!),
                         ),
                         child: Row(children: [
-                          Icon(Icons.calendar_today, size: 16, color: _dateRange != null ? AppColors.mustBlue : Colors.grey[600]),
+                          Icon(Icons.calendar_today, size: 16, color: _dateRange != null ? AppColors.primaryGreen : Colors.grey[600]),
                           const SizedBox(width: 6),
                           Text(
                             _dateRange != null
                                 ? '${DateFormat('MMM d').format(_dateRange!.start)} - ${DateFormat('MMM d').format(_dateRange!.end)}'
                                 : 'Date Range',
-                            style: TextStyle(fontSize: 13, color: _dateRange != null ? AppColors.mustBlue : Colors.grey[600], fontWeight: _dateRange != null ? FontWeight.w600 : FontWeight.normal),
+                            style: TextStyle(fontSize: 13, color: _dateRange != null ? AppColors.primaryGreen : Colors.grey[600], fontWeight: _dateRange != null ? FontWeight.w600 : FontWeight.normal),
                           ),
                         ]),
                       ),
@@ -1499,14 +1496,14 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
-                          color: _anonymousOnly ? AppColors.mustGold.withOpacity(0.1) : Colors.grey[100],
+                          color: _anonymousOnly ? AppColors.secondaryOrange.withOpacity(0.1) : Colors.grey[100],
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: _anonymousOnly ? AppColors.mustGold : Colors.grey[300]!),
+                          border: Border.all(color: _anonymousOnly ? AppColors.secondaryOrange : Colors.grey[300]!),
                         ),
                         child: Row(children: [
-                          Icon(Icons.visibility_off, size: 16, color: _anonymousOnly ? AppColors.mustBlue : Colors.grey[600]),
+                          Icon(Icons.visibility_off, size: 16, color: _anonymousOnly ? AppColors.primaryGreen : Colors.grey[600]),
                           const SizedBox(width: 6),
-                          Text('Anonymous', style: TextStyle(fontSize: 13, color: _anonymousOnly ? AppColors.mustBlue : Colors.grey[600], fontWeight: _anonymousOnly ? FontWeight.w600 : FontWeight.normal)),
+                          Text('Anonymous', style: TextStyle(fontSize: 13, color: _anonymousOnly ? AppColors.primaryGreen : Colors.grey[600], fontWeight: _anonymousOnly ? FontWeight.w600 : FontWeight.normal)),
                         ]),
                       ),
                     ),
@@ -1519,14 +1516,14 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
-                          color: AppColors.mustBlue.withOpacity(0.05),
+                          color: AppColors.primaryGreen.withOpacity(0.05),
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColors.mustBlue.withOpacity(0.3)),
+                          border: Border.all(color: AppColors.primaryGreen.withOpacity(0.3)),
                         ),
                         child: Row(children: [
-                          Icon(Icons.auto_awesome, size: 16, color: AppColors.mustBlue),
+                          Icon(Icons.auto_awesome, size: 16, color: AppColors.primaryGreen),
                           const SizedBox(width: 6),
-                          Text('AI Trends', style: TextStyle(fontSize: 13, color: AppColors.mustBlue, fontWeight: FontWeight.w600)),
+                          Text('AI Trends', style: TextStyle(fontSize: 13, color: AppColors.primaryGreen, fontWeight: FontWeight.w600)),
                         ]),
                       ),
                     ),
@@ -1560,7 +1557,11 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
             stream: _firestore.collection('reports').orderBy('createdAt', descending: true).snapshots(),
             builder: (context, snapshot) {
               if (snapshot.hasError) return Center(child: Text('Error: ${snapshot.error}'));
-              if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: CircularProgressIndicator(color: AppColors.primaryGreen),
+                );
+              }
 
               final reports = snapshot.data!.docs.where((doc) {
                 final data = doc.data() as Map<String, dynamic>;
@@ -1645,7 +1646,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                         onPressed: _clearFilters,
                         icon: const Icon(Icons.clear_all),
                         label: const Text('Clear Filters'),
-                        style: TextButton.styleFrom(foregroundColor: AppColors.mustBlue),
+                        style: TextButton.styleFrom(foregroundColor: AppColors.primaryGreen),
                       ),
                     ],
                   ]),
@@ -1653,7 +1654,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
               }
 
               return ListView.builder(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 itemCount: reports.length,
                 itemBuilder: (context, index) {
                   final reportDoc = reports[index];
@@ -1663,10 +1664,10 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
 
                   return Card(
                     margin: const EdgeInsets.only(bottom: 12),
-                    elevation: 2,
+                    elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(color: statusColor.withOpacity(0.3), width: 2),
+                      side: BorderSide(color: statusColor.withOpacity(0.25), width: 1.5),
                     ),
                     child: ListTile(
                       contentPadding: const EdgeInsets.all(16),
@@ -1691,12 +1692,12 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                           if (data['isAnonymous'] == true && data['trackingToken'] != null) ...[
                             const SizedBox(height: 4),
                             Row(children: [
-                              Icon(Icons.vpn_key, size: 12, color: AppColors.mustGold),
+                              Icon(Icons.vpn_key, size: 12, color: AppColors.secondaryOrange),
                               const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
                                   data['trackingToken'],
-                                  style: TextStyle(fontSize: 11, color: AppColors.mustGold, fontFamily: 'monospace', fontWeight: FontWeight.w600),
+                                  style: TextStyle(fontSize: 11, color: AppColors.secondaryOrange, fontFamily: 'monospace', fontWeight: FontWeight.w600),
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
@@ -1741,11 +1742,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Reports Management', style: TextStyle(fontWeight: FontWeight.bold)),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(colors: [AppColors.mustBlue, AppColors.mustBlueMedium]),
-          ),
-        ),
+        backgroundColor: AppColors.primaryGreen,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -1827,9 +1824,7 @@ class _TrendAnalysisDialogState extends State<_TrendAnalysisDialog> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
-                ),
+                color: AppColors.primaryGreen,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(16),
                   topRight: Radius.circular(16),
@@ -1837,7 +1832,7 @@ class _TrendAnalysisDialogState extends State<_TrendAnalysisDialog> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.auto_awesome, color: AppColors.mustGold, size: 24),
+                  const Icon(Icons.auto_awesome, color: AppColors.secondaryOrange, size: 24),
                   const SizedBox(width: 10),
                   const Expanded(
                     child: Column(
@@ -1866,7 +1861,7 @@ class _TrendAnalysisDialogState extends State<_TrendAnalysisDialog> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          CircularProgressIndicator(color: AppColors.mustBlue),
+                          CircularProgressIndicator(color: AppColors.primaryGreen),
                           SizedBox(height: 16),
                           Text('Analyzing report trends...', style: TextStyle(color: Colors.grey)),
                           SizedBox(height: 4),
@@ -1898,7 +1893,7 @@ class _TrendAnalysisDialogState extends State<_TrendAnalysisDialog> {
                                 icon: const Icon(Icons.refresh, size: 18),
                                 label: const Text('Retry'),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.mustBlue,
+                                  backgroundColor: AppColors.primaryGreen,
                                   foregroundColor: Colors.white,
                                 ),
                               ),
@@ -1941,7 +1936,7 @@ class _TrendAnalysisDialogState extends State<_TrendAnalysisDialog> {
                     ElevatedButton(
                       onPressed: () => Navigator.pop(context),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.mustBlue,
+                        backgroundColor: AppColors.primaryGreen,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),

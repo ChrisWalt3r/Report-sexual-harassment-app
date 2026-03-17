@@ -50,24 +50,16 @@ class _ContactsManagementScreenState extends State<ContactsManagementScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text(
           'Manage Official Contacts',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
+        backgroundColor: AppColors.primaryGreen,
         foregroundColor: Colors.white,
         elevation: 0,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.cloud_upload),
@@ -83,13 +75,13 @@ class _ContactsManagementScreenState extends State<ContactsManagementScreen> {
             margin: const EdgeInsets.all(16),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.mustBlue.withOpacity(0.1),
+              color: AppColors.primaryGreen.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.mustBlue.withOpacity(0.3)),
+              border: Border.all(color: AppColors.primaryGreen.withOpacity(0.3)),
             ),
             child: Row(
               children: [
-                Icon(Icons.info_outline, color: AppColors.mustBlue),
+                Icon(Icons.info_outline, color: AppColors.primaryGreen),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
@@ -120,13 +112,15 @@ class _ContactsManagementScreenState extends State<ContactsManagementScreen> {
           // Contacts List
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(
+                    child: CircularProgressIndicator(color: AppColors.primaryGreen),
+                  )
                 : _filteredContacts.isEmpty
                     ? _buildEmptyState()
                     : RefreshIndicator(
                         onRefresh: _loadContacts,
                         child: ListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
                           itemCount: _filteredContacts.length,
                           itemBuilder: (context, index) {
                             return _buildContactCard(_filteredContacts[index]);
@@ -140,7 +134,7 @@ class _ContactsManagementScreenState extends State<ContactsManagementScreen> {
         onPressed: () => _showContactDialog(null),
         icon: const Icon(Icons.add),
         label: const Text('Add Contact'),
-        backgroundColor: AppColors.mustGold,
+        backgroundColor: AppColors.secondaryOrange,
       ),
     );
   }
@@ -161,7 +155,7 @@ class _ContactsManagementScreenState extends State<ContactsManagementScreen> {
         onSelected: (_) {
           setState(() => _selectedCategory = category);
         },
-        selectedColor: AppColors.mustBlue,
+        selectedColor: AppColors.primaryGreen,
         checkmarkColor: Colors.white,
         backgroundColor: Colors.white,
       ),
@@ -198,7 +192,10 @@ class _ContactsManagementScreenState extends State<ContactsManagementScreen> {
   Widget _buildContactCard(OfficialContact contact) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
+      elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: AppColors.card,
+      surfaceTintColor: Colors.transparent,
       child: Column(
         children: [
           ListTile(
@@ -340,7 +337,7 @@ class _ContactsManagementScreenState extends State<ContactsManagementScreen> {
   Color _getCategoryColor(ContactCategory category) {
     switch (category) {
       case ContactCategory.deanOfStudents:
-        return AppColors.mustBlue;
+        return AppColors.primaryGreen;
       case ContactCategory.ashc:
         return Colors.purple;
       case ContactCategory.ushc:
@@ -356,7 +353,7 @@ class _ContactsManagementScreenState extends State<ContactsManagementScreen> {
       case ContactCategory.legalServices:
         return Colors.brown;
       case ContactCategory.administration:
-        return AppColors.mustGold;
+        return AppColors.secondaryOrange;
       case ContactCategory.crisisHotline:
         return Colors.deepOrange;
       case ContactCategory.police:
@@ -600,7 +597,7 @@ class _ContactsManagementScreenState extends State<ContactsManagementScreen> {
                     Navigator.pop(context, newContact);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.mustBlue,
+                    backgroundColor: AppColors.primaryGreen,
                     foregroundColor: Colors.white,
                   ),
                   child: Text(isEditing ? 'Update' : 'Add'),

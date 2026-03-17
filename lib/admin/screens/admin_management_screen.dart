@@ -305,7 +305,7 @@ class _AdminManagementScreenState extends State<AdminManagementScreen> {
                     filled: true,
                     fillColor: Colors.grey[50],
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[300]!)),
-                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.mustBlue, width: 2)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primaryGreen, width: 2)),
                   ),
                   onChanged: (value) => setState(() => _searchQuery = value.toLowerCase()),
                 ),
@@ -356,7 +356,7 @@ class _AdminManagementScreenState extends State<AdminManagementScreen> {
                         child: ListTile(
                           leading: CircleAvatar(
                             backgroundColor: admin.isActive
-                                ? AppColors.mustBlue
+                                ? AppColors.primaryGreen
                                 : Colors.grey,
                             child: Text(
                               admin.fullName[0].toUpperCase(),
@@ -374,14 +374,14 @@ class _AdminManagementScreenState extends State<AdminManagementScreen> {
                                     vertical: 2,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: AppColors.mustGold.withOpacity(0.2),
+                                    color: AppColors.secondaryOrange.withOpacity(0.2),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: const Text(
                                     'You',
                                     style: TextStyle(
                                       fontSize: 10,
-                                      color: AppColors.mustGold,
+                                      color: AppColors.secondaryOrange,
                                     ),
                                   ),
                                 ),
@@ -494,8 +494,8 @@ class _AdminManagementScreenState extends State<AdminManagementScreen> {
                     onPressed: _showCreateAdminDialog,
                     icon: const Icon(Icons.add),
                     label: const Text('Add Admin'),
-                    backgroundColor: AppColors.mustGold,
-                    foregroundColor: AppColors.mustBlue,
+                    backgroundColor: AppColors.secondaryOrange,
+                    foregroundColor: AppColors.primaryGreen,
                   ),
                 ),
             ],
@@ -505,13 +505,7 @@ class _AdminManagementScreenState extends State<AdminManagementScreen> {
         return Scaffold(
       appBar: AppBar(
         title: const Text('Admin Management', style: TextStyle(fontWeight: FontWeight.bold)),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
-            ),
-          ),
-        ),
+        backgroundColor: AppColors.primaryGreen,
         foregroundColor: Colors.white,
         elevation: 0,
         bottom: PreferredSize(
@@ -543,8 +537,8 @@ class _AdminManagementScreenState extends State<AdminManagementScreen> {
               onPressed: _showCreateAdminDialog,
               icon: const Icon(Icons.add),
               label: const Text('Add Admin'),
-              backgroundColor: AppColors.mustGold,
-              foregroundColor: AppColors.mustBlue,
+              backgroundColor: AppColors.secondaryOrange,
+              foregroundColor: AppColors.primaryGreen,
             )
           : null,
         );
@@ -555,11 +549,11 @@ class _AdminManagementScreenState extends State<AdminManagementScreen> {
   Color _getRoleColor(AdminRole role) {
     switch (role) {
       case AdminRole.superAdmin:
-        return AppColors.mustGold;
+        return AppColors.secondaryOrange;
       case AdminRole.reviewer:
         return AppColors.mustGreen;
       case AdminRole.moderator:
-        return AppColors.mustBlue;
+        return AppColors.primaryGreen;
     }
   }
 }

@@ -246,13 +246,20 @@ class _DataExportScreenState extends State<DataExportScreen> {
 
   Widget _buildBody() {
     return SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (_exportStatus.isNotEmpty) ...[
               Card(
-                color: _isExporting ? Colors.blue.shade50 : Colors.green.shade50,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: const BorderSide(color: AppColors.borderLight),
+                ),
+                color: _isExporting
+                    ? AppColors.primaryGreen.withOpacity(0.08)
+                    : AppColors.mustGreen.withOpacity(0.08),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Row(
@@ -261,12 +268,15 @@ class _DataExportScreenState extends State<DataExportScreen> {
                         const SizedBox(
                           width: 20,
                           height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.primaryGreen,
+                          ),
                         )
                       else
                         Icon(
                           Icons.check_circle,
-                          color: Colors.green.shade700,
+                          color: AppColors.mustGreen,
                         ),
                       const SizedBox(width: 16),
                       Expanded(
@@ -288,7 +298,7 @@ class _DataExportScreenState extends State<DataExportScreen> {
             const SizedBox(height: 8),
             const Text(
               'Download data in various formats for analysis and record-keeping.',
-              style: TextStyle(color: Colors.grey),
+              style: TextStyle(color: AppColors.textSecondary),
             ),
             const SizedBox(height: 24),
 
@@ -297,7 +307,7 @@ class _DataExportScreenState extends State<DataExportScreen> {
               title: 'Export Reports',
               description: 'Download all reports as CSV file',
               icon: Icons.description,
-              color: AppColors.mustBlue,
+              color: AppColors.primaryGreen,
               onPressed: _isExporting ? null : _exportReportsToCSV,
             ),
             const SizedBox(height: 16),
@@ -317,7 +327,7 @@ class _DataExportScreenState extends State<DataExportScreen> {
               title: 'Export Analytics',
               description: 'Download analytics summary as JSON file',
               icon: Icons.analytics,
-              color: AppColors.mustGold,
+              color: AppColors.secondaryOrange,
               onPressed: _isExporting ? null : _exportAnalyticsToJSON,
             ),
             const SizedBox(height: 32),
@@ -334,7 +344,12 @@ class _DataExportScreenState extends State<DataExportScreen> {
             const SizedBox(height: 32),
 
             Card(
-              color: Colors.amber.shade50,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: const BorderSide(color: AppColors.borderLight),
+              ),
+              color: AppColors.secondaryOrange.withOpacity(0.08),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -342,13 +357,13 @@ class _DataExportScreenState extends State<DataExportScreen> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.info_outline, color: Colors.amber.shade700),
+                        Icon(Icons.info_outline, color: AppColors.secondaryOrange),
                         const SizedBox(width: 8),
-                        Text(
+                        const Text(
                           'Important Notes',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: Colors.amber.shade900,
+                            color: AppColors.primaryGreen,
                           ),
                         ),
                       ],
@@ -359,7 +374,7 @@ class _DataExportScreenState extends State<DataExportScreen> {
                       '• CSV files can be opened in Excel, Google Sheets, etc.\n'
                       '• JSON files are suitable for data analysis tools.\n'
                       '• Anonymous reports do not include reporter details.',
-                      style: TextStyle(color: Colors.amber.shade900, fontSize: 12),
+                      style: const TextStyle(color: AppColors.textPrimary, fontSize: 12),
                     ),
                   ],
                 ),
@@ -375,15 +390,10 @@ class _DataExportScreenState extends State<DataExportScreen> {
     if (widget.embedded) return _buildBody();
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Data Export & Management', style: TextStyle(fontWeight: FontWeight.bold)),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
-            ),
-          ),
-        ),
+        backgroundColor: AppColors.primaryGreen,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -399,10 +409,14 @@ class _DataExportScreenState extends State<DataExportScreen> {
     required VoidCallback? onPressed,
   }) {
     return Card(
-      elevation: 2,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: AppColors.borderLight),
+      ),
       child: InkWell(
         onTap: onPressed,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Row(
@@ -432,7 +446,7 @@ class _DataExportScreenState extends State<DataExportScreen> {
                       description,
                       style: const TextStyle(
                         fontSize: 12,
-                        color: Colors.grey,
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ],
@@ -464,7 +478,11 @@ class _DataExportScreenState extends State<DataExportScreen> {
                 final adminsCount = adminsSnapshot.data?.docs.length ?? 0;
 
                 return Card(
-                  elevation: 2,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: const BorderSide(color: AppColors.borderLight),
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -497,7 +515,7 @@ class _DataExportScreenState extends State<DataExportScreen> {
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          Icon(icon, color: AppColors.mustBlue, size: 20),
+          Icon(icon, color: AppColors.primaryGreen, size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -510,7 +528,7 @@ class _DataExportScreenState extends State<DataExportScreen> {
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: AppColors.mustGold,
+              color: AppColors.secondaryOrange,
             ),
           ),
         ],

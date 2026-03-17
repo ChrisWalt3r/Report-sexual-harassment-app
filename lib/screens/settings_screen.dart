@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:showcaseview/showcaseview.dart';
 
 import '../constants/app_colors.dart';
 import '../constants/app_styles.dart';
@@ -679,13 +678,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Column(
           children: [
             SettingsTileWithChevron(
-              icon: Icons.play_circle_outline,
-              iconBackgroundColor: AppColors.primaryGreen.withOpacity(0.1),
-              iconColor: AppColors.primaryGreen,
-              title: 'App Guide',
-              onTap: _showAppGuideOptions,
-            ),
-            SettingsTileWithChevron(
               icon: Icons.quiz_outlined,
               iconBackgroundColor: AppColors.royalBlue.withOpacity(0.1),
               iconColor: AppColors.royalBlue,
@@ -718,112 +710,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         ),
       ),
-    );
-  }
-  
-  void _showAppGuideOptions() {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryGreen.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.school, color: AppColors.primaryGreen, size: 24),
-                ),
-                const SizedBox(width: 14),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'App Guide',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        'Learn how to use the app',
-                        style: TextStyle(fontSize: 13, color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppColors.royalBlue.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(Icons.slideshow, color: AppColors.royalBlue, size: 22),
-              ),
-              title: const Text('Watch Introduction', style: TextStyle(fontWeight: FontWeight.w600)),
-              subtitle: const Text('Full onboarding tutorial', style: TextStyle(fontSize: 12)),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                Navigator.pop(context);
-                _replayOnboarding();
-              },
-            ),
-            const Divider(height: 1),
-            ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppColors.secondaryOrange.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(Icons.touch_app, color: AppColors.secondaryOrange, size: 22),
-              ),
-              title: const Text('Feature Highlights', style: TextStyle(fontWeight: FontWeight.w600)),
-              subtitle: const Text('Quick tour of main features', style: TextStyle(fontSize: 12)),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                Navigator.pop(context);
-                _replayShowcase();
-              },
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
-    );
-  }
-  
-  void _replayOnboarding() {
-    final user = _authService.currentUser;
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const WelcomeScreen(),
-      ),
-    );
-  }
-  
-  void _replayShowcase() {
-    // Navigate to home and trigger showcase
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ShowCaseWidget(
-          builder: (context) => const HomeScreen(showShowcase: true),
-        ),
-      ),
-      (route) => false,
     );
   }
 
