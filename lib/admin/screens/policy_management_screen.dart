@@ -266,7 +266,7 @@ class _PolicyManagementScreenState extends State<PolicyManagementScreen> {
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  value: selectedCategory,
+                  initialValue: selectedCategory,
                   decoration: const InputDecoration(
                     labelText: 'Category',
                     border: OutlineInputBorder(),
@@ -501,7 +501,7 @@ class _PolicyManagementScreenState extends State<PolicyManagementScreen> {
               SizedBox(
                 width: 200,
                 child: DropdownButtonFormField<String>(
-                  value: _selectedCategory,
+                  initialValue: _selectedCategory,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),

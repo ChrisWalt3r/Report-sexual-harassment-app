@@ -407,7 +407,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
                     isExpanded: true,
-                    value: _selectedStudyLevel,
+                    initialValue: _selectedStudyLevel,
                     style: const TextStyle(color: Colors.black, fontSize: 16),
                     decoration: InputDecoration(
                       labelText: 'Study Level',
@@ -498,7 +498,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 // Faculty Dropdown
                 DropdownButtonFormField<String>(
                   isExpanded: true,
-                  value: _selectedFaculty,
+                  initialValue: _selectedFaculty,
                   style: const TextStyle(color: Colors.black, fontSize: 16),
                   decoration: InputDecoration(
                     labelText: 'Faculty',
@@ -559,7 +559,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
                     isExpanded: true,
-                    value: _selectedDepartment,
+                    initialValue: _selectedDepartment,
                     style: const TextStyle(color: Colors.black, fontSize: 16),
                     decoration: InputDecoration(
                       labelText: 'Department',
