@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../constants/app_colors.dart';
+import '../models/official_contact.dart';
+import '../services/official_contacts_service.dart';
 
 class EmergencyScreen extends StatefulWidget {
   const EmergencyScreen({super.key});
@@ -13,57 +15,136 @@ class EmergencyScreen extends StatefulWidget {
 class _EmergencyScreenState extends State<EmergencyScreen> {
   final int _currentNavIndex = 2;
   bool _isLoading = false;
+  bool _isContactsLoading = true;
+  final OfficialContactsService _officialContactsService = OfficialContactsService();
+  List<EmergencyContact> _emergencyContacts = [];
 
-  final List<EmergencyContact> _emergencyContacts = [
-    EmergencyContact(
-      name: 'Campus Security 24/7',
-      number: '+256 485 421 387',
-      type: 'Security',
-      icon: Icons.security,
-      color: AppColors.mustBlue,
-      description: 'MUST Campus Security - Immediate safety threats 24/7',
-    ),
-    EmergencyContact(
-      name: 'Dean of Students (Students)',
-      number: '+256 485 421 387',
-      type: 'Report',
-      icon: Icons.badge,
-      color: AppColors.mustGold,
-      description: 'Report sexual harassment - Students primary contact per MUST SH Policy',
-    ),
-    EmergencyContact(
-      name: 'MUST Health Center 24/7',
-      number: '+256 485 421 387',
-      type: 'Medical',
-      icon: Icons.local_hospital,
-      color: AppColors.mustGreen,
-      description: 'Emergency medical services, PEP, STI testing - MUST Health Center',
-    ),
-    EmergencyContact(
-      name: 'ASHC (Anti-SH Committee)',
-      number: '+256 485 421 387',
-      type: 'Support',
-      icon: Icons.support_agent,
-      color: AppColors.mustBlueMedium,
-      description: 'Sexual Harassment Investigation & Support Services',
-    ),
-    EmergencyContact(
-      name: 'Counseling Services',
-      number: '+256 485 421 387',
-      type: 'Counseling',
-      icon: Icons.psychology,
-      color: Colors.purple,
-      description: 'Confidential counseling & psycho-social support per MUST SH Policy',
-    ),
-    EmergencyContact(
-      name: 'Police Emergency',
-      number: '999',
-      type: 'Police',
-      icon: Icons.local_police,
-      color: Colors.red,
-      description: 'National Emergency Police - For serious crimes/assault referral',
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadEmergencyContacts();
+  }
+
+  Future<void> _loadEmergencyContacts() async {
+    try {
+      final contacts = await _officialContactsService.getContacts();
+      final emergencyContacts = contacts
+          .where((contact) =>
+              (contact.phoneNumber ?? '').trim().isNotEmpty &&
+              _isEmergencyCategory(contact.category))
+          .map(_mapOfficialContactToEmergencyContact)
+          .toList();
+
+      if (!mounted) return;
+
+      setState(() {
+        _emergencyContacts = emergencyContacts;
+        _isContactsLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _emergencyContacts = [];
+        _isContactsLoading = false;
+      });
+    }
+  }
+
+  bool _isEmergencyCategory(ContactCategory category) {
+    return category == ContactCategory.security ||
+        category == ContactCategory.police ||
+        category == ContactCategory.counseling ||
+        category == ContactCategory.medical ||
+        category == ContactCategory.deanOfStudents ||
+        category == ContactCategory.ashc ||
+        category == ContactCategory.ushc ||
+        category == ContactCategory.crisisHotline ||
+        category == ContactCategory.genderDesk ||
+        category == ContactCategory.womenShelter ||
+        category == ContactCategory.legalServices ||
+        category == ContactCategory.humanResources;
+  }
+
+  EmergencyContact _mapOfficialContactToEmergencyContact(OfficialContact contact) {
+    final number = (contact.phoneNumber ?? '').trim();
+    return EmergencyContact(
+      name: contact.name,
+      number: number,
+      type: contact.category.displayName,
+      icon: _iconForCategory(contact.category),
+      color: _colorForCategory(contact.category),
+      description: (contact.description?.trim().isNotEmpty ?? false)
+          ? contact.description!.trim()
+          : contact.title,
+      category: contact.category,
+    );
+  }
+
+  IconData _iconForCategory(ContactCategory category) {
+    switch (category) {
+      case ContactCategory.security:
+        return Icons.security;
+      case ContactCategory.police:
+        return Icons.local_police;
+      case ContactCategory.medical:
+        return Icons.local_hospital;
+      case ContactCategory.counseling:
+        return Icons.psychology;
+      case ContactCategory.deanOfStudents:
+        return Icons.badge;
+      case ContactCategory.ashc:
+      case ContactCategory.ushc:
+        return Icons.support_agent;
+      case ContactCategory.crisisHotline:
+        return Icons.phone_in_talk;
+      case ContactCategory.genderDesk:
+        return Icons.diversity_2;
+      case ContactCategory.womenShelter:
+        return Icons.home;
+      case ContactCategory.legalServices:
+        return Icons.gavel;
+      case ContactCategory.humanResources:
+        return Icons.people_alt;
+      case ContactCategory.administration:
+      case ContactCategory.other:
+        return Icons.contact_phone;
+    }
+  }
+
+  Color _colorForCategory(ContactCategory category) {
+    switch (category) {
+      case ContactCategory.security:
+      case ContactCategory.ashc:
+      case ContactCategory.ushc:
+        return AppColors.mustBlue;
+      case ContactCategory.deanOfStudents:
+      case ContactCategory.genderDesk:
+        return AppColors.mustGold;
+      case ContactCategory.medical:
+      case ContactCategory.counseling:
+        return AppColors.mustGreen;
+      case ContactCategory.police:
+      case ContactCategory.crisisHotline:
+        return Colors.red;
+      case ContactCategory.womenShelter:
+      case ContactCategory.legalServices:
+      case ContactCategory.humanResources:
+      case ContactCategory.administration:
+      case ContactCategory.other:
+        return AppColors.mustBlueMedium;
+    }
+  }
+
+  EmergencyContact? _primaryEmergencyContact() {
+    for (final contact in _emergencyContacts) {
+      if (contact.category == ContactCategory.security ||
+          contact.category == ContactCategory.police ||
+          contact.category == ContactCategory.crisisHotline) {
+        return contact;
+      }
+    }
+    return _emergencyContacts.isNotEmpty ? _emergencyContacts.first : null;
+  }
 
   Future<void> _makePhoneCall(String phoneNumber) async {
     if (_isLoading) return;
@@ -142,6 +223,12 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
   void _activatePanicMode() {
     if (_isLoading) return;
 
+    final primaryContact = _primaryEmergencyContact();
+    if (primaryContact == null) {
+      _showErrorSnackBar('No emergency contacts available. Please contact admin.');
+      return;
+    }
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -161,7 +248,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              _makePhoneCall(_emergencyContacts[0].number);
+              _makePhoneCall(primaryContact.number);
             },
             style: TextButton.styleFrom(
               backgroundColor: Colors.red,
@@ -374,6 +461,30 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
   }
 
   Widget _buildQuickDialGrid() {
+    if (_isContactsLoading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 24),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_emergencyContacts.isEmpty) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+        ),
+        child: const Text(
+          'No emergency contacts are configured by admin yet.',
+          style: TextStyle(fontSize: 13),
+          textAlign: TextAlign.center,
+        ),
+      );
+    }
+
     final quickDialContacts = _emergencyContacts.take(3).toList();
     
     return Padding(
@@ -448,6 +559,30 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
   }
 
   Widget _buildEmergencyContactsList() {
+    if (_isContactsLoading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 24),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_emergencyContacts.isEmpty) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
+        ),
+        child: const Text(
+          'No emergency contacts found in Firebase. Ask admin to add active contacts with phone numbers.',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 13),
+        ),
+      );
+    }
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
@@ -757,6 +892,7 @@ class EmergencyContact {
   final IconData icon;
   final Color color;
   final String description;
+  final ContactCategory category;
 
   EmergencyContact({
     required this.name,
@@ -765,5 +901,6 @@ class EmergencyContact {
     required this.icon,
     required this.color,
     required this.description,
+    required this.category,
   });
 }

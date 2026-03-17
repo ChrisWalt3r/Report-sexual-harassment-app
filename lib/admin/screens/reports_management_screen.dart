@@ -22,13 +22,13 @@ class ReportsManagementScreen extends StatefulWidget {
 class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
   final _firestore = FirebaseFirestore.instance;
   final _searchController = TextEditingController();
-  final String _searchQuery = '';
-  final String _selectedStatus = 'all';
-  final String _selectedFaculty = 'all';
-  final String _selectedDepartment = 'all';
-  final String _selectedRole = 'all';
-  final String _selectedStudyLevel = 'all';
-  final bool _anonymousOnly = false;
+  String _searchQuery = '';
+  String _selectedStatus = 'all';
+  String _selectedFaculty = 'all';
+  String _selectedDepartment = 'all';
+  String _selectedRole = 'all';
+  String _selectedStudyLevel = 'all';
+  bool _anonymousOnly = false;
   DateTimeRange? _dateRange;
 
   // Cached user data for filtering
@@ -779,7 +779,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                       const SizedBox(height: 16),
                                     ],
 
-                                    if (videoUrls.isNotEmpty)
+                                    if (videoUrls.isNotEmpty) ...[
                                       _buildDetailCard(
                                         'Video Evidence (${videoUrls.length})',
                                         Icons.videocam_outlined,
@@ -833,16 +833,12 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                           }),
                                         ],
                                       ),
-                                            ),
-                                          )
-                                        }),
-                                      ]),
                                       const SizedBox(height: 20),
                                     ],
 
                                     // Audio Evidence
                                     if (audioUrls.isNotEmpty) ...[
-                                      _buildDetailSection('Audio Evidence (${audioUrls.length})', [
+                                      _buildDetailCard('Audio Evidence (${audioUrls.length})', Icons.headphones_rounded, Colors.deepPurple, [
                                         ...audioUrls.asMap().entries.map((entry) {
                                           final audioUrl = entry.value;
                                           final audioNum = entry.key + 1;
@@ -1014,7 +1010,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                     ],
                   ),
                 ),
-              )
+              );
             },
           ),
     );
