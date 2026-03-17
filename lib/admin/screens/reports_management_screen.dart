@@ -834,7 +834,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
 
                                     // Audio Evidence
                                     if (audioUrls.isNotEmpty) ...[
-                                      _buildDetailSection('Audio Evidence (${audioUrls.length})', [
+                                      _buildDetailCard('Audio Evidence (${audioUrls.length})', Icons.headphones_rounded, Colors.deepPurple, [
                                         ...audioUrls.asMap().entries.map((entry) {
                                           final audioUrl = entry.value;
                                           final audioNum = entry.key + 1;
