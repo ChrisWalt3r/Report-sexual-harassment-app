@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'firebase_options.dart';
 import 'screens/home_screen.dart';
@@ -29,6 +30,15 @@ void main() async {
     );
   } catch (e) {
     // Firebase already initialized (e.g., by native plugin)
+  }
+
+  try {
+    await FirebaseAppCheck.instance.activate(
+      androidProvider: AndroidProvider.debug,
+      appleProvider: AppleProvider.debug,
+    );
+  } catch (e) {
+    debugPrint('App Check activation failed: $e');
   }
   
   // Don't set system UI overlay style here - let it be handled by the theme
