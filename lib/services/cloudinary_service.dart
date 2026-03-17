@@ -144,7 +144,7 @@ class CloudinaryService {
       }
 
       final fileSize = await file.length();
-      print('Cloudinary: Uploading audio from $audioPath (${fileSize} bytes)');
+      print('Cloudinary: Uploading audio from $audioPath ($fileSize bytes)');
       print('Cloudinary: Cloud name=$_cloudName, preset=$_uploadPreset');
 
       // Cloudinary uses the video/upload endpoint for audio files too

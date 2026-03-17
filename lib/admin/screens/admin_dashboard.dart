@@ -464,8 +464,8 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
   // Raw data
   List<Map<String, dynamic>> _allUsers = [];
   List<Map<String, dynamic>> _allReports = [];
-  Map<String, String> _userFacultyMap = {};
-  Map<String, String> _userDeptMap = {};
+  final Map<String, String> _userFacultyMap = {};
+  final Map<String, String> _userDeptMap = {};
 
   // Filter state
   String _selectedFaculty = 'All Faculties';
