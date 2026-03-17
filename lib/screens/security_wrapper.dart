@@ -163,7 +163,7 @@ class _SecurityWrapperState extends State<SecurityWrapper> with WidgetsBindingOb
               onVerified: _onPinVerified,
             );
           }
-          
+
           // Wrap HomeScreen with ShowCaseWidget for feature highlights
           return ShowCaseWidget(
             builder: (context) => const HomeScreen(),
