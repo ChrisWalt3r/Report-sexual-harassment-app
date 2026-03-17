@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:showcaseview/showcaseview.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../services/security_service.dart';
 import '../services/auth_service.dart';
 import 'pin_verification_screen.dart';
 import 'home_screen.dart';
 import 'welcome_screen.dart';
-import 'onboarding_screen.dart';
 
 /// Wrapper that checks authentication and PIN protection
 class SecurityWrapper extends StatefulWidget {
@@ -22,23 +20,12 @@ class _SecurityWrapperState extends State<SecurityWrapper> with WidgetsBindingOb
   bool _isInitialized = false;
   bool _isPinVerified = false;
   bool _isCheckingPin = true;
-  bool? _hasSeenOnboarding;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _checkPinStatus();
-    _checkOnboardingStatus();
-  }
-  
-  Future<void> _checkOnboardingStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (mounted) {
-      setState(() {
-        _hasSeenOnboarding = prefs.getBool('hasSeenOnboarding') ?? false;
-      });
-    }
   }
 
   @override
@@ -174,14 +161,6 @@ class _SecurityWrapperState extends State<SecurityWrapper> with WidgetsBindingOb
           if (securityService.isPinEnabled && !_isPinVerified) {
             return PinVerificationScreen(
               onVerified: _onPinVerified,
-            );
-          }
-
-          // User is logged in and PIN is verified (or not required)
-          // Check if user has seen onboarding
-          if (_hasSeenOnboarding == false) {
-            return OnboardingScreen(
-              userId: snapshot.data?.uid ?? '',
             );
           }
           
