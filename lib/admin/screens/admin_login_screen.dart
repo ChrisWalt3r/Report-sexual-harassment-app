@@ -62,13 +62,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [AppColors.mustBlue, AppColors.mustBlueMedium, Color(0xFF0D2137)],
-          ),
-        ),
+        color: AppColors.background,
         child: Center(
         child: SingleChildScrollView(
           child: Container(
@@ -80,9 +74,9 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 24,
-                  offset: const Offset(0, 8),
+                  color: Colors.black.withOpacity(0.06),
+                  blurRadius: 12,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
@@ -98,13 +92,11 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                       height: 80,
                       width: 80,
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [AppColors.mustGold, AppColors.mustGoldLight],
-                        ),
+                        color: AppColors.secondaryOrange,
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.mustGold.withOpacity(0.3),
+                            color: AppColors.secondaryOrange.withOpacity(0.3),
                             blurRadius: 12,
                             offset: const Offset(0, 4),
                           ),
@@ -113,7 +105,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                       child: const Icon(
                         Icons.admin_panel_settings,
                         size: 40,
-                        color: AppColors.mustBlue,
+                        color: Colors.white,
                       ),
                     ),
                   ),
@@ -125,7 +117,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                     style: TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.mustBlue,
+                      color: AppColors.primaryGreen,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -235,13 +227,11 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                   // Login Button
                   Container(
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [AppColors.mustGold, AppColors.mustGoldLight],
-                      ),
+                      color: AppColors.secondaryOrange,
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.mustGold.withOpacity(0.3),
+                          color: AppColors.secondaryOrange.withOpacity(0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 4),
                         ),
@@ -251,7 +241,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                       onPressed: _isLoading ? null : _handleLogin,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.transparent,
-                        foregroundColor: AppColors.mustBlue,
+                        foregroundColor: Colors.white,
                         shadowColor: Colors.transparent,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
@@ -265,7 +255,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
                                 valueColor:
-                                    AlwaysStoppedAnimation<Color>(AppColors.mustBlue),
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
                               ),
                             )
                           : const Text(
@@ -283,19 +273,19 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.mustBlue.withOpacity(0.05),
+                      color: AppColors.primaryGreen.withOpacity(0.05),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.mustBlue.withOpacity(0.2)),
+                      border: Border.all(color: AppColors.primaryGreen.withOpacity(0.2)),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.security, color: AppColors.mustGold, size: 20),
+                        Icon(Icons.security, color: AppColors.secondaryOrange, size: 20),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             'This portal is restricted to authorized MUST administrators only.',
                             style: TextStyle(
-                              color: AppColors.mustBlue.withOpacity(0.8),
+                              color: AppColors.primaryGreen.withOpacity(0.8),
                               fontSize: 12,
                             ),
                           ),

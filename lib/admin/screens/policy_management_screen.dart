@@ -71,7 +71,7 @@ class _PolicyManagementScreenState extends State<PolicyManagementScreen> {
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.mustGold,
+              backgroundColor: AppColors.secondaryOrange,
             ),
             child: const Text('Upload'),
           ),
@@ -213,7 +213,7 @@ class _PolicyManagementScreenState extends State<PolicyManagementScreen> {
                 runSpacing: 6,
                 children: chunk.keywords.map((k) => Chip(
                   label: Text(k, style: const TextStyle(fontSize: 12)),
-                  backgroundColor: AppColors.mustGold.withOpacity(0.2),
+                  backgroundColor: AppColors.secondaryOrange.withOpacity(0.2),
                   padding: EdgeInsets.zero,
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 )).toList(),
@@ -319,7 +319,7 @@ class _PolicyManagementScreenState extends State<PolicyManagementScreen> {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.mustGold,
+                        backgroundColor: AppColors.secondaryOrange,
                       ),
                       child: const Text('Save'),
                     ),
@@ -396,7 +396,7 @@ class _PolicyManagementScreenState extends State<PolicyManagementScreen> {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.policy, size: 32, color: AppColors.mustGold),
+                  const Icon(Icons.policy, size: 32, color: AppColors.secondaryOrange),
                   const SizedBox(width: 12),
                   const Text(
                     'Policy Knowledge Base',
@@ -404,14 +404,14 @@ class _PolicyManagementScreenState extends State<PolicyManagementScreen> {
                   ),
                   const Spacer(),
                   if (_isUploading)
-                    const CircularProgressIndicator()
+                    const CircularProgressIndicator(color: AppColors.primaryGreen)
                   else
                     ElevatedButton.icon(
                       onPressed: _uploadAllChunks,
                       icon: const Icon(Icons.cloud_upload),
                       label: const Text('Upload/Sync All'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.mustGold,
+                        backgroundColor: AppColors.secondaryOrange,
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                       ),
                     ),
@@ -533,7 +533,9 @@ class _PolicyManagementScreenState extends State<PolicyManagementScreen> {
         // Chunks list
         Expanded(
           child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
+              ? const Center(
+                  child: CircularProgressIndicator(color: AppColors.primaryGreen),
+                )
               : _filteredChunks.isEmpty
                   ? Center(
                       child: Column(
@@ -573,9 +575,11 @@ class _PolicyManagementScreenState extends State<PolicyManagementScreen> {
     }
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Policy Management'),
-        backgroundColor: AppColors.mustGold,
+        backgroundColor: AppColors.primaryGreen,
+        foregroundColor: Colors.white,
       ),
       body: content,
     );
@@ -601,15 +605,9 @@ class _StatCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.card,
           borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          border: Border.all(color: AppColors.borderLight),
         ),
         child: Row(
           children: [
@@ -662,9 +660,14 @@ class _ChunkCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: AppColors.borderLight),
+      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(

@@ -101,7 +101,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(children: [
-          Icon(Icons.logout, color: AppColors.mustGold),
+          Icon(Icons.logout, color: AppColors.secondaryOrange),
           const SizedBox(width: 8),
           const Text('Sign Out'),
         ]),
@@ -113,7 +113,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.mustBlue, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryGreen, foregroundColor: Colors.white),
             child: const Text('Sign Out'),
           ),
         ],
@@ -132,7 +132,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     final isWide = MediaQuery.of(context).size.width > 720;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
+      backgroundColor: AppColors.background,
       // Mobile drawer
       drawer: isWide ? null : _buildDrawer(),
       body: Row(
@@ -173,31 +173,31 @@ class _AdminDashboardState extends State<AdminDashboard> {
           if (!isWide)
             Builder(
               builder: (ctx) => IconButton(
-                icon: const Icon(Icons.menu, color: AppColors.mustBlue),
+                icon: const Icon(Icons.menu, color: AppColors.primaryGreen),
                 onPressed: () => Scaffold.of(ctx).openDrawer(),
               ),
             ),
           if (!isWide) const SizedBox(width: 8),
           Text(
             currentItem.label,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.mustBlue),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.primaryGreen),
           ),
           const Spacer(),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.mustBlue.withOpacity(0.06),
+              color: AppColors.primaryGreen.withOpacity(0.08),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
               children: [
-                CircleAvatar(radius: 14, backgroundColor: AppColors.mustGold, child: Icon(Icons.person, size: 16, color: AppColors.mustBlue)),
+                CircleAvatar(radius: 14, backgroundColor: AppColors.secondaryOrange, child: const Icon(Icons.person, size: 16, color: Colors.white)),
                 const SizedBox(width: 8),
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(widget.admin.fullName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.mustBlue)),
+                    Text(widget.admin.fullName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.primaryGreen)),
                     Text(widget.admin.role.displayName, style: TextStyle(fontSize: 10, color: Colors.grey[500])),
                   ],
                 ),
@@ -206,7 +206,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           ),
           const SizedBox(width: 8),
           IconButton(
-            icon: const Icon(Icons.logout, color: AppColors.mustBlue),
+            icon: const Icon(Icons.logout, color: AppColors.primaryGreen),
             onPressed: _handleSignOut,
             tooltip: 'Sign Out',
           ),
@@ -220,13 +220,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       width: _sidebarCollapsed ? 72 : 240,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [AppColors.mustBlue, Color(0xFF0D2137)],
-        ),
-      ),
+      decoration: const BoxDecoration(color: AppColors.primaryGreen),
       child: Column(
         children: [
           // Header
@@ -238,10 +232,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 Container(
                   width: 36, height: 36,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(colors: [AppColors.mustGold, AppColors.mustGoldLight]),
+                    color: AppColors.secondaryOrange,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.shield, size: 20, color: AppColors.mustBlue),
+                  child: const Icon(Icons.shield, size: 20, color: Colors.white),
                 ),
                 if (!_sidebarCollapsed) ...[
                   const SizedBox(width: 12),
@@ -279,7 +273,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.school, color: AppColors.mustGold, size: 16),
+                          const Icon(Icons.school, color: AppColors.secondaryOrange, size: 16),
                           const SizedBox(width: 8),
                           const Text(
                             'MUST',
@@ -333,20 +327,20 @@ class _AdminDashboardState extends State<AdminDashboard> {
             duration: const Duration(milliseconds: 200),
             padding: EdgeInsets.symmetric(horizontal: _sidebarCollapsed ? 12 : 16, vertical: 12),
             decoration: BoxDecoration(
-              color: isActive ? AppColors.mustGold.withOpacity(0.15) : Colors.transparent,
+              color: isActive ? AppColors.secondaryOrange.withOpacity(0.15) : Colors.transparent,
               borderRadius: BorderRadius.circular(12),
-              border: isActive ? Border.all(color: AppColors.mustGold.withOpacity(0.3), width: 1) : null,
+              border: isActive ? Border.all(color: AppColors.secondaryOrange.withOpacity(0.3), width: 1) : null,
             ),
             child: Row(
               children: [
-                Icon(isActive ? item.activeIcon : item.icon, color: isActive ? AppColors.mustGold : Colors.white60, size: 22),
+                Icon(isActive ? item.activeIcon : item.icon, color: isActive ? AppColors.secondaryOrange : Colors.white60, size: 22),
                 if (!_sidebarCollapsed) ...[
                   const SizedBox(width: 14),
                   Expanded(
                     child: Text(
                       item.label,
                       style: TextStyle(
-                        color: isActive ? AppColors.mustGoldLight : Colors.white70,
+                        color: isActive ? AppColors.secondaryDark : Colors.white70,
                         fontSize: 14,
                         fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
                       ),
@@ -366,13 +360,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   Drawer _buildDrawer() {
     return Drawer(
       child: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [AppColors.mustBlue, Color(0xFF0D2137)],
-          ),
-        ),
+        decoration: const BoxDecoration(color: AppColors.primaryGreen),
         child: SafeArea(
           child: Column(
             children: [
@@ -383,10 +371,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     Container(
                       width: 44, height: 44,
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(colors: [AppColors.mustGold, AppColors.mustGoldLight]),
+                        color: AppColors.secondaryOrange,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.shield, size: 24, color: AppColors.mustBlue),
+                      child: const Icon(Icons.shield, size: 24, color: Colors.white),
                     ),
                     const SizedBox(width: 12),
                     const Text('MUST Admin', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
@@ -400,10 +388,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   children: _visibleNavItems.map((item) {
                     final isActive = _selectedIndex == item.index;
                     return ListTile(
-                      leading: Icon(isActive ? item.activeIcon : item.icon, color: isActive ? AppColors.mustGold : Colors.white60),
-                      title: Text(item.label, style: TextStyle(color: isActive ? AppColors.mustGoldLight : Colors.white70, fontWeight: isActive ? FontWeight.w600 : FontWeight.normal)),
+                      leading: Icon(isActive ? item.activeIcon : item.icon, color: isActive ? AppColors.secondaryOrange : Colors.white60),
+                      title: Text(item.label, style: TextStyle(color: isActive ? AppColors.secondaryDark : Colors.white70, fontWeight: isActive ? FontWeight.w600 : FontWeight.normal)),
                       selected: isActive,
-                      selectedTileColor: AppColors.mustGold.withOpacity(0.1),
+                      selectedTileColor: AppColors.secondaryOrange.withOpacity(0.1),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       onTap: () {
                         setState(() => _selectedIndex = item.index);
@@ -419,7 +407,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 child: Row(
                   children: [
-                    const Icon(Icons.school, color: AppColors.mustGold, size: 16),
+                    const Icon(Icons.school, color: AppColors.secondaryOrange, size: 16),
                     const SizedBox(width: 8),
                     const Text(
                       'MUST',
@@ -612,10 +600,10 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) return Center(child: CircularProgressIndicator(color: AppColors.mustGold));
+    if (_isLoading) return Center(child: CircularProgressIndicator(color: AppColors.secondaryOrange));
 
     return RefreshIndicator(
-      color: AppColors.mustGold,
+      color: AppColors.secondaryOrange,
       onRefresh: _loadData,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -645,9 +633,9 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: [AppColors.mustBlue, AppColors.mustBlueMedium]),
+        color: AppColors.primaryGreen,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: AppColors.mustBlue.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4))],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 10, offset: const Offset(0, 2))],
       ),
       child: Row(
         children: [
@@ -658,7 +646,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
               Text('MUST Sexual Harassment Report System', style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.8))),
               const SizedBox(height: 12),
               Row(children: [
-                _buildMiniStat('Total Reports', _allReports.length.toString(), AppColors.mustGoldLight),
+                _buildMiniStat('Total Reports', _allReports.length.toString(), AppColors.secondaryDark),
                 const SizedBox(width: 16),
                 _buildMiniStat('Total Users', _allUsers.length.toString(), Colors.white),
               ]),
@@ -666,8 +654,8 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
           ),
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: AppColors.mustGold.withOpacity(0.2), shape: BoxShape.circle),
-            child: const Icon(Icons.shield, size: 40, color: AppColors.mustGoldLight),
+            decoration: BoxDecoration(color: AppColors.secondaryOrange.withOpacity(0.2), shape: BoxShape.circle),
+            child: const Icon(Icons.shield, size: 40, color: AppColors.secondaryDark),
           ),
         ],
       ),
@@ -692,7 +680,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: hasActiveFilters ? AppColors.mustGold : Colors.grey[200]!, width: hasActiveFilters ? 2 : 1),
+        border: Border.all(color: hasActiveFilters ? AppColors.secondaryOrange : Colors.grey[200]!, width: hasActiveFilters ? 2 : 1),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 2))],
       ),
       child: Column(
@@ -702,11 +690,11 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: AppColors.mustGold.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
-                child: const Icon(Icons.filter_list, color: AppColors.mustGold, size: 20),
+                decoration: BoxDecoration(color: AppColors.secondaryOrange.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
+                child: const Icon(Icons.filter_list, color: AppColors.secondaryOrange, size: 20),
               ),
               const SizedBox(width: 12),
-              const Text('Filter Data', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.mustBlue)),
+              const Text('Filter Data', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primaryGreen)),
               const Spacer(),
               if (hasActiveFilters)
                 TextButton.icon(
@@ -753,7 +741,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
           decoration: BoxDecoration(
             color: Colors.grey[50],
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: _selectedFaculty != 'All Faculties' ? AppColors.mustGold : Colors.grey[300]!),
+            border: Border.all(color: _selectedFaculty != 'All Faculties' ? AppColors.secondaryOrange : Colors.grey[300]!),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
@@ -788,7 +776,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
           decoration: BoxDecoration(
             color: Colors.grey[50],
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: _selectedDepartment != 'All Departments' ? AppColors.mustGold : Colors.grey[300]!),
+            border: Border.all(color: _selectedDepartment != 'All Departments' ? AppColors.secondaryOrange : Colors.grey[300]!),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
@@ -818,7 +806,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
           decoration: BoxDecoration(
             color: Colors.grey[50],
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: _selectedStatus != 'All Statuses' ? AppColors.mustGold : Colors.grey[300]!),
+            border: Border.all(color: _selectedStatus != 'All Statuses' ? AppColors.secondaryOrange : Colors.grey[300]!),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
@@ -861,17 +849,17 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.mustGold.withOpacity(0.1),
+                color: AppColors.secondaryOrange.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.filter_alt, size: 16, color: AppColors.mustGold),
+                  const Icon(Icons.filter_alt, size: 16, color: AppColors.secondaryOrange),
                   const SizedBox(width: 6),
                   Text(
                     'Showing filtered results: ${_filteredReports.length} reports, ${_filteredUsers.length} users',
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.mustBlue),
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primaryGreen),
                   ),
                 ],
               ),
@@ -885,10 +873,10 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
           mainAxisSpacing: 12,
           childAspectRatio: isWide ? 1.1 : 0.95,
           children: [
-            _buildStatCard('Users', _filteredUsers.length.toString(), Icons.people, AppColors.mustBlue),
-            _buildStatCard('Reports', stats['total'].toString(), Icons.description, AppColors.mustGold),
+            _buildStatCard('Users', _filteredUsers.length.toString(), Icons.people, AppColors.primaryGreen),
+            _buildStatCard('Reports', stats['total'].toString(), Icons.description, AppColors.secondaryOrange),
             _buildStatCard('Pending', stats['pending'].toString(), Icons.pending_actions, Colors.orange),
-            _buildStatCard('Under Review', stats['under_review'].toString(), Icons.search, AppColors.mustBlueMedium),
+            _buildStatCard('Under Review', stats['under_review'].toString(), Icons.search, AppColors.primaryDark),
             _buildStatCard('Resolved', stats['resolved'].toString(), Icons.check_circle, AppColors.mustGreen),
             _buildStatCard('Anonymous', stats['anonymous'].toString(), Icons.visibility_off, Colors.grey[700]!),
           ],
@@ -927,11 +915,11 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
       children: [
         Container(
           padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(color: AppColors.mustGold.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
-          child: const Icon(Icons.visibility, color: AppColors.mustGold, size: 20),
+          decoration: BoxDecoration(color: AppColors.secondaryOrange.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
+          child: const Icon(Icons.visibility, color: AppColors.secondaryOrange, size: 20),
         ),
         const SizedBox(width: 12),
-        const Text('View Data', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.mustBlue)),
+        const Text('View Data', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primaryGreen)),
         const Spacer(),
         Container(
           decoration: BoxDecoration(
@@ -955,7 +943,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isActive ? AppColors.mustBlue : Colors.transparent,
+          color: isActive ? AppColors.primaryGreen : Colors.transparent,
           borderRadius: BorderRadius.circular(25),
         ),
         child: Row(
@@ -991,7 +979,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
             ),
             child: Row(
               children: [
-                Text('${reports.length} Reports', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.mustBlue)),
+                Text('${reports.length} Reports', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryGreen)),
                 const Spacer(),
                 Text('Most recent first', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
               ],
@@ -1082,7 +1070,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
             ),
             child: Row(
               children: [
-                Text('${users.length} Users', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.mustBlue)),
+                Text('${users.length} Users', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryGreen)),
                 const Spacer(),
                 Text('Alphabetically', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
               ],
@@ -1112,10 +1100,10 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
         children: [
           CircleAvatar(
             radius: 20,
-            backgroundColor: AppColors.mustBlue.withOpacity(0.1),
+            backgroundColor: AppColors.primaryGreen.withOpacity(0.1),
             child: Text(
               name.isNotEmpty ? name[0].toUpperCase() : '?',
-              style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.mustBlue),
+              style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryGreen),
             ),
           ),
           const SizedBox(width: 12),
@@ -1132,7 +1120,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               if (faculty.isNotEmpty)
-                Text(_shortFaculty(faculty), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.mustBlue)),
+                Text(_shortFaculty(faculty), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.primaryGreen)),
               if (dept.isNotEmpty)
                 Text(dept, style: TextStyle(fontSize: 10, color: Colors.grey[500]), overflow: TextOverflow.ellipsis),
             ],
@@ -1170,11 +1158,11 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
           children: [
             Container(
               padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: AppColors.mustGold.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
-              child: const Icon(Icons.bar_chart, color: AppColors.mustGold, size: 20),
+              decoration: BoxDecoration(color: AppColors.secondaryOrange.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
+              child: const Icon(Icons.bar_chart, color: AppColors.secondaryOrange, size: 20),
             ),
             const SizedBox(width: 12),
-            const Text('Breakdown Summary', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.mustBlue)),
+            const Text('Breakdown Summary', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primaryGreen)),
           ],
         ),
         const SizedBox(height: 16),
@@ -1225,9 +1213,9 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
         children: [
           Row(
             children: [
-              const Icon(Icons.school, size: 18, color: AppColors.mustBlue),
+              const Icon(Icons.school, size: 18, color: AppColors.primaryGreen),
               const SizedBox(width: 8),
-              const Text('By Faculty', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.mustBlue)),
+              const Text('By Faculty', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.primaryGreen)),
             ],
           ),
           const SizedBox(height: 12),
@@ -1244,9 +1232,9 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
                 margin: const EdgeInsets.symmetric(vertical: 4),
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.mustGold.withOpacity(0.1) : Colors.grey[50],
+                  color: isSelected ? AppColors.secondaryOrange.withOpacity(0.1) : Colors.grey[50],
                   borderRadius: BorderRadius.circular(8),
-                  border: isSelected ? Border.all(color: AppColors.mustGold) : null,
+                  border: isSelected ? Border.all(color: AppColors.secondaryOrange) : null,
                 ),
                 child: Row(
                   children: [
@@ -1256,13 +1244,13 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                          color: isSelected ? AppColors.mustBlue : Colors.grey[700],
+                          color: isSelected ? AppColors.primaryGreen : Colors.grey[700],
                         ),
                       ),
                     ),
-                    _miniCount(reports, Icons.assignment, AppColors.mustGold),
+                    _miniCount(reports, Icons.assignment, AppColors.secondaryOrange),
                     const SizedBox(width: 8),
-                    _miniCount(users, Icons.people, AppColors.mustBlue),
+                    _miniCount(users, Icons.people, AppColors.primaryGreen),
                   ],
                 ),
               ),
@@ -1304,12 +1292,12 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
         children: [
           Row(
             children: [
-              const Icon(Icons.account_tree, size: 18, color: AppColors.mustBlue),
+              const Icon(Icons.account_tree, size: 18, color: AppColors.primaryGreen),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   _selectedFaculty != 'All Faculties' ? 'Departments in ${_shortFaculty(_selectedFaculty)}' : 'By Department (All)',
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.mustBlue),
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.primaryGreen),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -1334,9 +1322,9 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
                   margin: const EdgeInsets.symmetric(vertical: 4),
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: isSelected ? AppColors.mustGold.withOpacity(0.1) : Colors.grey[50],
+                    color: isSelected ? AppColors.secondaryOrange.withOpacity(0.1) : Colors.grey[50],
                     borderRadius: BorderRadius.circular(8),
-                    border: isSelected ? Border.all(color: AppColors.mustGold) : null,
+                    border: isSelected ? Border.all(color: AppColors.secondaryOrange) : null,
                   ),
                   child: Row(
                     children: [
@@ -1346,14 +1334,14 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                            color: isSelected ? AppColors.mustBlue : Colors.grey[700],
+                            color: isSelected ? AppColors.primaryGreen : Colors.grey[700],
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      _miniCount(reports, Icons.assignment, AppColors.mustGold),
+                      _miniCount(reports, Icons.assignment, AppColors.secondaryOrange),
                       const SizedBox(width: 8),
-                      _miniCount(users, Icons.people, AppColors.mustBlue),
+                      _miniCount(users, Icons.people, AppColors.primaryGreen),
                     ],
                   ),
                 ),
@@ -1397,10 +1385,11 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
   Color _getStatusColor(String status) {
     switch (status) {
       case 'pending':
-      case 'submitted':
         return Colors.orange;
+      case 'submitted':
+        return AppColors.primaryGreen;
       case 'under_review':
-        return AppColors.mustBlueMedium;
+        return AppColors.primaryDark;
       case 'resolved':
         return AppColors.mustGreen;
       case 'dismissed':

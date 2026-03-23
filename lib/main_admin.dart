@@ -48,16 +48,71 @@ class AdminApp extends StatelessWidget {
         title: 'Report Management Admin',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          primaryColor: AppColors.mustBlue,
           colorScheme: ColorScheme.fromSeed(
-            seedColor: AppColors.mustBlue,
+            seedColor: AppColors.primaryGreen,
+            primary: AppColors.primaryGreen,
+            secondary: AppColors.secondaryOrange,
+            surface: AppColors.surface,
+            background: AppColors.background,
+            error: AppColors.error,
+            brightness: Brightness.light,
           ),
-          useMaterial3: true,
+          scaffoldBackgroundColor: AppColors.background,
           appBarTheme: const AppBarTheme(
-            backgroundColor: AppColors.mustBlue,
+            backgroundColor: AppColors.primaryGreen,
             foregroundColor: Colors.white,
             elevation: 0,
           ),
+          cardTheme: CardThemeData(
+            color: AppColors.card,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+              side: const BorderSide(
+                color: AppColors.borderLight,
+                width: 1,
+              ),
+            ),
+          ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.secondaryOrange,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              textStyle: const TextStyle(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          textButtonTheme: TextButtonThemeData(
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.royalBlue,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            ),
+          ),
+          inputDecorationTheme: InputDecorationTheme(
+            filled: true,
+            fillColor: AppColors.inputFill,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.primaryGreen),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.primaryGreen),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.primaryGreen, width: 2),
+            ),
+            contentPadding: const EdgeInsets.all(16),
+          ),
+          useMaterial3: true,
+          fontFamily: 'Roboto',
         ),
         home: const AdminLoginScreen(),
       ),

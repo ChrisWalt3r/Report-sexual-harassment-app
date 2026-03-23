@@ -71,7 +71,7 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, controller.text.trim()),
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.mustGold),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.secondaryOrange),
             child: const Text('Save'),
           ),
         ],
@@ -179,7 +179,7 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
                 }
                 Navigator.pop(context, true);
               },
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.mustGold),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.secondaryOrange),
               child: const Text('Change Password'),
             ),
           ],
@@ -254,7 +254,7 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(context, true),
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.mustGold),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.secondaryOrange),
               child: const Text('Update Email'),
             ),
           ],
@@ -288,7 +288,7 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
           // Header
           Row(
             children: [
-              const Icon(Icons.person, size: 32, color: AppColors.mustGold),
+              const Icon(Icons.person, size: 32, color: AppColors.secondaryOrange),
               const SizedBox(width: 12),
               const Text(
                 'Profile Settings',
@@ -299,7 +299,10 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
                 const SizedBox(
                   width: 24,
                   height: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.primaryGreen,
+                  ),
                 ),
             ],
           ),
@@ -348,17 +351,17 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.1),
+                    color: AppColors.secondaryOrange.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.lock_outline, color: Colors.orange),
+                  child: const Icon(Icons.lock_outline, color: AppColors.secondaryOrange),
                 ),
                 title: const Text('Password'),
                 subtitle: const Text('Change your account password'),
                 trailing: ElevatedButton(
                   onPressed: _isLoading ? null : _changePassword,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.mustGold,
+                    backgroundColor: AppColors.secondaryOrange,
                   ),
                   child: const Text('Change'),
                 ),
@@ -400,9 +403,11 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
     }
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Profile Settings'),
-        backgroundColor: AppColors.mustGold,
+        backgroundColor: AppColors.primaryGreen,
+        foregroundColor: Colors.white,
       ),
       body: content,
     );
@@ -415,15 +420,9 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: AppColors.borderLight),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -432,7 +431,7 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                Icon(icon, color: AppColors.mustGold),
+                Icon(icon, color: AppColors.secondaryOrange),
                 const SizedBox(width: 8),
                 Text(
                   title,
@@ -462,10 +461,10 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: AppColors.mustBlue.withOpacity(0.1),
+          color: AppColors.primaryGreen.withOpacity(0.1),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(icon, color: AppColors.mustBlue),
+        child: Icon(icon, color: AppColors.primaryGreen),
       ),
       title: Text(
         label,
@@ -483,7 +482,7 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
           ? IconButton(
               icon: const Icon(Icons.edit, size: 20),
               onPressed: _isLoading ? null : onEdit,
-              color: AppColors.mustGold,
+              color: AppColors.secondaryOrange,
             )
           : null,
     );

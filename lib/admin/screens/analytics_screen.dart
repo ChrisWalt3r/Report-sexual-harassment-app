@@ -45,7 +45,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         _loadResponseTime(),
       ]);
     } catch (e) {
-      print('Error loading analytics: $e');
+      debugPrint('Error loading analytics: $e');
     }
     
     setState(() => _isLoading = false);
@@ -150,11 +150,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   @override
   Widget build(BuildContext context) {
     final body = _isLoading
-        ? const Center(child: CircularProgressIndicator())
+        ? const Center(
+            child: CircularProgressIndicator(
+              color: AppColors.primaryGreen,
+            ),
+          )
         : RefreshIndicator(
               onRefresh: _loadAnalytics,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -167,6 +171,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       'Detailed Analytics',
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
+                        color: AppColors.primaryGreen,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -193,15 +198,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     if (widget.embedded) return body;
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Analytics Dashboard', style: TextStyle(fontWeight: FontWeight.bold)),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
-            ),
-          ),
-        ),
+        backgroundColor: AppColors.primaryGreen,
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
@@ -232,7 +232,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               'Total Reports',
               _totalReports.toString(),
               Icons.report,
-              AppColors.mustBlue,
+              AppColors.primaryGreen,
             ),
             _buildMetricCard(
               'Total Users',
@@ -244,13 +244,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               'Active Users',
               _activeUsers.toString(),
               Icons.verified_user,
-              AppColors.mustGold,
+              AppColors.secondaryOrange,
             ),
             _buildMetricCard(
               'Avg Response Time',
               '${_avgResponseTime.toStringAsFixed(1)}h',
               Icons.timer,
-              AppColors.mustBlueMedium,
+              AppColors.primaryDark,
             ),
           ],
         );
@@ -260,7 +260,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   Widget _buildMetricCard(String title, String value, IconData icon, Color color) {
     return Card(
-      elevation: 2,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: AppColors.borderLight),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -294,7 +298,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     }
 
     return Card(
-      elevation: 2,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: AppColors.borderLight),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -352,7 +360,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     }
 
     return Card(
-      elevation: 2,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: AppColors.borderLight),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -436,7 +448,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     }
 
     return Card(
-      elevation: 2,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: AppColors.borderLight),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -459,12 +475,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                         return FlSpot(entry.key.toDouble(), entry.value.value.toDouble());
                       }).toList(),
                       isCurved: true,
-                      color: AppColors.mustBlue,
+                      color: AppColors.primaryGreen,
                       barWidth: 3,
                       dotData: const FlDotData(show: true),
                       belowBarData: BarAreaData(
                         show: true,
-                        color: AppColors.mustBlue.withOpacity(0.2),
+                        color: AppColors.primaryGreen.withOpacity(0.2),
                       ),
                     ),
                   ],
@@ -516,7 +532,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   Widget _buildAdditionalMetrics() {
     return Card(
-      elevation: 2,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: AppColors.borderLight),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -557,7 +577,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: AppColors.mustBlue,
+              color: AppColors.primaryGreen,
             ),
           ),
         ],
@@ -601,18 +621,22 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   Widget _buildEmptyChart(String message) {
     return Card(
-      elevation: 2,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: AppColors.borderLight),
+      ),
       child: Container(
         height: 200,
         alignment: Alignment.center,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.analytics_outlined, size: 48, color: Colors.grey),
+            const Icon(Icons.analytics_outlined, size: 48, color: AppColors.textSecondary),
             const SizedBox(height: 16),
             Text(
               message,
-              style: const TextStyle(color: Colors.grey),
+              style: const TextStyle(color: AppColors.textSecondary),
             ),
           ],
         ),
@@ -622,12 +646,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   Color _getChartColor(int index) {
     final colors = [
-      AppColors.mustBlue,
-      AppColors.mustGold,
+      AppColors.primaryGreen,
+      AppColors.secondaryOrange,
       AppColors.mustGreen,
-      AppColors.mustBlueMedium,
+      AppColors.primaryDark,
       AppColors.mustGreenLight,
-      AppColors.mustGoldLight,
+      AppColors.secondaryDark,
       Colors.pink,
       Colors.amber,
     ];
@@ -637,11 +661,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'submitted':
-        return AppColors.mustBlue;
+        return AppColors.primaryGreen;
       case 'under_review':
-        return AppColors.mustGold;
+        return AppColors.secondaryOrange;
       case 'investigating':
-        return AppColors.mustBlueMedium;
+        return AppColors.primaryDark;
       case 'resolved':
         return AppColors.mustGreen;
       case 'closed':
