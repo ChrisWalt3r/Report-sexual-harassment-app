@@ -861,7 +861,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                               color: AppColors.royalBlue,
                             ),
                           ),
-                          value: _selectedIncidentTypes.isEmpty ? null : _selectedIncidentTypes.first,
+                          initialValue: _selectedIncidentTypes.isEmpty ? null : _selectedIncidentTypes.first,
                           isExpanded: true,
                           items: _incidentTypes.map((type) {
                             return DropdownMenuItem<String>(

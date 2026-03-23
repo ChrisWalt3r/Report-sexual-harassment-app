@@ -89,7 +89,7 @@ class EmergencyButton extends StatelessWidget {
   }
 
   Widget _buildFullButton(BuildContext context, Color bgColor) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       child: Material(
         color: bgColor,

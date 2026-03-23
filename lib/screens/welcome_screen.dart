@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
-import '../widgets/must_logo.dart';
 import 'login_screen.dart';
 import 'anonymous_info_screen.dart';
 
