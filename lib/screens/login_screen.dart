@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:report_harassment/constants/app_colors.dart';
 import 'package:report_harassment/services/auth_service.dart';
 import 'package:report_harassment/widgets/custom_text_field.dart';
-import 'package:report_harassment/widgets/must_logo.dart';
 import 'package:report_harassment/screens/register_screen.dart';
 import 'package:report_harassment/screens/home_screen.dart';
 
