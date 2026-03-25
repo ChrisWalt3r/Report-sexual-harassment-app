@@ -13,7 +13,7 @@ class AppColors {
   // Primary colors (using MUST branding)
   static const Color primary = primaryGreen;
   static const Color primaryBlue = royalBlue;
-
+   static const Color admingreen = Color.fromARGB(255, 1, 36, 6); // A slightly different green for admin features
   // Secondary colors
   static const Color secondary = secondaryOrange;
   static const Color secondaryDark = Color(0xFFFF8C00); // Darker orange

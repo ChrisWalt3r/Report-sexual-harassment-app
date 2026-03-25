@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:pdf/pdf.dart';
+import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'dart:html' as html;
@@ -18,7 +21,7 @@ class _DataExportScreenState extends State<DataExportScreen> {
   bool _isExporting = false;
   String _exportStatus = '';
 
-  Future<void> _exportReportsToCSV() async {
+  Future<void> _exportReports({required String format}) async {
     setState(() {
       _isExporting = true;
       _exportStatus = 'Fetching reports...';
@@ -26,64 +29,128 @@ class _DataExportScreenState extends State<DataExportScreen> {
 
     try {
       final reports = await _firestore.collection('reports').get();
-      
       setState(() => _exportStatus = 'Processing ${reports.docs.length} reports...');
 
-      // Create CSV content
-      final csvRows = <String>[];
-      
-      // Header
-      csvRows.add('Report ID,Type,Status,Location,Date,Time,Anonymous,Reporter Name,Reporter Email,Description,Created At,Updated At');
-
-      // Data rows
-      for (var doc in reports.docs) {
-        final data = doc.data();
-        final row = [
-          doc.id,
-          data['type'] ?? '',
-          data['status'] ?? '',
-          data['location'] ?? '',
-          data['incidentDate'] ?? '',
-          data['incidentTime'] ?? '',
-          (data['isAnonymous'] ?? false).toString(),
-          data['isAnonymous'] == true ? 'Anonymous' : (data['reporterName'] ?? ''),
-          data['isAnonymous'] == true ? '' : (data['reporterEmail'] ?? ''),
-          _cleanCSVField(data['description'] ?? ''),
-          _formatTimestamp(data['createdAt']),
-          _formatTimestamp(data['updatedAt']),
-        ];
-        csvRows.add(row.map((field) => '"${field.toString().replaceAll('"', '""')}"').join(','));
-      }
-
-      final csvContent = csvRows.join('\n');
-      
-      setState(() => _exportStatus = 'Preparing download...');
-
-      // Create and download file
-      final bytes = utf8.encode(csvContent);
-      final blob = html.Blob([bytes]);
-      final url = html.Url.createObjectUrlFromBlob(blob);
-      final anchor = html.AnchorElement(href: url)
-        ..setAttribute('download', 'reports_${DateTime.now().millisecondsSinceEpoch}.csv')
-        ..click();
-      html.Url.revokeObjectUrl(url);
-
-      setState(() {
-        _isExporting = false;
-        _exportStatus = 'Successfully exported ${reports.docs.length} reports!';
-      });
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Exported ${reports.docs.length} reports')),
+      if (format == 'csv') {
+        // Create CSV content
+        final csvRows = <String>[];
+        // Header
+        csvRows.add('Report ID,Type,Status,Location,Date,Time,Anonymous,Reporter Name,Reporter Email,Description,Created At,Updated At');
+        // Data rows
+        for (var doc in reports.docs) {
+          final data = doc.data();
+          final row = [
+            doc.id,
+            data['type'] ?? '',
+            data['status'] ?? '',
+            data['location'] ?? '',
+            data['incidentDate'] ?? '',
+            data['incidentTime'] ?? '',
+            (data['isAnonymous'] ?? false).toString(),
+            data['isAnonymous'] == true ? 'Anonymous' : (data['reporterName'] ?? ''),
+            data['isAnonymous'] == true ? '' : (data['reporterEmail'] ?? ''),
+            _cleanCSVField(data['description'] ?? ''),
+            _formatTimestamp(data['createdAt']),
+            _formatTimestamp(data['updatedAt']),
+          ];
+          csvRows.add(row.map((field) => '"${field.toString().replaceAll('"', '""')}"').join(','));
+        }
+        final csvContent = csvRows.join('\n');
+        setState(() => _exportStatus = 'Preparing download...');
+        // Create and download file
+        final bytes = utf8.encode(csvContent);
+        final blob = html.Blob([bytes]);
+        final url = html.Url.createObjectUrlFromBlob(blob);
+        final anchor = html.AnchorElement(href: url)
+          ..setAttribute('download', 'reports_${DateTime.now().millisecondsSinceEpoch}.csv')
+          ..click();
+        html.Url.revokeObjectUrl(url);
+        setState(() {
+          _isExporting = false;
+          _exportStatus = 'Successfully exported ${reports.docs.length} reports!';
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Exported ${reports.docs.length} reports')),
+          );
+        }
+      } else if (format == 'pdf') {
+        setState(() => _exportStatus = 'Generating PDF...');
+        final pdf = pw.Document();
+        pdf.addPage(
+          pw.MultiPage(
+            pageFormat: PdfPageFormat.a4,
+            build: (pw.Context context) {
+              return [
+                pw.Text('Reports Export', style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold)),
+                pw.SizedBox(height: 16),
+                pw.Table.fromTextArray(
+                  headers: [
+                    'Report ID', 'Type', 'Status', 'Location', 'Date', 'Time', 'Anonymous',
+                    'Reporter Name', 'Reporter Email', 'Description', 'Created At', 'Updated At'
+                  ],
+                  data: reports.docs.map((doc) {
+                    final data = doc.data();
+                    return [
+                      doc.id,
+                      data['type'] ?? '',
+                      data['status'] ?? '',
+                      data['location'] ?? '',
+                      data['incidentDate'] ?? '',
+                      data['incidentTime'] ?? '',
+                      (data['isAnonymous'] ?? false).toString(),
+                      data['isAnonymous'] == true ? 'Anonymous' : (data['reporterName'] ?? ''),
+                      data['isAnonymous'] == true ? '' : (data['reporterEmail'] ?? ''),
+                      (data['description'] ?? '').toString().replaceAll('\n', ' ').replaceAll('\r', ' '),
+                      _formatTimestamp(data['createdAt']),
+                      _formatTimestamp(data['updatedAt']),
+                    ];
+                  }).toList(),
+                  cellStyle: pw.TextStyle(fontSize: 8),
+                  headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
+                  headerDecoration: pw.BoxDecoration(color: PdfColors.grey300),
+                  cellAlignment: pw.Alignment.centerLeft,
+                  cellAlignments: {
+                    0: pw.Alignment.centerLeft,
+                    1: pw.Alignment.centerLeft,
+                    2: pw.Alignment.centerLeft,
+                    3: pw.Alignment.centerLeft,
+                    4: pw.Alignment.centerLeft,
+                    5: pw.Alignment.centerLeft,
+                    6: pw.Alignment.centerLeft,
+                    7: pw.Alignment.centerLeft,
+                    8: pw.Alignment.centerLeft,
+                    9: pw.Alignment.centerLeft,
+                    10: pw.Alignment.centerLeft,
+                    11: pw.Alignment.centerLeft,
+                  },
+                ),
+              ];
+            },
+          ),
         );
+        final pdfBytes = await pdf.save();
+        final blob = html.Blob([Uint8List.fromList(pdfBytes)], 'application/pdf');
+        final url = html.Url.createObjectUrlFromBlob(blob);
+        final anchor = html.AnchorElement(href: url)
+          ..setAttribute('download', 'reports_${DateTime.now().millisecondsSinceEpoch}.pdf')
+          ..click();
+        html.Url.revokeObjectUrl(url);
+        setState(() {
+          _isExporting = false;
+          _exportStatus = 'Successfully exported PDF with ${reports.docs.length} reports!';
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Exported ${reports.docs.length} reports as PDF')),
+          );
+        }
       }
     } catch (e) {
       setState(() {
         _isExporting = false;
         _exportStatus = 'Error: $e';
       });
-
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
@@ -92,7 +159,7 @@ class _DataExportScreenState extends State<DataExportScreen> {
     }
   }
 
-  Future<void> _exportUsersToCSV() async {
+  Future<void> _exportUsers({required String format}) async {
     setState(() {
       _isExporting = true;
       _exportStatus = 'Fetching users...';
@@ -100,60 +167,63 @@ class _DataExportScreenState extends State<DataExportScreen> {
 
     try {
       final users = await _firestore.collection('users').get();
-      
       setState(() => _exportStatus = 'Processing ${users.docs.length} users...');
 
-      // Create CSV content
-      final csvRows = <String>[];
-      
-      // Header
-      csvRows.add('User ID,Full Name,Email,Student ID,Faculty,Phone,Is Active,Created At');
-
-      // Data rows
-      for (var doc in users.docs) {
-        final data = doc.data();
-        final row = [
-          doc.id,
-          data['fullName'] ?? '',
-          data['email'] ?? '',
-          data['studentId'] ?? '',
-          data['faculty'] ?? '',
-          data['phoneNumber'] ?? '',
-          (data['isActive'] ?? true).toString(),
-          _formatTimestamp(data['createdAt']),
-        ];
-        csvRows.add(row.map((field) => '"${field.toString().replaceAll('"', '""')}"').join(','));
-      }
-
-      final csvContent = csvRows.join('\n');
-      
-      setState(() => _exportStatus = 'Preparing download...');
-
-      // Create and download file
-      final bytes = utf8.encode(csvContent);
-      final blob = html.Blob([bytes]);
-      final url = html.Url.createObjectUrlFromBlob(blob);
-      final anchor = html.AnchorElement(href: url)
-        ..setAttribute('download', 'users_${DateTime.now().millisecondsSinceEpoch}.csv')
-        ..click();
-      html.Url.revokeObjectUrl(url);
-
-      setState(() {
-        _isExporting = false;
-        _exportStatus = 'Successfully exported ${users.docs.length} users!';
-      });
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Exported ${users.docs.length} users')),
-        );
+      if (format == 'csv') {
+        // Create CSV content
+        final csvRows = <String>[];
+        // Header
+        csvRows.add('User ID,Full Name,Email,Student ID,Faculty,Phone,Is Active,Created At');
+        // Data rows
+        for (var doc in users.docs) {
+          final data = doc.data();
+          final row = [
+            doc.id,
+            data['fullName'] ?? '',
+            data['email'] ?? '',
+            data['studentId'] ?? '',
+            data['faculty'] ?? '',
+            data['phoneNumber'] ?? '',
+            (data['isActive'] ?? true).toString(),
+            _formatTimestamp(data['createdAt']),
+          ];
+          csvRows.add(row.map((field) => '"${field.toString().replaceAll('"', '""')}"').join(','));
+        }
+        final csvContent = csvRows.join('\n');
+        setState(() => _exportStatus = 'Preparing download...');
+        // Create and download file
+        final bytes = utf8.encode(csvContent);
+        final blob = html.Blob([bytes]);
+        final url = html.Url.createObjectUrlFromBlob(blob);
+        final anchor = html.AnchorElement(href: url)
+          ..setAttribute('download', 'users_${DateTime.now().millisecondsSinceEpoch}.csv')
+          ..click();
+        html.Url.revokeObjectUrl(url);
+        setState(() {
+          _isExporting = false;
+          _exportStatus = 'Successfully exported ${users.docs.length} users!';
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Exported ${users.docs.length} users')),
+          );
+        }
+      } else if (format == 'pdf') {
+        setState(() {
+          _isExporting = false;
+          _exportStatus = 'PDF export is not implemented yet.';
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('PDF export is coming soon!'), backgroundColor: Colors.orange),
+          );
+        }
       }
     } catch (e) {
       setState(() {
         _isExporting = false;
         _exportStatus = 'Error: $e';
       });
-
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
@@ -305,20 +375,66 @@ class _DataExportScreenState extends State<DataExportScreen> {
             // Export Reports
             _buildExportCard(
               title: 'Export Reports',
-              description: 'Download all reports as CSV file',
+              description: 'Download all reports as PDF or CSV file',
               icon: Icons.description,
               color: AppColors.primaryGreen,
-              onPressed: _isExporting ? null : _exportReportsToCSV,
+              onPressed: _isExporting
+                  ? null
+                  : () async {
+                      final format = await showDialog<String>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Select Export Format'),
+                          content: const Text('Choose the format you want to export reports in:'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, 'pdf'),
+                              child: const Text('PDF'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, 'csv'),
+                              child: const Text('CSV'),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (format != null) {
+                        await _exportReports(format: format);
+                      }
+                    },
             ),
             const SizedBox(height: 16),
 
             // Export Users
             _buildExportCard(
               title: 'Export Users',
-              description: 'Download all user data as CSV file',
+              description: 'Download all user data as PDF or CSV file',
               icon: Icons.people,
               color: AppColors.mustGreen,
-              onPressed: _isExporting ? null : _exportUsersToCSV,
+              onPressed: _isExporting
+                  ? null
+                  : () async {
+                      final format = await showDialog<String>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Select Export Format'),
+                          content: const Text('Choose the format you want to export users in:'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, 'pdf'),
+                              child: const Text('PDF'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, 'csv'),
+                              child: const Text('CSV'),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (format != null) {
+                        await _exportUsers(format: format);
+                      }
+                    },
             ),
             const SizedBox(height: 16),
 

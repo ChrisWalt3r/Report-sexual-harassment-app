@@ -1835,7 +1835,7 @@ class _TrendAnalysisDialogState extends State<_TrendAnalysisDialog> {
                       children: [
                         Text('AI Trend Analysis',
                             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-                        Text('Cross-report pattern recognition powered by Gemini',
+                        Text('Cross-report pattern recognition',
                             style: TextStyle(fontSize: 12, color: Colors.white70)),
                       ],
                     ),
