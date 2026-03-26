@@ -4,7 +4,8 @@ import 'package:flutter/foundation.dart';
 /// Service for managing and retrieving knowledge from the MUST Sexual Harassment Policy
 /// This implements a Retrieval-Augmented Generation (RAG) pattern
 class PolicyKnowledgeService {
-  static final PolicyKnowledgeService _instance = PolicyKnowledgeService._internal();
+  static final PolicyKnowledgeService _instance =
+      PolicyKnowledgeService._internal();
   factory PolicyKnowledgeService() => _instance;
   PolicyKnowledgeService._internal();
 
@@ -15,19 +16,21 @@ class PolicyKnowledgeService {
   /// Initialize the knowledge base by loading chunks from Firestore
   Future<void> initialize() async {
     if (_isInitialized) return;
-    
+
     try {
-      final snapshot = await _firestore
-          .collection('policy_knowledge_base')
-          .orderBy('order')
-          .get();
-      
-      _cachedChunks = snapshot.docs
-          .map((doc) => PolicyChunk.fromFirestore(doc))
-          .toList();
-      
+      final snapshot =
+          await _firestore
+              .collection('policy_knowledge_base')
+              .orderBy('order')
+              .get();
+
+      _cachedChunks =
+          snapshot.docs.map((doc) => PolicyChunk.fromFirestore(doc)).toList();
+
       _isInitialized = true;
-      debugPrint('PolicyKnowledgeService: Loaded ${_cachedChunks.length} policy chunks');
+      debugPrint(
+        'PolicyKnowledgeService: Loaded ${_cachedChunks.length} policy chunks',
+      );
     } catch (e) {
       debugPrint('PolicyKnowledgeService initialization error: $e');
       // Fall back to embedded policy chunks
@@ -36,110 +39,230 @@ class PolicyKnowledgeService {
     }
   }
 
-  /// Retrieve relevant policy chunks based on user query
-  /// Returns top N most relevant chunks
-  List<RetrievalResult> retrieveRelevantChunks(String query, {int topN = 3}) {
+  /// Retrieve relevant policy chunks based on user query.
+  /// Optionally narrows to a specific office while still keeping "General" policies.
+  List<RetrievalResult> retrieveRelevantChunks(
+    String query, {
+    int topN = 3,
+    String? office,
+  }) {
     if (_cachedChunks.isEmpty) {
       _cachedChunks = _getEmbeddedPolicyChunks();
     }
 
     final queryLower = query.toLowerCase();
     final queryWords = _tokenize(queryLower);
-    
+    final officeHint = office ?? detectOfficeHint(query);
+    final normalizedOfficeHint = _normalizeOffice(officeHint);
+
+    final candidates = _cachedChunks.where((chunk) {
+      if (normalizedOfficeHint == null) return true;
+      final chunkOffice = _normalizeOffice(chunk.office);
+      return chunkOffice == null ||
+          chunkOffice == 'general' ||
+          chunkOffice == normalizedOfficeHint;
+    });
+
     List<RetrievalResult> results = [];
-    
-    for (final chunk in _cachedChunks) {
+
+    for (final chunk in candidates) {
       double score = _calculateRelevanceScore(queryWords, queryLower, chunk);
-      
+      score += _getOfficeBoost(queryLower, chunk, normalizedOfficeHint);
+
       if (score > 0) {
-        results.add(RetrievalResult(
-          chunk: chunk,
-          relevanceScore: score,
-        ));
+        results.add(RetrievalResult(chunk: chunk, relevanceScore: score));
       }
     }
-    
+
     // Sort by relevance score descending
     results.sort((a, b) => b.relevanceScore.compareTo(a.relevanceScore));
-    
+
     // Return top N results
     return results.take(topN).toList();
   }
 
+  /// Returns unique office names available in the knowledge base.
+  List<String> getAvailableOffices() {
+    if (_cachedChunks.isEmpty) {
+      _cachedChunks = _getEmbeddedPolicyChunks();
+    }
+    final offices =
+        _cachedChunks
+            .map((chunk) => chunk.office.trim())
+            .where((office) => office.isNotEmpty)
+            .toSet()
+            .toList()
+          ..sort();
+    return offices;
+  }
+
+  /// Attempts to infer an office/faculty from the user question.
+  String? detectOfficeHint(String query) {
+    final normalizedQuery = query.toLowerCase();
+    final offices = getAvailableOffices();
+
+    for (final office in offices) {
+      final lowerOffice = office.toLowerCase();
+      if (lowerOffice == 'general') continue;
+      if (normalizedQuery.contains(lowerOffice)) {
+        return office;
+      }
+    }
+    return null;
+  }
+
+  String? _normalizeOffice(String? office) {
+    if (office == null) return null;
+    final normalized = office.trim().toLowerCase();
+    if (normalized.isEmpty ||
+        normalized == 'all' ||
+        normalized == 'all offices') {
+      return null;
+    }
+    return normalized;
+  }
+
+  double _getOfficeBoost(
+    String queryLower,
+    PolicyChunk chunk,
+    String? normalizedOfficeHint,
+  ) {
+    final chunkOffice = _normalizeOffice(chunk.office) ?? 'general';
+    double boost = 0;
+
+    if (normalizedOfficeHint != null) {
+      if (chunkOffice == normalizedOfficeHint) {
+        boost += 2.0;
+      } else if (chunkOffice == 'general') {
+        boost += 0.4;
+      }
+    }
+
+    if (chunkOffice != 'general' && queryLower.contains(chunkOffice)) {
+      boost += 1.5;
+    }
+
+    return boost;
+  }
+
   /// Calculate relevance score using keyword matching and semantic similarity
-  double _calculateRelevanceScore(List<String> queryWords, String queryLower, PolicyChunk chunk) {
+  double _calculateRelevanceScore(
+    List<String> queryWords,
+    String queryLower,
+    PolicyChunk chunk,
+  ) {
     double score = 0.0;
-    
+
     // 1. Exact keyword match in keywords list (highest weight)
     for (final keyword in chunk.keywords) {
       if (queryLower.contains(keyword.toLowerCase())) {
         score += 3.0;
       }
     }
-    
+
     // 2. Topic match (high weight)
-    if (queryLower.contains(chunk.topic.toLowerCase()) || 
+    if (queryLower.contains(chunk.topic.toLowerCase()) ||
         chunk.topic.toLowerCase().contains(queryLower)) {
       score += 2.5;
     }
-    
+
     // 3. Word overlap with content
     final contentWords = _tokenize(chunk.content.toLowerCase());
     final overlap = queryWords.where((w) => contentWords.contains(w)).length;
     score += overlap * 0.5;
-    
+
     // 4. Semantic category matching
     score += _getSemanticBoost(queryLower, chunk);
-    
+
     return score;
   }
 
   /// Apply semantic boosting based on intent detection
   double _getSemanticBoost(String query, PolicyChunk chunk) {
     double boost = 0.0;
-    
+
     // Reporting-related queries
-    if (_matchesIntent(query, ['report', 'file', 'complaint', 'lodge', 'submit', 'tell someone'])) {
+    if (_matchesIntent(query, [
+      'report',
+      'file',
+      'complaint',
+      'lodge',
+      'submit',
+      'tell someone',
+    ])) {
       if (chunk.category == 'reporting' || chunk.category == 'procedures') {
         boost += 2.0;
       }
     }
-    
+
     // Definition queries
-    if (_matchesIntent(query, ['what is', 'define', 'meaning', 'constitute', 'considered', 'types of'])) {
+    if (_matchesIntent(query, [
+      'what is',
+      'define',
+      'meaning',
+      'constitute',
+      'considered',
+      'types of',
+    ])) {
       if (chunk.category == 'definitions') {
         boost += 2.0;
       }
     }
-    
+
     // Confidentiality queries
-    if (_matchesIntent(query, ['confidential', 'private', 'secret', 'anonymous', 'protect my identity'])) {
-      if (chunk.category == 'confidentiality' || chunk.category == 'procedures') {
+    if (_matchesIntent(query, [
+      'confidential',
+      'private',
+      'secret',
+      'anonymous',
+      'protect my identity',
+    ])) {
+      if (chunk.category == 'confidentiality' ||
+          chunk.category == 'procedures') {
         boost += 2.0;
       }
     }
-    
+
     // Support/help queries
-    if (_matchesIntent(query, ['help', 'support', 'counseling', 'counselling', 'assistance'])) {
+    if (_matchesIntent(query, [
+      'help',
+      'support',
+      'counseling',
+      'counselling',
+      'assistance',
+    ])) {
       if (chunk.category == 'support' || chunk.category == 'resources') {
         boost += 2.0;
       }
     }
-    
+
     // Punishment/action queries
-    if (_matchesIntent(query, ['punishment', 'penalty', 'action', 'consequence', 'discipline', 'remedy'])) {
+    if (_matchesIntent(query, [
+      'punishment',
+      'penalty',
+      'action',
+      'consequence',
+      'discipline',
+      'remedy',
+    ])) {
       if (chunk.category == 'remedies' || chunk.category == 'procedures') {
         boost += 2.0;
       }
     }
-    
+
     // Committee/who handles queries
-    if (_matchesIntent(query, ['committee', 'who handles', 'responsible', 'in charge', 'ashc'])) {
+    if (_matchesIntent(query, [
+      'committee',
+      'who handles',
+      'responsible',
+      'in charge',
+      'ashc',
+    ])) {
       if (chunk.category == 'committee' || chunk.category == 'procedures') {
         boost += 2.0;
       }
     }
-    
+
     return boost;
   }
 
@@ -160,21 +283,33 @@ class PolicyKnowledgeService {
     if (results.isEmpty) {
       return '';
     }
-    
+
     final buffer = StringBuffer();
-    buffer.writeln('RELEVANT POLICY INFORMATION FROM MUST ANTI-SEXUAL HARASSMENT POLICY:');
+    buffer.writeln(
+      'RELEVANT POLICY INFORMATION FROM MUST ANTI-SEXUAL HARASSMENT POLICY:',
+    );
     buffer.writeln('---');
-    
+
     for (int i = 0; i < results.length; i++) {
       final result = results[i];
       buffer.writeln('\n[${result.chunk.topic}]');
+      if (result.chunk.office.trim().isNotEmpty) {
+        buffer.writeln('Office: ${result.chunk.office}');
+      }
+      if (result.chunk.sourceDocument.trim().isNotEmpty) {
+        buffer.writeln('Source: ${result.chunk.sourceDocument}');
+      }
       buffer.writeln(result.chunk.content);
     }
-    
+
     buffer.writeln('\n---');
-    buffer.writeln('Use ONLY the above policy information to answer the user\'s question.');
-    buffer.writeln('If the information doesn\'t cover their question, say you can only answer based on MUST policy.');
-    
+    buffer.writeln(
+      'Use ONLY the above policy information to answer the user\'s question.',
+    );
+    buffer.writeln(
+      'If the information doesn\'t cover their question, say you can only answer based on MUST policy.',
+    );
+
     return buffer.toString();
   }
 
@@ -186,13 +321,22 @@ class PolicyKnowledgeService {
         id: 'def_sexual_harassment',
         topic: 'Definition of Sexual Harassment',
         category: 'definitions',
-        content: '''Sexual harassment is defined as unwelcome and persistent sexual advances, requests for sexual favors or unwanted physical, verbal or non-verbal conduct of a sexual nature that violate the rights of a person. Such conduct constitutes sexual harassment when:
+        content:
+            '''Sexual harassment is defined as unwelcome and persistent sexual advances, requests for sexual favors or unwanted physical, verbal or non-verbal conduct of a sexual nature that violate the rights of a person. Such conduct constitutes sexual harassment when:
 a) Submission to such conduct is made either explicitly or implicitly a condition of an individual's employment/promotion or academic achievement/advancement.
 b) Submission to or rejection of such conduct is used or threatened or insinuated to be used as a basis for decisions affecting the employment and/or academic standing of an individual.
 c) Such conduct has the effect of unreasonably interfering with an individual's work or academic performance or creating a working/learning environment that is intimidating, threatening, hostile or offensive.
 
 In determining whether conduct constitutes sexual harassment, factors include: the frequency, nature and severity of the conduct; whether it was physically threatening; the effect on the complainant's mental or emotional state; whether it arose in context of other discriminatory conduct; and whether concerns relate to academic freedom or protected speech.''',
-        keywords: ['sexual harassment', 'definition', 'unwelcome', 'advances', 'what is', 'constitute', 'meaning'],
+        keywords: [
+          'sexual harassment',
+          'definition',
+          'unwelcome',
+          'advances',
+          'what is',
+          'constitute',
+          'meaning',
+        ],
         order: 1,
       ),
       PolicyChunk(
@@ -206,28 +350,47 @@ In determining whether conduct constitutes sexual harassment, factors include: t
 2. HOSTILE ENVIRONMENT - When harassment makes the work/study place intolerable because constant sexual comments or conduct interferes with a person's ability to do their job or academic activities. A hostile environment can be created by persistent or pervasive conduct or by a single severe incident (e.g., Sexual Assault).
 
 3. SPECIAL VICTIMISATION - When a person is victimised or intimidated for failing to submit to sexual advances.''',
-        keywords: ['quid pro quo', 'hostile environment', 'types', 'forms', 'victimization', 'kinds of harassment'],
+        keywords: [
+          'quid pro quo',
+          'hostile environment',
+          'types',
+          'forms',
+          'victimization',
+          'kinds of harassment',
+        ],
         order: 2,
       ),
       PolicyChunk(
         id: 'def_unwelcome_conduct',
         topic: 'Unwelcome Conduct Types',
         category: 'definitions',
-        content: '''UNWELCOME PHYSICAL CONDUCT: Unwanted and intentional physical contact of any sort which is sexual in nature - touching body parts (genitalia, anus, groin, breast, inner thigh, buttocks), brushing against another's body, hair or clothes, kissing, pinching, patting, grabbing or cornering; with intent to abuse, humiliate, harass, degrade, or arouse or gratify sexual desire.
+        content:
+            '''UNWELCOME PHYSICAL CONDUCT: Unwanted and intentional physical contact of any sort which is sexual in nature - touching body parts (genitalia, anus, groin, breast, inner thigh, buttocks), brushing against another's body, hair or clothes, kissing, pinching, patting, grabbing or cornering; with intent to abuse, humiliate, harass, degrade, or arouse or gratify sexual desire.
 
 UNWELCOME VERBAL CONDUCT: Sexual innuendos, suggestions or hints of sexual nature, sexual advances, sexual threats, comments with sexual overtones, sex-related jokes, insults, graphic or belittling comments about a person's body, inappropriate inquiries about sex life, telling lies about sex life, whistling of a sexual nature, persistent demands for dates/sex, sending sexually explicit text, audio or video.
 
 UNWELCOME NON-VERBAL CONDUCT: Obscene gestures, indecent exposure, displaying or sending/transmitting offensive sexually explicit/suggestive pictures, pornographic pictures or objects.
 
 Note: Perpetrators should not invoke the dress code of any member as a defence for their unwelcome conduct.''',
-        keywords: ['physical', 'verbal', 'non-verbal', 'touching', 'comments', 'gestures', 'pictures', 'unwelcome', 'inappropriate'],
+        keywords: [
+          'physical',
+          'verbal',
+          'non-verbal',
+          'touching',
+          'comments',
+          'gestures',
+          'pictures',
+          'unwelcome',
+          'inappropriate',
+        ],
         order: 3,
       ),
       PolicyChunk(
         id: 'def_sexual_violence',
         topic: 'Sexual Violence Definitions',
         category: 'definitions',
-        content: '''Sexual violence includes acts such as rape, dating and domestic violence, sexual assault, sexual exploitation, stalking, and other forms of non-consensual sexual activity.
+        content:
+            '''Sexual violence includes acts such as rape, dating and domestic violence, sexual assault, sexual exploitation, stalking, and other forms of non-consensual sexual activity.
 
 CONSENT: Words or conduct indicating a freely given agreement to have sexual intercourse or participate in sexual activities. Sexual contact is "without consent" if no clear consent is given; if inflicted through force, threat of force, or coercion; or if inflicted upon a person who is unconscious or otherwise without mental/physical capacity to consent.
 
@@ -242,16 +405,26 @@ SEXUAL EXPLOITATION: Taking sexual advantage of another for one's own benefit, i
 STALKING: Repeated, unwanted contact with any person including by electronic means or by proxy, or credible threat of repeated contact with intent to place a person in fear for their safety.
 
 Note: Capital offenses (e.g. rape and sexual assault) shall be dealt with according to the laws of Uganda.''',
-        keywords: ['consent', 'rape', 'assault', 'exploitation', 'stalking', 'violence', 'without consent', 'defilement'],
+        keywords: [
+          'consent',
+          'rape',
+          'assault',
+          'exploitation',
+          'stalking',
+          'violence',
+          'without consent',
+          'defilement',
+        ],
         order: 4,
       ),
-      
+
       // REPORTING PROCEDURES
       PolicyChunk(
         id: 'report_how_to',
         topic: 'How to Lodge a Complaint',
         category: 'reporting',
-        content: '''Complaints of sexual harassment must be brought to the attention of the Anti-Sexual Harassment Committee (ASHC) through the Unit Sexual Harassment Committee (USHC) and Top Management Committee (TMC) by the victim, a witness, or any concerned person.
+        content:
+            '''Complaints of sexual harassment must be brought to the attention of the Anti-Sexual Harassment Committee (ASHC) through the Unit Sexual Harassment Committee (USHC) and Top Management Committee (TMC) by the victim, a witness, or any concerned person.
 
 FOR STUDENTS: Make a complaint to the Dean of Students (DOS) through the USHC through your Head of Department, or report directly to the DOS, who will present the same to the TMC for further action.
 
@@ -260,7 +433,17 @@ FOR STAFF MEMBERS: Report to the University Secretary through the Director Human
 FOR THIRD PARTIES (visitors, contractors, vendors): Report directly to the University Secretary who will present the complaint to the TMC for further action.
 
 ANONYMOUS REPORTING: There is a MUST/ASHC Suggestion Box for whistle-blowers. Information found in the suggestion box or reported by email/telephone/text shall be investigated for merit and complaints addressed appropriately.''',
-        keywords: ['report', 'complaint', 'how to', 'lodge', 'file', 'submit', 'dean of students', 'where to report', 'anonymous'],
+        keywords: [
+          'report',
+          'complaint',
+          'how to',
+          'lodge',
+          'file',
+          'submit',
+          'dean of students',
+          'where to report',
+          'anonymous',
+        ],
         order: 10,
       ),
       PolicyChunk(
@@ -280,14 +463,24 @@ Only the following is recorded in informal procedure:
 FORMAL PROCEDURE: The complainant prepares and signs a written statement initiating University disciplinary proceedings. The formal process tests the complainant's allegations through the disciplinary process. For students, the matter goes to the Students' Disciplinary Committee. For staff, the existing Human Resource Manual disciplinary procedures are used.
 
 The choice to pursue informal proceedings does not diminish the force of the original complaint. If informal proceedings don't reach resolution, parties can still pursue formal procedures.''',
-        keywords: ['formal', 'informal', 'procedure', 'process', 'written statement', 'timeline', 'how long', '21 days'],
+        keywords: [
+          'formal',
+          'informal',
+          'procedure',
+          'process',
+          'written statement',
+          'timeline',
+          'how long',
+          '21 days',
+        ],
         order: 11,
       ),
       PolicyChunk(
         id: 'report_required_info',
         topic: 'Information Required for Formal Complaint',
         category: 'reporting',
-        content: '''For a formal complaint, you must advise the case facilitator of your intention and prepare and sign a written statement which should include:
+        content:
+            '''For a formal complaint, you must advise the case facilitator of your intention and prepare and sign a written statement which should include:
 
 1. Date of the incident(s)
 2. Time of the incident(s)  
@@ -300,16 +493,26 @@ The choice to pursue informal proceedings does not diminish the force of the ori
 This statement must be signed by the complainant. On receipt of a complaint from TMC, the ASHC will have it recorded in writing and assigned immediately to a Case Facilitator who will expeditiously manage the complaint with sensitivity.
 
 The formal processes for presentation within University Disciplinary Processes will be initiated through the ASHC through detailed reports of findings and recommendations to the DOS for students and US for staff.''',
-        keywords: ['required', 'information', 'needed', 'statement', 'what to include', 'evidence', 'witnesses', 'written'],
+        keywords: [
+          'required',
+          'information',
+          'needed',
+          'statement',
+          'what to include',
+          'evidence',
+          'witnesses',
+          'written',
+        ],
         order: 12,
       ),
-      
+
       // CONFIDENTIALITY
       PolicyChunk(
         id: 'confidentiality',
         topic: 'Confidentiality Protection',
         category: 'confidentiality',
-        content: '''All complaints of sexual harassment shall be treated with CONFIDENTIALITY to the extent practically possible. Only those individuals necessarily involved in investigations and decisions regarding resolution of the complaint should be provided access to information.
+        content:
+            '''All complaints of sexual harassment shall be treated with CONFIDENTIALITY to the extent practically possible. Only those individuals necessarily involved in investigations and decisions regarding resolution of the complaint should be provided access to information.
 
 KEY PROTECTIONS:
 - Anonymous complaints shall be investigated for merit and disposed of accordingly
@@ -321,16 +524,26 @@ KEY PROTECTIONS:
 - The decision to lodge a complaint is fully vested in the victim who shall be allowed to exercise their right
 
 Strict confidentiality regarding the process, participants and report will be maintained throughout.''',
-        keywords: ['confidential', 'confidentiality', 'private', 'secret', 'anonymous', 'protection', 'retaliation', 'whistleblower'],
+        keywords: [
+          'confidential',
+          'confidentiality',
+          'private',
+          'secret',
+          'anonymous',
+          'protection',
+          'retaliation',
+          'whistleblower',
+        ],
         order: 20,
       ),
-      
+
       // COMMITTEE
       PolicyChunk(
         id: 'committee_role',
         topic: 'Anti-Sexual Harassment Committee (ASHC)',
         category: 'committee',
-        content: '''The Anti-Sexual Harassment Committee (ASHC) is appointed by the Vice-Chancellor on behalf of Top Management. The Committee is charged with the duty and authority to ensure full implementation of the Sexual Harassment Policy.
+        content:
+            '''The Anti-Sexual Harassment Committee (ASHC) is appointed by the Vice-Chancellor on behalf of Top Management. The Committee is charged with the duty and authority to ensure full implementation of the Sexual Harassment Policy.
 
 ASHC provides a comprehensive sexual harassment response including:
 
@@ -349,14 +562,24 @@ PROTECTIVE MEASURES:
 COMPOSITION: Members drawn from MUSTASA, MUSTSAF, NUEI, Students Guild, University Secretary's office, Dean of Students office, Academic Registrar's office, Directorate of Human Resource, and Faculties/Institutes. Gender balance is considered. Members receive training on sexual harassment.
 
 For each case, an ad hoc committee of 3-9 members is appointed. At least half must be female; an odd number is required for majority decisions.''',
-        keywords: ['committee', 'ashc', 'who handles', 'responsible', 'support', 'counseling', 'protection', 'pep'],
+        keywords: [
+          'committee',
+          'ashc',
+          'who handles',
+          'responsible',
+          'support',
+          'counseling',
+          'protection',
+          'pep',
+        ],
         order: 30,
       ),
       PolicyChunk(
         id: 'case_facilitator',
         topic: 'Role of Case Facilitator',
         category: 'procedures',
-        content: '''When you report, a Case Facilitator is assigned by the ASHC who will expeditiously manage the complaint with sensitivity. The case facilitator will:
+        content:
+            '''When you report, a Case Facilitator is assigned by the ASHC who will expeditiously manage the complaint with sensitivity. The case facilitator will:
 
 1. Advise you that there are formal and informal procedures which can be followed
 2. Explain both formal and informal procedures fully
@@ -370,16 +593,25 @@ For each case, an ad hoc committee of 3-9 members is appointed. At least half mu
 10. Report back to the ASHC on findings or decisions taken by you and seek further guidance
 
 The Case Facilitator guides you through the entire process.''',
-        keywords: ['facilitator', 'assigned', 'help', 'advise', 'guidance', 'process', 'steps'],
+        keywords: [
+          'facilitator',
+          'assigned',
+          'help',
+          'advise',
+          'guidance',
+          'process',
+          'steps',
+        ],
         order: 31,
       ),
-      
+
       // REMEDIES
       PolicyChunk(
         id: 'remedies',
         topic: 'Remedies and Disciplinary Action',
         category: 'remedies',
-        content: '''Remedies shall be calculated to make good the wrong done. The ASHC shall be guided by existing laws of Uganda, rules and regulations of the University. Possible resolutions include:
+        content:
+            '''Remedies shall be calculated to make good the wrong done. The ASHC shall be guided by existing laws of Uganda, rules and regulations of the University. Possible resolutions include:
 
 1. A finding that the University's Sexual Harassment Policy was NOT violated and dismissal of the charge
 
@@ -401,16 +633,28 @@ The Case Facilitator guides you through the entire process.''',
 4. NO-CONTACT ORDER may be issued by Top Management on ASHC recommendation to protect the complainant from harassment, whether or not formal disciplinary process is instituted. Violation of a no-contact order constitutes serious misconduct.
 
 Criminal cases (rape, assault) shall be handed to police/courts according to Ugandan law. The University ensures disciplinary action stops the harassment and prevents reoccurrence.''',
-        keywords: ['punishment', 'penalty', 'remedy', 'action', 'discipline', 'consequence', 'suspension', 'termination', 'expulsion', 'reprimand'],
+        keywords: [
+          'punishment',
+          'penalty',
+          'remedy',
+          'action',
+          'discipline',
+          'consequence',
+          'suspension',
+          'termination',
+          'expulsion',
+          'reprimand',
+        ],
         order: 40,
       ),
-      
+
       // APPEALS
       PolicyChunk(
         id: 'appeals',
         topic: 'Appeals Process',
         category: 'procedures',
-        content: '''Both the complainant and alleged perpetrator have the right to appeal:
+        content:
+            '''Both the complainant and alleged perpetrator have the right to appeal:
 
 INFORMAL PROCEDURE APPEALS:
 If no amicable settlement or resolution is reached, either party may appeal directly to the University Top Management within twenty-one (21) days of the conclusion of that process. The Top Management will assess the matter and refer it to:
@@ -421,10 +665,18 @@ FORMAL PROCEDURE APPEALS:
 Following the formal procedure, an aggrieved party may appeal a decision of the Disciplinary Committee. Such appeal shall be requested in writing to the University Council within twenty-one (21) days of such decision.
 
 The appeal will be assessed and referred to appropriate committees for further handling.''',
-        keywords: ['appeal', 'not satisfied', 'disagree', 'decision', 'unfair', 'review', '21 days'],
+        keywords: [
+          'appeal',
+          'not satisfied',
+          'disagree',
+          'decision',
+          'unfair',
+          'review',
+          '21 days',
+        ],
         order: 50,
       ),
-      
+
       // SCOPE
       PolicyChunk(
         id: 'scope',
@@ -448,16 +700,28 @@ The appeal will be assessed and referred to appropriate committees for further h
 The policy applies to all those involved in University activities REGARDLESS of whether in on-campus or off-campus settings - including University employment, classes, programs and activities.
 
 Both men and women can be victims of sexual harassment. Either a man or a woman can be a harasser. Same-sex harassment is covered. The person complaining does not have to be the person to whom the conduct was directed - it can be someone who witnessed the harassment.''',
-        keywords: ['who', 'covered', 'applies', 'scope', 'third party', 'staff', 'students', 'visitors', 'men', 'women'],
+        keywords: [
+          'who',
+          'covered',
+          'applies',
+          'scope',
+          'third party',
+          'staff',
+          'students',
+          'visitors',
+          'men',
+          'women',
+        ],
         order: 60,
       ),
-      
+
       // SUPPORT RESOURCES
       PolicyChunk(
         id: 'support_resources',
         topic: 'Support Services Available',
         category: 'support',
-        content: '''MUST provides comprehensive support for victims of sexual harassment. Victim support is a PRIMARY AIM of the policy whether or not disciplinary proceedings are instituted.
+        content:
+            '''MUST provides comprehensive support for victims of sexual harassment. Victim support is a PRIMARY AIM of the policy whether or not disciplinary proceedings are instituted.
 
 SUPPORTIVE MEASURES:
 1. COUNSELLING - Professional counselling and other psycho-social services to address emotional and physical trauma
@@ -473,10 +737,20 @@ PROTECTIVE MEASURES:
 5. GUIDANCE UNIT - University guidance and counselling unit for ongoing support
 
 The ASHC endeavors to observe basic principles of natural justice while providing support.''',
-        keywords: ['support', 'help', 'counselling', 'counseling', 'services', 'resources', 'medical', 'pep', 'guidance'],
+        keywords: [
+          'support',
+          'help',
+          'counselling',
+          'counseling',
+          'services',
+          'resources',
+          'medical',
+          'pep',
+          'guidance',
+        ],
         order: 70,
       ),
-      
+
       // EMERGENCY
       PolicyChunk(
         id: 'emergency',
@@ -499,10 +773,21 @@ IMPORTANT RIGHTS:
 - Criminal cases shall not rule out handing over to court or police for handling according to Ugandan law
 
 The University's policy does not prevent victims from pursuing legal action outside the University system. In appropriate circumstances, the case facilitator will advise you of your right to refer the matter to the Ugandan Police and obtain further legal advice outside the University.''',
-        keywords: ['emergency', 'danger', 'immediate', 'crisis', 'safety', 'urgent', 'police', 'security', 'rape', 'assault'],
+        keywords: [
+          'emergency',
+          'danger',
+          'immediate',
+          'crisis',
+          'safety',
+          'urgent',
+          'police',
+          'security',
+          'rape',
+          'assault',
+        ],
         order: 80,
       ),
-      
+
       // RIGHTS
       PolicyChunk(
         id: 'rights_complainant',
@@ -526,16 +811,26 @@ IMPORTANT PROTECTIONS:
 - The decision to lodge a complaint is fully vested in you, allowing you to exercise your right
 - The University reserves the right to pursue the matter even if you decide not to, if there is significant risk of harm to others
 - The case facilitator assisting you may not be called as a witness during formal procedures''',
-        keywords: ['rights', 'entitled', 'protected', 'choose', 'options', 'my rights', 'complainant', 'victim'],
+        keywords: [
+          'rights',
+          'entitled',
+          'protected',
+          'choose',
+          'options',
+          'my rights',
+          'complainant',
+          'victim',
+        ],
         order: 90,
       ),
-      
+
       // ALLEGED PERPETRATOR RIGHTS
       PolicyChunk(
         id: 'false_accusations',
         topic: 'Alleged Perpetrator Rights',
         category: 'rights',
-        content: '''This policy recognizes the right of the alleged perpetrator to a FAIR HEARING. The ASHC observes basic principles of natural justice.
+        content:
+            '''This policy recognizes the right of the alleged perpetrator to a FAIR HEARING. The ASHC observes basic principles of natural justice.
 
 The alleged perpetrator is entitled to:
 1. Receive a copy of this policy and of the University's disciplinary rules
@@ -551,16 +846,26 @@ FALSE/MALICIOUS COMPLAINTS:
 If charges are proved to have been MALICIOUS (false and intentionally harmful), the person who lodged the complaint shall be reprimanded by the disciplinary committee.
 
 The University may advise that certain conduct constitutes sexual harassment, giving the alleged perpetrator an opportunity to apologize.''',
-        keywords: ['accused', 'false', 'malicious', 'rights of accused', 'fair', 'innocent', 'perpetrator', 'defense'],
+        keywords: [
+          'accused',
+          'false',
+          'malicious',
+          'rights of accused',
+          'fair',
+          'innocent',
+          'perpetrator',
+          'defense',
+        ],
         order: 91,
       ),
-      
+
       // DATING VIOLENCE
       PolicyChunk(
         id: 'dating_violence',
         topic: 'Dating Violence',
         category: 'definitions',
-        content: '''Dating violence is defined as violence or abusive behaviour against an intimate partner (romantic, dating, or sexual partner) that seeks to control the partner or has caused harm to the partner. The harm may be physical, verbal, emotional, economic, or sexual in nature.
+        content:
+            '''Dating violence is defined as violence or abusive behaviour against an intimate partner (romantic, dating, or sexual partner) that seeks to control the partner or has caused harm to the partner. The harm may be physical, verbal, emotional, economic, or sexual in nature.
 
 The existence of such a relationship shall be determined based on consideration of the following factors:
 - The length of the relationship
@@ -570,16 +875,26 @@ The existence of such a relationship shall be determined based on consideration 
 Dating violence falls under the scope of Sexual Violence addressed by this policy along with rape, domestic violence, sexual assault, sexual exploitation, stalking, and other forms of non-consensual sexual activity.
 
 If you are experiencing dating violence, you can report it through the same channels as other sexual harassment and access support services including counselling and protective measures.''',
-        keywords: ['dating', 'violence', 'partner', 'relationship', 'domestic', 'abuse', 'boyfriend', 'girlfriend'],
+        keywords: [
+          'dating',
+          'violence',
+          'partner',
+          'relationship',
+          'domestic',
+          'abuse',
+          'boyfriend',
+          'girlfriend',
+        ],
         order: 5,
       ),
-      
+
       // POLICY GOAL
       PolicyChunk(
         id: 'policy_goal',
         topic: 'Policy Goal and Statement',
         category: 'about',
-        content: '''MUST is committed to a learning and working environment that is fair, respectful and free from all forms of Sexual Harassment.
+        content:
+            '''MUST is committed to a learning and working environment that is fair, respectful and free from all forms of Sexual Harassment.
 
 POLICY GOAL: Promote social integrity for a healthy, productive and motivated labour force and student population.
 
@@ -588,16 +903,26 @@ POLICY STATEMENT: MUST strives to be an equal opportunity, affirmative action in
 The University will effectively respond to reports and resolve complaints through preventive, corrective and disciplinary measures. MUST affirms ZERO-TOLERANCE for sexual harassment.
 
 This policy does not limit academic freedom or principles of free inquiry. It is not intended to restrict teaching methods, freedom of expression, or social contact. Sexual harassment is NOT a legally protected expression nor the proper exercise of academic choice - it compromises the institution's integrity.''',
-        keywords: ['policy', 'goal', 'statement', 'zero tolerance', 'commitment', 'must', 'university', 'about'],
+        keywords: [
+          'policy',
+          'goal',
+          'statement',
+          'zero tolerance',
+          'commitment',
+          'must',
+          'university',
+          'about',
+        ],
         order: 0,
       ),
-      
+
       // WELCOME VS UNWELCOME CONDUCT
       PolicyChunk(
         id: 'welcome_conduct',
         topic: 'Welcome vs Unwelcome Conduct',
         category: 'definitions',
-        content: '''The attraction between employees/students should be a private matter, so long as it does not cross the boundary between welcome conduct and unwelcome conduct.
+        content:
+            '''The attraction between employees/students should be a private matter, so long as it does not cross the boundary between welcome conduct and unwelcome conduct.
 
 DISTINCTIONS TO CONSIDER:
 
@@ -610,7 +935,15 @@ OFFENSIVE BUT TOLERATED: Just because someone does not make a complaint does not
 FLATLY REFUSED: This is clearly harassment and should be handled accordingly.
 
 Assessment of what is unwelcome should be defined by context including culture or language. Previous consensual participation does not mean subsequent conduct continues to be welcome.''',
-        keywords: ['welcome', 'unwelcome', 'invited', 'consensual', 'consent', 'relationship', 'tolerated'],
+        keywords: [
+          'welcome',
+          'unwelcome',
+          'invited',
+          'consensual',
+          'consent',
+          'relationship',
+          'tolerated',
+        ],
         order: 6,
       ),
     ];
@@ -620,12 +953,14 @@ Assessment of what is unwelcome should be defined by context including culture o
   Future<void> uploadChunksToFirestore() async {
     final chunks = _getEmbeddedPolicyChunks();
     final batch = _firestore.batch();
-    
+
     for (final chunk in chunks) {
-      final docRef = _firestore.collection('policy_knowledge_base').doc(chunk.id);
+      final docRef = _firestore
+          .collection('policy_knowledge_base')
+          .doc(chunk.id);
       batch.set(docRef, chunk.toFirestore());
     }
-    
+
     await batch.commit();
     debugPrint('Uploaded ${chunks.length} policy chunks to Firestore');
   }
@@ -636,6 +971,8 @@ class PolicyChunk {
   final String id;
   final String topic;
   final String category;
+  final String office;
+  final String sourceDocument;
   final String content;
   final List<String> keywords;
   final int order;
@@ -644,6 +981,8 @@ class PolicyChunk {
     required this.id,
     required this.topic,
     required this.category,
+    this.office = 'General',
+    this.sourceDocument = 'MUST Sexual Harassment Policy (2020)',
     required this.content,
     required this.keywords,
     required this.order,
@@ -655,6 +994,10 @@ class PolicyChunk {
       id: doc.id,
       topic: data['topic'] ?? '',
       category: data['category'] ?? '',
+      office: (data['office'] ?? 'General').toString(),
+      sourceDocument:
+          (data['sourceDocument'] ?? 'MUST Sexual Harassment Policy (2020)')
+              .toString(),
       content: data['content'] ?? '',
       keywords: List<String>.from(data['keywords'] ?? []),
       order: data['order'] ?? 0,
@@ -665,6 +1008,8 @@ class PolicyChunk {
     return {
       'topic': topic,
       'category': category,
+      'office': office,
+      'sourceDocument': sourceDocument,
       'content': content,
       'keywords': keywords,
       'order': order,
@@ -678,8 +1023,5 @@ class RetrievalResult {
   final PolicyChunk chunk;
   final double relevanceScore;
 
-  RetrievalResult({
-    required this.chunk,
-    required this.relevanceScore,
-  });
+  RetrievalResult({required this.chunk, required this.relevanceScore});
 }

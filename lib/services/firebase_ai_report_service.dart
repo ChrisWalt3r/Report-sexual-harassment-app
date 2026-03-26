@@ -21,11 +21,11 @@ class FirebaseAIReportService {
   Future<void> initialize() async {
     if (_isInitialized) return;
     try {
-      _model = FirebaseAI.vertexAI().generativeModel(
-        model: 'gemini-2.0-flash',
-      );
+      _model = FirebaseAI.vertexAI().generativeModel(model: 'gemini-2.0-flash');
       _isInitialized = true;
-      debugPrint('Firebase AI Report Service initialized successfully (Vertex AI)');
+      debugPrint(
+        'Firebase AI Report Service initialized successfully (Vertex AI)',
+      );
     } catch (e) {
       debugPrint('Error initializing Firebase AI: $e');
       rethrow;
@@ -49,7 +49,8 @@ class FirebaseAIReportService {
 
     final reportSummary = _buildReportContext(reportData, reportId);
 
-    final prompt = '''You are an expert analyst assisting university administration in managing sexual harassment reports at MUST (Mbarara University of Science and Technology) in Uganda. Analyze the following report and provide actionable insights.
+    final prompt =
+        '''You are an expert analyst assisting university administration in managing sexual harassment reports at MUST (Mbarara University of Science and Technology) in Uganda. Analyze the following report and provide actionable insights.
 
 REPORT DATA:
 $reportSummary
@@ -87,26 +88,32 @@ Provide your analysis in the following JSON format ONLY (no markdown, no code bl
 
     final reportSummary = _buildReportContext(reportData, reportId);
 
-    final prompt = '''You are an expert analyst assisting university administration at MUST (Mbarara University of Science and Technology) in Uganda. Break down the following harassment report into clear, structured sections for administrative review.
+    final prompt =
+        '''You are an expert analyst assisting university administration at MUST (Mbarara University of Science and Technology) in Uganda. Break down the following harassment report into clear, structured sections for administrative review.
 
 REPORT DATA:
 $reportSummary
 
 Provide a detailed breakdown covering:
-1. **Incident Overview** - What happened, when, and where
-2. **Parties Involved** - Reporter details and any mentioned individuals
-3. **Incident Classification** - Type and nature of the harassment
-4. **Evidence Summary** - What evidence was submitted and its relevance
-5. **Contextual Factors** - Location, timing, and environmental factors
-6. **Witness Information** - Any witnesses mentioned and their potential value
-7. **Gaps & Missing Information** - What information is lacking that would help the investigation
-8. **Urgency Assessment** - How urgently this needs attention and why
+1. Incident Overview - What happened, when, and where
+2. Parties Involved - Reporter details and any mentioned individuals
+3. Incident Classification - Type and nature of the harassment
+4. Evidence Summary - What evidence was submitted and its relevance
+5. Contextual Factors - Location, timing, and environmental factors
+6. Witness Information - Any witnesses mentioned and their potential value
+7. Gaps and Missing Information - What information is lacking that would help the investigation
+8. Urgency Assessment - How urgently this needs attention and why
+
+Output rules:
+- Use plain text only.
+- Do NOT use markdown symbols such as **, *, #, >, or ``` blocks.
+- Keep section titles concise and readable.
 
 Keep the language professional, objective, and trauma-informed. Do not make assumptions about guilt or innocence. Focus on facts presented in the report.''';
 
     try {
       final response = await model.generateContent([Content.text(prompt)]);
-      return response.text ?? 'Unable to generate breakdown.';
+      return _sanitizeAiText(response.text ?? 'Unable to generate breakdown.');
     } catch (e) {
       debugPrint('Error generating breakdown: $e');
       rethrow;
@@ -123,7 +130,8 @@ Keep the language professional, objective, and trauma-informed. Do not make assu
 
     final reportSummary = _buildReportContext(reportData, reportId);
 
-    final prompt = '''You are an expert advisor assisting university administration at MUST in managing sexual harassment cases. The following report is currently in "$currentStatus" status.
+    final prompt =
+        '''You are an expert advisor assisting university administration at MUST in managing sexual harassment cases. The following report is currently in "$currentStatus" status.
 
 REPORT DATA:
 $reportSummary
@@ -138,11 +146,16 @@ Based on the current status and report content, provide specific, actionable nex
 - Confidentiality considerations
 - Any legal obligations
 
-Provide 5-8 clear, numbered action items with brief explanations for each. Keep recommendations practical, ethical, and trauma-informed.''';
+Output rules:
+- Use plain text only.
+- Do NOT use markdown symbols such as **, *, #, >, or ``` blocks.
+- Provide 5-8 clear, numbered action items with brief explanations for each.
+
+Keep recommendations practical, ethical, and trauma-informed.''';
 
     try {
       final response = await model.generateContent([Content.text(prompt)]);
-      return response.text ?? 'Unable to generate next steps.';
+      return _sanitizeAiText(response.text ?? 'Unable to generate next steps.');
     } catch (e) {
       debugPrint('Error generating next steps: $e');
       rethrow;
@@ -158,7 +171,8 @@ Provide 5-8 clear, numbered action items with brief explanations for each. Keep 
 
     final reportSummary = _buildReportContext(reportData, reportId);
 
-    final prompt = '''You are assisting university administration at MUST in drafting a professional resolution message for a harassment report. The message will be sent to the person who submitted the report.
+    final prompt =
+        '''You are assisting university administration at MUST in drafting a professional resolution message for a harassment report. The message will be sent to the person who submitted the report.
 
 REPORT DATA:
 $reportSummary
@@ -171,11 +185,17 @@ Draft a professional, empathetic resolution message that:
 - Includes contact information for follow-up concerns
 - Is trauma-informed and respectful
 
+Output rules:
+- Use plain text only.
+- Do NOT use markdown symbols such as **, *, #, >, or ``` blocks.
+
 Keep the draft to 3-5 paragraphs. The admin will edit it before sending. Mark sections that need admin input with [ADMIN: description of what to add].''';
 
     try {
       final response = await model.generateContent([Content.text(prompt)]);
-      return response.text ?? 'Unable to generate resolution draft.';
+      return _sanitizeAiText(
+        response.text ?? 'Unable to generate resolution draft.',
+      );
     } catch (e) {
       debugPrint('Error generating resolution draft: $e');
       rethrow;
@@ -192,7 +212,8 @@ Keep the draft to 3-5 paragraphs. The admin will edit it before sending. Mark se
 
     final reportSummary = _buildReportContext(reportData, reportId);
 
-    final prompt = '''You are an expert analyst assisting university administration at MUST in managing sexual harassment reports. An administrator has a question about the following report.
+    final prompt =
+        '''You are an expert analyst assisting university administration at MUST in managing sexual harassment reports. An administrator has a question about the following report.
 
 REPORT DATA:
 $reportSummary
@@ -200,11 +221,15 @@ $reportSummary
 ADMINISTRATOR'S QUESTION:
 $question
 
-Provide a helpful, professional, and fact-based answer. If the question requires information not available in the report, clearly state what is missing. Stay objective and focused on supporting effective case management. Be concise but thorough.''';
+Provide a helpful, professional, and fact-based answer. If the question requires information not available in the report, clearly state what is missing. Stay objective and focused on supporting effective case management. Be concise but thorough.
+
+Output rules:
+- Use plain text only.
+- Do NOT use markdown symbols such as **, *, #, >, or ``` blocks.''';
 
     try {
       final response = await model.generateContent([Content.text(prompt)]);
-      return response.text ?? 'Unable to generate a response.';
+      return _sanitizeAiText(response.text ?? 'Unable to generate a response.');
     } catch (e) {
       debugPrint('Error answering question: $e');
       rethrow;
@@ -215,32 +240,72 @@ Provide a helpful, professional, and fact-based answer. If the question requires
   Future<String> analyzeTrends(List<Map<String, dynamic>> reportsData) async {
     final model = await _getModel();
 
-    final reportsContext = reportsData.take(20).map((r) {
-      return '- Type: ${r['type'] ?? 'N/A'}, Location: ${r['location'] ?? 'N/A'}, Status: ${r['status'] ?? 'N/A'}, Anonymous: ${r['isAnonymous'] ?? false}, Date: ${r['createdAt'] ?? 'N/A'}';
-    }).join('\n');
+    final reportsContext = reportsData
+        .take(20)
+        .map((r) {
+          return '- Type: ${r['type'] ?? 'N/A'}, Location: ${r['location'] ?? 'N/A'}, Status: ${r['status'] ?? 'N/A'}, Anonymous: ${r['isAnonymous'] ?? false}, Date: ${r['createdAt'] ?? 'N/A'}';
+        })
+        .join('\n');
 
-    final prompt = '''You are an expert analyst assisting university administration at MUST in identifying trends and patterns in harassment reports. Analyze the following batch of ${reportsData.length} reports.
+    final prompt =
+        '''You are an expert analyst assisting university administration at MUST in identifying trends and patterns in harassment reports. Analyze the following batch of ${reportsData.length} reports.
 
 REPORTS SUMMARY:
 $reportsContext
 
 Provide a trend analysis covering:
-1. **Pattern Identification** - Common types, locations, and timing
-2. **Hotspot Analysis** - Locations or areas of concern
-3. **Reporting Trends** - Anonymous vs. identified reports, reporting frequency
-4. **Resolution Effectiveness** - Status distribution and any bottlenecks
-5. **Recommendations** - Systemic changes or preventive measures to consider
-6. **Alerts** - Any concerning patterns that need immediate attention
+1. Pattern Identification - Common types, locations, and timing
+2. Hotspot Analysis - Locations or areas of concern
+3. Reporting Trends - Anonymous vs. identified reports, reporting frequency
+4. Resolution Effectiveness - Status distribution and any bottlenecks
+5. Recommendations - Systemic changes or preventive measures to consider
+6. Alerts - Any concerning patterns that need immediate attention
+
+Output rules:
+- Use plain text only.
+- Do NOT use markdown symbols such as **, *, #, >, or ``` blocks.
 
 Keep the analysis data-driven and actionable. Focus on insights that drive better policy and prevention.''';
 
     try {
       final response = await model.generateContent([Content.text(prompt)]);
-      return response.text ?? 'Unable to generate trend analysis.';
+      return _sanitizeAiText(
+        response.text ?? 'Unable to generate trend analysis.',
+      );
     } catch (e) {
       debugPrint('Error analyzing trends: $e');
       rethrow;
     }
+  }
+
+  String _sanitizeAiText(String text) {
+    var cleaned = text;
+
+    cleaned = cleaned.replaceAll(RegExp(r'```[a-zA-Z]*'), '');
+    cleaned = cleaned.replaceAll('```', '');
+    cleaned = cleaned.replaceAll(RegExp(r'\*\*\*'), '');
+    cleaned = cleaned.replaceAll(RegExp(r'\*\*'), '');
+    cleaned = cleaned.replaceAll(RegExp(r'__'), '');
+    cleaned = cleaned.replaceAll('`', '');
+
+    cleaned = cleaned.replaceAllMapped(
+      RegExp(r'\[(.*?)\]\((.*?)\)'),
+      (m) => m.group(1) ?? '',
+    );
+
+    cleaned = cleaned.replaceAll(RegExp(r'^\s*>\s*', multiLine: true), '');
+    cleaned = cleaned.replaceAllMapped(
+      RegExp(r'^\s*[-*•]\s+', multiLine: true),
+      (m) => '- ',
+    );
+    cleaned = cleaned.replaceAllMapped(
+      RegExp(r'^\s*(\d+)\)\s+', multiLine: true),
+      (m) => '${m.group(1)}. ',
+    );
+    cleaned = cleaned.replaceAll(RegExp(r'^\s*#{1,6}\s*', multiLine: true), '');
+    cleaned = cleaned.replaceAll(RegExp(r'\n{3,}'), '\n\n');
+
+    return cleaned.trim();
   }
 
   /// Build a structured text summary of the report for the AI prompt
@@ -295,7 +360,9 @@ Keep the analysis data-driven and actionable. Focus on insights that drive bette
       buffer.writeln('Video Evidence: ${videoUrls.length} video(s) submitted');
     }
     if (audioUrls is List && audioUrls.isNotEmpty) {
-      buffer.writeln('Audio Evidence: ${audioUrls.length} audio recording(s) submitted');
+      buffer.writeln(
+        'Audio Evidence: ${audioUrls.length} audio recording(s) submitted',
+      );
     }
 
     if (data['faculty'] != null) {
@@ -341,11 +408,13 @@ Keep the analysis data-driven and actionable. Focus on insights that drive bette
         severityLevel: json['severity_level'] ?? 'medium',
         severityReasoning: json['severity_reasoning'] ?? '',
         keyFindings: List<String>.from(json['key_findings'] ?? []),
-        recommendedActions:
-            List<String>.from(json['recommended_actions'] ?? []),
+        recommendedActions: List<String>.from(
+          json['recommended_actions'] ?? [],
+        ),
         riskFactors: List<String>.from(json['risk_factors'] ?? []),
-        followUpSuggestions:
-            List<String>.from(json['follow_up_suggestions'] ?? []),
+        followUpSuggestions: List<String>.from(
+          json['follow_up_suggestions'] ?? [],
+        ),
         evidenceAssessment: json['evidence_assessment'] ?? '',
         timelineAnalysis: json['timeline_analysis'] ?? '',
         categoryTags: List<String>.from(json['category_tags'] ?? []),

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:pdf/pdf.dart';
+import 'package:intl/intl.dart';
+import 'dart:html' as html;
 import '../../constants/app_colors.dart';
 import '../../services/firebase_ai_report_service.dart';
 
@@ -66,8 +70,10 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
       _errorInsight = null;
     });
     try {
-      final insight =
-          await _aiService.analyzeReport(widget.reportData, widget.reportId);
+      final insight = await _aiService.analyzeReport(
+        widget.reportData,
+        widget.reportId,
+      );
       if (mounted) setState(() => _insight = insight);
     } catch (e) {
       if (mounted) setState(() => _errorInsight = e.toString());
@@ -84,7 +90,9 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
     });
     try {
       final breakdown = await _aiService.generateReportBreakdown(
-          widget.reportData, widget.reportId);
+        widget.reportData,
+        widget.reportId,
+      );
       if (mounted) setState(() => _breakdown = breakdown);
     } catch (e) {
       if (mounted) setState(() => _errorBreakdown = e.toString());
@@ -101,7 +109,10 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
     });
     try {
       final steps = await _aiService.generateNextSteps(
-          widget.reportData, widget.reportId, widget.currentStatus);
+        widget.reportData,
+        widget.reportId,
+        widget.currentStatus,
+      );
       if (mounted) setState(() => _nextSteps = steps);
     } catch (e) {
       if (mounted) setState(() => _errorNextSteps = e.toString());
@@ -118,7 +129,9 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
     });
     try {
       final draft = await _aiService.generateResolutionDraft(
-          widget.reportData, widget.reportId);
+        widget.reportData,
+        widget.reportId,
+      );
       if (mounted) setState(() => _resolutionDraft = draft);
     } catch (e) {
       if (mounted) setState(() => _errorResolution = e.toString());
@@ -137,7 +150,10 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
     });
     try {
       final answer = await _aiService.askAboutReport(
-          widget.reportData, widget.reportId, question);
+        widget.reportData,
+        widget.reportId,
+        question,
+      );
       if (mounted) setState(() => _questionAnswer = answer);
     } catch (e) {
       if (mounted) setState(() => _errorQuestion = e.toString());
@@ -187,8 +203,11 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
                     color: AppColors.mustBlue.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.auto_awesome,
-                      color: AppColors.mustBlue, size: 20),
+                  child: const Icon(
+                    Icons.auto_awesome,
+                    color: AppColors.mustBlue,
+                    size: 20,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 const Expanded(
@@ -222,8 +241,10 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
             unselectedLabelColor: Colors.grey[600],
             indicatorColor: AppColors.mustGold,
             indicatorWeight: 3,
-            labelStyle:
-                const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            labelStyle: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
             unselectedLabelStyle: const TextStyle(fontSize: 13),
             tabs: const [
               Tab(text: 'Analysis'),
@@ -266,13 +287,16 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
 
     if (_loadingInsight) return _buildLoadingState('Analyzing report...');
     if (_errorInsight != null) {
-      return _buildErrorState(_errorInsight!, onRetry: () {
-        setState(() {
-          _errorInsight = null;
-          _insight = null;
-        });
-        _loadInsight();
-      });
+      return _buildErrorState(
+        _errorInsight!,
+        onRetry: () {
+          setState(() {
+            _errorInsight = null;
+            _insight = null;
+          });
+          _loadInsight();
+        },
+      );
     }
 
     final insight = _insight!;
@@ -290,8 +314,10 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
             icon: Icons.summarize,
             title: 'Executive Summary',
             color: AppColors.mustBlue,
-            child: Text(insight.summary,
-                style: const TextStyle(fontSize: 14, height: 1.5)),
+            child: Text(
+              insight.summary,
+              style: const TextStyle(fontSize: 14, height: 1.5),
+            ),
           ),
           const SizedBox(height: 12),
 
@@ -302,9 +328,10 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
               title: 'Key Findings',
               color: Colors.amber[700]!,
               child: Column(
-                children: insight.keyFindings
-                    .map((f) => _buildBulletPoint(f, Colors.amber[700]!))
-                    .toList(),
+                children:
+                    insight.keyFindings
+                        .map((f) => _buildBulletPoint(f, Colors.amber[700]!))
+                        .toList(),
               ),
             ),
             const SizedBox(height: 12),
@@ -317,9 +344,10 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
               title: 'Risk Factors',
               color: Colors.red[600]!,
               child: Column(
-                children: insight.riskFactors
-                    .map((r) => _buildBulletPoint(r, Colors.red[600]!))
-                    .toList(),
+                children:
+                    insight.riskFactors
+                        .map((r) => _buildBulletPoint(r, Colors.red[600]!))
+                        .toList(),
               ),
             ),
             const SizedBox(height: 12),
@@ -332,11 +360,12 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
               title: 'Recommended Actions',
               color: Colors.green[700]!,
               child: Column(
-                children: insight.recommendedActions
-                    .asMap()
-                    .entries
-                    .map((e) => _buildNumberedPoint(e.key + 1, e.value))
-                    .toList(),
+                children:
+                    insight.recommendedActions
+                        .asMap()
+                        .entries
+                        .map((e) => _buildNumberedPoint(e.key + 1, e.value))
+                        .toList(),
               ),
             ),
             const SizedBox(height: 12),
@@ -348,8 +377,10 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
               icon: Icons.fact_check,
               title: 'Evidence Assessment',
               color: AppColors.mustBlueMedium,
-              child: Text(insight.evidenceAssessment,
-                  style: const TextStyle(fontSize: 13, height: 1.5)),
+              child: Text(
+                insight.evidenceAssessment,
+                style: const TextStyle(fontSize: 13, height: 1.5),
+              ),
             ),
             const SizedBox(height: 12),
           ],
@@ -360,8 +391,10 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
               icon: Icons.timeline,
               title: 'Timeline Analysis',
               color: Colors.purple[600]!,
-              child: Text(insight.timelineAnalysis,
-                  style: const TextStyle(fontSize: 13, height: 1.5)),
+              child: Text(
+                insight.timelineAnalysis,
+                style: const TextStyle(fontSize: 13, height: 1.5),
+              ),
             ),
             const SizedBox(height: 12),
           ],
@@ -371,18 +404,27 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
             Wrap(
               spacing: 6,
               runSpacing: 6,
-              children: insight.categoryTags
-                  .map((tag) => Chip(
-                        label: Text(tag,
+              children:
+                  insight.categoryTags
+                      .map(
+                        (tag) => Chip(
+                          label: Text(
+                            tag,
                             style: const TextStyle(
-                                fontSize: 11, color: AppColors.mustBlue)),
-                        backgroundColor: AppColors.mustBlue.withOpacity(0.08),
-                        side: BorderSide(
-                            color: AppColors.mustBlue.withOpacity(0.2)),
-                        padding: EdgeInsets.zero,
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ))
-                  .toList(),
+                              fontSize: 11,
+                              color: AppColors.mustBlue,
+                            ),
+                          ),
+                          backgroundColor: AppColors.mustBlue.withOpacity(0.08),
+                          side: BorderSide(
+                            color: AppColors.mustBlue.withOpacity(0.2),
+                          ),
+                          padding: EdgeInsets.zero,
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                        ),
+                      )
+                      .toList(),
             ),
           ],
 
@@ -411,20 +453,28 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
 
     if (_loadingBreakdown) return _buildLoadingState('Breaking down report...');
     if (_errorBreakdown != null) {
-      return _buildErrorState(_errorBreakdown!, onRetry: () {
-        setState(() {
-          _errorBreakdown = null;
-          _breakdown = null;
-        });
-        _loadBreakdown();
-      });
+      return _buildErrorState(
+        _errorBreakdown!,
+        onRetry: () {
+          setState(() {
+            _errorBreakdown = null;
+            _breakdown = null;
+          });
+          _loadBreakdown();
+        },
+      );
     }
 
-    return _buildTextResult(_breakdown!, onCopy: () {
-      Clipboard.setData(ClipboardData(text: _breakdown!));
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Breakdown copied to clipboard')));
-    });
+    return _buildTextResult(
+      _breakdown!,
+      onCopy: () {
+        Clipboard.setData(ClipboardData(text: _breakdown!));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Breakdown copied to clipboard')),
+        );
+      },
+      onPrint: () => _printTextAsPdf('Report Breakdown', _breakdown!),
+    );
   }
 
   // ──────────── NEXT STEPS TAB ────────────
@@ -444,28 +494,32 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
       return _buildLoadingState('Generating next steps...');
     }
     if (_errorNextSteps != null) {
-      return _buildErrorState(_errorNextSteps!, onRetry: () {
-        setState(() {
-          _errorNextSteps = null;
-          _nextSteps = null;
-        });
-        _loadNextSteps();
-      });
+      return _buildErrorState(
+        _errorNextSteps!,
+        onRetry: () {
+          setState(() {
+            _errorNextSteps = null;
+            _nextSteps = null;
+          });
+          _loadNextSteps();
+        },
+      );
     }
 
     return Stack(
       children: [
-        _buildTextResult(_nextSteps!, onCopy: () {
-          Clipboard.setData(ClipboardData(text: _nextSteps!));
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              content: Text('Next steps copied to clipboard')));
-        }),
-        // Resolution draft button
-        Positioned(
-          bottom: 12,
-          right: 12,
-          child: _buildResolutionButton(),
+        _buildTextResult(
+          _nextSteps!,
+          onCopy: () {
+            Clipboard.setData(ClipboardData(text: _nextSteps!));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Next steps copied to clipboard')),
+            );
+          },
+          onPrint: () => _printTextAsPdf('Recommended Next Steps', _nextSteps!),
         ),
+        // Resolution draft button
+        Positioned(bottom: 12, right: 12, child: _buildResolutionButton()),
       ],
     );
   }
@@ -482,9 +536,10 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
           mainAxisSize: MainAxisSize.min,
           children: [
             SizedBox(
-                width: 14,
-                height: 14,
-                child: CircularProgressIndicator(strokeWidth: 2)),
+              width: 14,
+              height: 14,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
             SizedBox(width: 8),
             Text('Generating draft...', style: TextStyle(fontSize: 12)),
           ],
@@ -515,40 +570,48 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
   void _showResolutionDraftDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            Icon(Icons.edit_note, color: Colors.green[600]),
-            const SizedBox(width: 8),
-            const Text('AI Resolution Draft'),
-          ],
-        ),
-        content: SizedBox(
-          width: MediaQuery.of(context).size.width * 0.6,
-          child: SingleChildScrollView(
-            child: SelectableText(
-              _resolutionDraft ?? '',
-              style: const TextStyle(fontSize: 14, height: 1.6),
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
+            title: Row(
+              children: [
+                Icon(Icons.edit_note, color: Colors.green[600]),
+                const SizedBox(width: 8),
+                const Text('AI Resolution Draft'),
+              ],
+            ),
+            content: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.6,
+              child: SingleChildScrollView(
+                child: SelectableText(
+                  _resolutionDraft ?? '',
+                  style: const TextStyle(fontSize: 14, height: 1.6),
+                ),
+              ),
+            ),
+            actions: [
+              TextButton.icon(
+                onPressed: () {
+                  Clipboard.setData(
+                    ClipboardData(text: _resolutionDraft ?? ''),
+                  );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Resolution draft copied to clipboard'),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.copy, size: 16),
+                label: const Text('Copy'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Close'),
+              ),
+            ],
           ),
-        ),
-        actions: [
-          TextButton.icon(
-            onPressed: () {
-              Clipboard.setData(ClipboardData(text: _resolutionDraft ?? ''));
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                  content: Text('Resolution draft copied to clipboard')));
-            },
-            icon: const Icon(Icons.copy, size: 16),
-            label: const Text('Copy'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -567,8 +630,11 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
             ),
             child: Row(
               children: [
-                Icon(Icons.help_outline,
-                    size: 18, color: AppColors.mustBlue.withOpacity(0.7)),
+                Icon(
+                  Icons.help_outline,
+                  size: 18,
+                  color: AppColors.mustBlue.withOpacity(0.7),
+                ),
                 const SizedBox(width: 8),
                 const Expanded(
                   child: Text(
@@ -610,10 +676,14 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: const BorderSide(
-                          color: AppColors.mustBlue, width: 2),
+                        color: AppColors.mustBlue,
+                        width: 2,
+                      ),
                     ),
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
                     filled: true,
                     fillColor: Colors.grey[50],
                   ),
@@ -626,18 +696,20 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
               const SizedBox(width: 8),
               IconButton(
                 onPressed: _loadingQuestion ? null : _askQuestion,
-                icon: _loadingQuestion
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child:
-                            CircularProgressIndicator(strokeWidth: 2))
-                    : const Icon(Icons.send_rounded),
+                icon:
+                    _loadingQuestion
+                        ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                        : const Icon(Icons.send_rounded),
                 color: AppColors.mustBlue,
                 style: IconButton.styleFrom(
                   backgroundColor: AppColors.mustBlue.withOpacity(0.1),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
             ],
@@ -645,9 +717,7 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
           const SizedBox(height: 12),
 
           // Answer area
-          Expanded(
-            child: _buildAnswerArea(),
-          ),
+          Expanded(child: _buildAnswerArea()),
         ],
       ),
     );
@@ -687,8 +757,10 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
           children: [
             const CircularProgressIndicator(color: AppColors.mustBlue),
             const SizedBox(height: 12),
-            Text('Thinking...',
-                style: TextStyle(color: Colors.grey[500], fontSize: 13)),
+            Text(
+              'Thinking...',
+              style: TextStyle(color: Colors.grey[500], fontSize: 13),
+            ),
           ],
         ),
       );
@@ -711,35 +783,63 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
           children: [
             Row(
               children: [
-                const Icon(Icons.auto_awesome,
-                    size: 16, color: AppColors.mustBlue),
+                const Icon(
+                  Icons.auto_awesome,
+                  size: 16,
+                  color: AppColors.mustBlue,
+                ),
                 const SizedBox(width: 6),
-                const Text('AI Response',
-                    style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.mustBlue)),
+                const Text(
+                  'AI Response',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.mustBlue,
+                  ),
+                ),
                 const Spacer(),
-                InkWell(
-                  onTap: () {
-                    Clipboard.setData(
-                        ClipboardData(text: _questionAnswer!));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content:
-                                Text('Answer copied to clipboard')));
-                  },
-                  child: Icon(Icons.copy,
-                      size: 16, color: Colors.grey[400]),
+                Row(
+                  children: [
+                    InkWell(
+                      onTap: () {
+                        Clipboard.setData(
+                          ClipboardData(text: _questionAnswer!),
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Answer copied to clipboard'),
+                          ),
+                        );
+                      },
+                      child: Icon(
+                        Icons.copy,
+                        size: 16,
+                        color: Colors.grey[400],
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    InkWell(
+                      onTap:
+                          () => _printTextAsPdf(
+                            'Ask AI Response',
+                            _questionAnswer!,
+                          ),
+                      child: Icon(
+                        Icons.print,
+                        size: 16,
+                        color: Colors.grey[400],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
             const SizedBox(height: 8),
             Expanded(
               child: SingleChildScrollView(
-                child: SelectableText(
+                child: _buildFormattedTextContent(
                   _questionAnswer!,
-                  style: const TextStyle(fontSize: 13, height: 1.6),
+                  baseFontSize: 13,
                 ),
               ),
             ),
@@ -752,8 +852,11 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.question_answer_outlined,
-              size: 40, color: Colors.grey[300]),
+          Icon(
+            Icons.question_answer_outlined,
+            size: 40,
+            color: Colors.grey[300],
+          ),
           const SizedBox(height: 8),
           Text(
             'Ask a question or tap a suggestion above',
@@ -800,7 +903,11 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
             Text(
               description,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: Colors.grey[600], height: 1.4),
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey[600],
+                height: 1.4,
+              ),
             ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
@@ -810,10 +917,13 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.mustBlue,
                 foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
             ),
           ],
@@ -836,11 +946,15 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
             ),
           ),
           const SizedBox(height: 16),
-          Text(message,
-              style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+          Text(
+            message,
+            style: TextStyle(color: Colors.grey[600], fontSize: 14),
+          ),
           const SizedBox(height: 4),
-          Text('This may take a few seconds...',
-              style: TextStyle(color: Colors.grey[400], fontSize: 12)),
+          Text(
+            'This may take a few seconds...',
+            style: TextStyle(color: Colors.grey[400], fontSize: 12),
+          ),
         ],
       ),
     );
@@ -855,8 +969,10 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
           children: [
             Icon(Icons.error_outline, size: 40, color: Colors.red[300]),
             const SizedBox(height: 12),
-            const Text('Failed to generate AI insight',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+            const Text(
+              'Failed to generate AI insight',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+            ),
             const SizedBox(height: 6),
             Text(
               error,
@@ -875,7 +991,8 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
                   backgroundColor: AppColors.mustBlue,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
               ),
             ],
@@ -885,34 +1002,304 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
     );
   }
 
-  Widget _buildTextResult(String text, {VoidCallback? onCopy}) {
+  Widget _buildTextResult(
+    String text, {
+    VoidCallback? onCopy,
+    VoidCallback? onPrint,
+  }) {
     return Stack(
       children: [
         SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 60),
-          child: SelectableText(
-            text,
-            style: const TextStyle(fontSize: 13, height: 1.6),
-          ),
+          child: _buildFormattedTextContent(text),
         ),
-        if (onCopy != null)
+        if (onCopy != null || onPrint != null)
           Positioned(
             top: 8,
             right: 8,
-            child: IconButton(
-              onPressed: onCopy,
-              icon: const Icon(Icons.copy, size: 18),
-              style: IconButton.styleFrom(
-                backgroundColor: Colors.white.withOpacity(0.9),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8)),
-              ),
-              tooltip: 'Copy to clipboard',
-              color: Colors.grey[600],
+            child: Row(
+              children: [
+                if (onCopy != null)
+                  _buildActionIconButton(
+                    icon: Icons.copy,
+                    tooltip: 'Copy to clipboard',
+                    onPressed: onCopy,
+                  ),
+                if (onPrint != null) ...[
+                  const SizedBox(width: 8),
+                  _buildActionIconButton(
+                    icon: Icons.print,
+                    tooltip: 'Print as PDF',
+                    onPressed: onPrint,
+                  ),
+                ],
+              ],
             ),
           ),
       ],
     );
+  }
+
+  Widget _buildActionIconButton({
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onPressed,
+  }) {
+    return IconButton(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 18),
+      style: IconButton.styleFrom(
+        backgroundColor: Colors.white.withOpacity(0.9),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+      tooltip: tooltip,
+      color: Colors.grey[600],
+    );
+  }
+
+  Widget _buildFormattedTextContent(String text, {double baseFontSize = 13}) {
+    final lines = text.split('\n');
+    final children = <Widget>[];
+
+    for (final rawLine in lines) {
+      final line = rawLine.trim();
+
+      if (line.isEmpty) {
+        children.add(const SizedBox(height: 8));
+        continue;
+      }
+
+      final headingMatch = RegExp(r'^#{1,6}\s+').hasMatch(line);
+      final numberedMatch = RegExp(r'^(\d+)[\)\.\:-]\s+').firstMatch(line);
+      final bulletMatch = RegExp(r'^[-*•]\s+').hasMatch(line);
+
+      if (headingMatch) {
+        final cleaned = _cleanMarkdownLine(
+          line.replaceFirst(RegExp(r'^#{1,6}\s+'), ''),
+        );
+        children.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Text(
+              cleaned,
+              style: TextStyle(
+                fontSize: baseFontSize + 1,
+                fontWeight: FontWeight.w700,
+                color: AppColors.mustBlue,
+              ),
+            ),
+          ),
+        );
+        continue;
+      }
+
+      if (numberedMatch != null) {
+        final prefix = numberedMatch.group(1) ?? '';
+        final body = _cleanMarkdownLine(line.substring(numberedMatch.end));
+        children.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$prefix. ',
+                  style: TextStyle(
+                    fontSize: baseFontSize,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.mustBlue,
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    body,
+                    style: TextStyle(fontSize: baseFontSize, height: 1.55),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+        continue;
+      }
+
+      if (bulletMatch) {
+        final body = _cleanMarkdownLine(
+          line.replaceFirst(RegExp(r'^[-*•]\s+'), ''),
+        );
+        children.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(top: 6),
+                  child: Icon(Icons.circle, size: 7, color: AppColors.mustBlue),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    body,
+                    style: TextStyle(fontSize: baseFontSize, height: 1.55),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+        continue;
+      }
+
+      final cleaned = _cleanMarkdownLine(line);
+      final looksLikeSectionLabel =
+          cleaned.endsWith(':') && cleaned.length <= 70;
+
+      children.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Text(
+            cleaned,
+            style: TextStyle(
+              fontSize: baseFontSize,
+              height: 1.55,
+              fontWeight:
+                  looksLikeSectionLabel ? FontWeight.w700 : FontWeight.w400,
+              color:
+                  looksLikeSectionLabel ? AppColors.mustBlue : Colors.black87,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: children,
+    );
+  }
+
+  String _cleanMarkdownLine(String line) {
+    return line
+        .replaceAll(RegExp(r'\*\*\*'), '')
+        .replaceAll(RegExp(r'\*\*'), '')
+        .replaceAll(RegExp(r'__'), '')
+        .replaceAll('`', '')
+        .replaceAll(RegExp(r'^\>\s*'), '')
+        .replaceAllMapped(
+          RegExp(r'\[(.*?)\]\((.*?)\)'),
+          (match) => match.group(1) ?? '',
+        )
+        .trim();
+  }
+
+  Future<void> _printTextAsPdf(String title, String text) async {
+    final normalized = _normalizeForPdf(text);
+    if (normalized.isEmpty) return;
+
+    try {
+      final pdf = pw.Document();
+      final generatedAt = DateFormat(
+        'yyyy-MM-dd HH:mm:ss',
+      ).format(DateTime.now());
+
+      final sections =
+          normalized
+              .split(RegExp(r'\n\s*\n'))
+              .map((part) => part.trim())
+              .where((part) => part.isNotEmpty)
+              .toList();
+
+      pdf.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(24),
+          build:
+              (context) => [
+                pw.Text(
+                  title,
+                  style: pw.TextStyle(
+                    fontSize: 20,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+                pw.SizedBox(height: 6),
+                pw.Text('Generated: $generatedAt'),
+                pw.SizedBox(height: 14),
+                ...sections.map(
+                  (section) => pw.Padding(
+                    padding: const pw.EdgeInsets.only(bottom: 8),
+                    child: pw.Text(
+                      section,
+                      style: const pw.TextStyle(
+                        fontSize: 12,
+                        lineSpacing: 1.35,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+        ),
+      );
+
+      final bytes = await pdf.save();
+      final blob = html.Blob([Uint8List.fromList(bytes)], 'application/pdf');
+      final url = html.Url.createObjectUrlFromBlob(blob);
+
+      html.window.open(url, '_blank');
+
+      Future.delayed(const Duration(seconds: 10), () {
+        html.Url.revokeObjectUrl(url);
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '$title exported to PDF. Use print in the opened tab.',
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to create PDF: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  String _normalizeForPdf(String text) {
+    final lines = text.split('\n');
+    final normalizedLines =
+        lines.map((raw) {
+          final line = raw.trim();
+          if (line.isEmpty) return '';
+
+          final numberedMatch = RegExp(r'^(\d+)[\)\.\:-]\s+').firstMatch(line);
+          final bulletMatch = RegExp(r'^[-*•]\s+').hasMatch(line);
+          final headingMatch = RegExp(r'^#{1,6}\s+').hasMatch(line);
+
+          if (numberedMatch != null) {
+            final index = numberedMatch.group(1) ?? '';
+            return '$index. ${_cleanMarkdownLine(line.substring(numberedMatch.end))}';
+          }
+          if (bulletMatch) {
+            return '- ${_cleanMarkdownLine(line.replaceFirst(RegExp(r'^[-*•]\s+'), ''))}';
+          }
+          if (headingMatch) {
+            return _cleanMarkdownLine(
+              line.replaceFirst(RegExp(r'^#{1,6}\s+'), ''),
+            );
+          }
+          return _cleanMarkdownLine(line);
+        }).toList();
+
+    return normalizedLines.join('\n').trim();
   }
 
   Widget _buildSeverityBadge(ReportAIInsight insight) {
@@ -944,7 +1331,10 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
                   Text(
                     insight.severityReasoning,
                     style: TextStyle(
-                        fontSize: 12, color: Colors.grey[600], height: 1.3),
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                      height: 1.3,
+                    ),
                   ),
                 ],
               ],
@@ -1003,13 +1393,14 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
             margin: const EdgeInsets.only(top: 6),
             width: 6,
             height: 6,
-            decoration:
-                BoxDecoration(color: color, shape: BoxShape.circle),
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(text,
-                style: const TextStyle(fontSize: 13, height: 1.4)),
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 13, height: 1.4),
+            ),
           ),
         ],
       ),
@@ -1033,16 +1424,19 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
               child: Text(
                 '$number',
                 style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green[800]),
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green[800],
+                ),
               ),
             ),
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(text,
-                style: const TextStyle(fontSize: 13, height: 1.4)),
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 13, height: 1.4),
+            ),
           ),
         ],
       ),

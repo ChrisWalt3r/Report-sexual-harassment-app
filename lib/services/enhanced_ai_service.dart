@@ -20,11 +20,11 @@ class EnhancedAIService extends ChangeNotifier {
   bool _isConnected = false;
   bool _isAgentTyping = false;
   String _currentScenario = 'initial_contact';
-  
+
   // RAG: Policy Knowledge Service for retrieval-augmented generation
   final PolicyKnowledgeService _policyService = PolicyKnowledgeService();
   bool _policyServiceInitialized = false;
-  
+
   // Official contacts service for contact information retrieval
   final OfficialContactsService _contactsService = OfficialContactsService();
 
@@ -39,7 +39,7 @@ class EnhancedAIService extends ChangeNotifier {
     try {
       _isConnected = true;
       notifyListeners();
-      
+
       // Initialize RAG policy knowledge service
       if (!_policyServiceInitialized) {
         await _policyService.initialize();
@@ -161,7 +161,7 @@ Welcome message:''';
     if (policyResponse != null) {
       return policyResponse;
     }
-    
+
     // Use smart keyword-based responses for emotional support
     final smartResponse = _getSmartResponse(userMessage);
     if (smartResponse != null) {
@@ -221,26 +221,26 @@ Respond with empathy in 1-2 sentences. Be supportive and trauma-informed.''';
   /// RAG: Try to answer using retrieved policy content and contacts
   Future<String?> _tryRAGResponse(String userMessage) async {
     final lowerMessage = userMessage.toLowerCase();
-    
+
     // Check for contact queries FIRST - these should always return contact info
     final isContactQuestion = _isContactQuery(lowerMessage);
-    
+
     // Detect if this is a policy-related question (not just emotional support)
     final isPolicyQuestion = _isPolicyRelatedQuestion(lowerMessage);
-    
+
     if (!isPolicyQuestion && !isContactQuestion) {
       return null; // Let emotional support handlers deal with it
     }
-    
+
     try {
       // Always get relevant contacts if this might be a contact query
       String contactsContext = '';
       List<OfficialContact> contacts = [];
-      
+
       if (isContactQuestion) {
         contacts = await _contactsService.getContactsForQuery(userMessage);
         debugPrint('RAG: Found ${contacts.length} relevant contacts for query');
-        
+
         // If no specific contacts matched, get all active contacts for general queries
         if (contacts.isEmpty) {
           contacts = await _contactsService.getContacts();
@@ -249,10 +249,12 @@ Respond with empathy in 1-2 sentences. Be supportive and trauma-informed.''';
             contacts = contacts.take(3).toList();
           }
         }
-        
+
         if (contacts.isNotEmpty) {
           // Format contacts as readable string with clear structure
-          final formattedContacts = contacts.map((c) => c.toAIReadableString()).join('\n---\n');
+          final formattedContacts = contacts
+              .map((c) => c.toAIReadableString())
+              .join('\n---\n');
           contactsContext = '''
 
 OFFICIAL CONTACT INFORMATION:
@@ -262,23 +264,30 @@ $formattedContacts
 ''';
         }
       }
-      
+
       // Get relevant policy chunks
       String policyContext = '';
       if (isPolicyQuestion) {
-        final policyResults = _policyService.retrieveRelevantChunks(userMessage, topN: 3);
-        if (policyResults.isNotEmpty && policyResults.first.relevanceScore >= 1.0) {
+        final officeHint = _policyService.detectOfficeHint(userMessage);
+        final policyResults = _policyService.retrieveRelevantChunks(
+          userMessage,
+          topN: 4,
+          office: officeHint,
+        );
+        if (policyResults.isNotEmpty &&
+            policyResults.first.relevanceScore >= 1.0) {
           policyContext = _policyService.formatContextForAI(policyResults);
         }
       }
-      
+
       // If we have neither policy nor contacts, let other handlers deal with it
       if (policyContext.isEmpty && contactsContext.isEmpty) {
         return null;
       }
-      
+
       // Build RAG prompt with both policy and contacts
-      final ragPrompt = '''You are a helpful assistant for MUST University's sexual harassment support system. 
+      final ragPrompt =
+          '''You are a helpful assistant for MUST University's sexual harassment support system. 
 Answer the user's question using the information provided below. Be accurate and helpful.
 
 $policyContext
@@ -293,21 +302,26 @@ Provide a helpful, accurate answer based on the information above.
 - Format contact details clearly.
 
 Answer:''';
-      
+
       // Call AI with RAG context
       final response = await _callAIModel('primary', ragPrompt);
       final cleanedResponse = _cleanInstructResponse(response, ragPrompt);
-      
+
       if (cleanedResponse.length > 30 && cleanedResponse.length < 600) {
         return cleanedResponse;
       }
-      
+
       // Fallback: Return formatted content directly if AI fails
       if (contactsContext.isNotEmpty && isContactQuestion) {
         return "Here are the relevant contacts you can reach out to:\n$contactsContext\n\nIs there anything else you need help with?";
       }
       if (isPolicyQuestion) {
-        final policyResults = _policyService.retrieveRelevantChunks(userMessage, topN: 3);
+        final officeHint = _policyService.detectOfficeHint(userMessage);
+        final policyResults = _policyService.retrieveRelevantChunks(
+          userMessage,
+          topN: 4,
+          office: officeHint,
+        );
         return _formatDirectPolicyResponse(policyResults, userMessage);
       }
       return null;
@@ -316,15 +330,20 @@ Answer:''';
       return null;
     }
   }
-  
+
   /// Check if this is a question about policy/procedures vs emotional support
   bool _isPolicyRelatedQuestion(String message) {
     final policyIndicators = [
       // Questions about definitions
-      'what is', 'what\'s', 'define', 'meaning of', 'considered', 'constitute', 
+      'what is', 'what\'s', 'define', 'meaning of', 'considered', 'constitute',
       'types of', 'forms of', 'examples of',
       // Questions about procedures
-      'how do i', 'how can i', 'how to', 'where do i', 'where can i', 'where to',
+      'how do i',
+      'how can i',
+      'how to',
+      'where do i',
+      'where can i',
+      'where to',
       'who do i', 'who can i', 'who should i', 'who handles',
       // Reporting questions
       'report', 'file', 'complaint', 'lodge', 'submit',
@@ -342,10 +361,10 @@ Answer:''';
       'dean', 'hr', 'human resources', 'security', 'medical', 'hospital',
       'number', 'location', 'address', 'hours',
     ];
-    
+
     return policyIndicators.any((indicator) => message.contains(indicator));
   }
-  
+
   /// Check if user is asking for contact information
   bool _isContactQuery(String message) {
     final contactIndicators = [
@@ -365,21 +384,23 @@ Answer:''';
     ];
     return contactIndicators.any((indicator) => message.contains(indicator));
   }
-  
+
   /// Format a direct response from policy content when AI is unavailable
-  String _formatDirectPolicyResponse(List<RetrievalResult> results, String query) {
+  String _formatDirectPolicyResponse(
+    List<RetrievalResult> results,
+    String query,
+  ) {
     if (results.isEmpty) {
       return "I couldn't find specific policy information for that question. Would you like me to explain the general reporting process or connect you with a counselor who can help?";
     }
-    
+
     final topResult = results.first;
     final content = topResult.chunk.content;
-    
+
     // Truncate if too long
-    final truncated = content.length > 400 
-        ? '${content.substring(0, 400)}...' 
-        : content;
-    
+    final truncated =
+        content.length > 400 ? '${content.substring(0, 400)}...' : content;
+
     return "According to the MUST Anti-Sexual Harassment Policy:\n\n$truncated\n\nWould you like more details about this or any other aspect of the policy?";
   }
 
@@ -541,9 +562,9 @@ Answer:''';
               {
                 'role': 'system',
                 'content':
-                    'You are a professional sexual harassment support counselor at MUST University in Uganda. Provide empathetic, trauma-informed responses.'
+                    'You are a professional sexual harassment support counselor at MUST University in Uganda. Provide empathetic, trauma-informed responses.',
               },
-              {'role': 'user', 'content': prompt}
+              {'role': 'user', 'content': prompt},
             ],
             'max_tokens': modelConfig.maxTokens,
             'temperature': modelConfig.temperature,

@@ -95,11 +95,7 @@ class WelcomeScreen extends StatelessWidget {
                       SizedBox(width: 12),
                       Text(
                         'Continue with Account',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.5,
-                        ),
+                        // Removed explicit TextStyle to avoid lerp error
                       ),
                     ],
                   ),

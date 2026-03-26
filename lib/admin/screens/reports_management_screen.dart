@@ -3,6 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:pdf/pdf.dart';
+import 'dart:html' as html;
 import '../../constants/app_colors.dart';
 import '../../models/admin_user.dart';
 import '../../services/firebase_ai_report_service.dart';
@@ -12,7 +15,11 @@ class ReportsManagementScreen extends StatefulWidget {
   final AdminUser admin;
   final bool embedded;
 
-  const ReportsManagementScreen({super.key, required this.admin, this.embedded = false});
+  const ReportsManagementScreen({
+    super.key,
+    required this.admin,
+    this.embedded = false,
+  });
 
   @override
   State<ReportsManagementScreen> createState() =>
@@ -46,27 +53,48 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
 
   final Map<String, List<String>> _facultyDepartments = {
     'Faculty of Medicine': [
-      'Anatomy', 'Biochemistry', 'Internal Medicine', 'Surgery', 'Pediatrics',
-      'Obstetrics & Gynecology', 'Family Medicine', 'Medical Laboratory Sciences',
-      'Pharmacy', 'Microbiology', 'Pathology', 'Radiology', 'Physiology',
-      'Psychiatry', 'Community Health', 'Nursing/Midwifery',
+      'Anatomy',
+      'Biochemistry',
+      'Internal Medicine',
+      'Surgery',
+      'Pediatrics',
+      'Obstetrics & Gynecology',
+      'Family Medicine',
+      'Medical Laboratory Sciences',
+      'Pharmacy',
+      'Microbiology',
+      'Pathology',
+      'Radiology',
+      'Physiology',
+      'Psychiatry',
+      'Community Health',
+      'Nursing/Midwifery',
     ],
     'Faculty of Science': ['Biology', 'Chemistry', 'Physics', 'Mathematics'],
     'Faculty of Computing and Informatics': [
-      'Computer Science', 'Information Technology', 'Software Engineering',
+      'Computer Science',
+      'Information Technology',
+      'Software Engineering',
     ],
     'Faculty of Applied Sciences and Technology': [
-      'Biomedical Sciences & Engineering', 'Civil Engineering',
-      'Electrical & Electronics Engineering', 'Mechanical Engineering',
+      'Biomedical Sciences & Engineering',
+      'Civil Engineering',
+      'Electrical & Electronics Engineering',
+      'Mechanical Engineering',
       'Petroleum & Environmental Management',
     ],
     'Faculty of Business and Management Sciences': [
-      'Accounting & Finance', 'Business Administration', 'Economics',
-      'Procurement & Supply Chain Management', 'Marketing & Entrepreneurship',
+      'Accounting & Finance',
+      'Business Administration',
+      'Economics',
+      'Procurement & Supply Chain Management',
+      'Marketing & Entrepreneurship',
     ],
     'Faculty of Interdisciplinary Studies': [
-      'Planning & Governance', 'Human Development & Relational Sciences',
-      'Environment & Livelihood Support Systems', 'Community Engagement & Service Learning',
+      'Planning & Governance',
+      'Human Development & Relational Sciences',
+      'Environment & Livelihood Support Systems',
+      'Community Engagement & Service Learning',
     ],
   };
 
@@ -116,7 +144,8 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
 
   List<String> get _availableDepartments {
     if (_selectedFaculty == 'all') {
-      return _facultyDepartments.values.expand((d) => d).toSet().toList()..sort();
+      return _facultyDepartments.values.expand((d) => d).toSet().toList()
+        ..sort();
     }
     return _facultyDepartments[_selectedFaculty] ?? [];
   }
@@ -127,7 +156,11 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
     super.dispose();
   }
 
-  Future<void> _updateReportStatus(String reportId, String newStatus, {String? resolutionMessage}) async {
+  Future<void> _updateReportStatus(
+    String reportId,
+    String newStatus, {
+    String? resolutionMessage,
+  }) async {
     try {
       // Get the report to find the userId
       final reportDoc =
@@ -171,9 +204,10 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                 'Your report is being investigated. We will keep you updated.';
             break;
           case 'resolved':
-            notificationBody = resolutionMessage != null && resolutionMessage.isNotEmpty
-                ? 'Your report has been resolved. Resolution: $resolutionMessage'
-                : 'Your report has been resolved. Thank you for reporting.';
+            notificationBody =
+                resolutionMessage != null && resolutionMessage.isNotEmpty
+                    ? 'Your report has been resolved. Resolution: $resolutionMessage'
+                    : 'Your report has been resolved. Thank you for reporting.';
             break;
           case 'closed':
             notificationBody = 'Your report has been closed.';
@@ -226,87 +260,108 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
     final result = await showDialog<String>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.check_circle_outline, color: Colors.green, size: 24),
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-            const SizedBox(width: 12),
-            const Text('Resolve Report'),
-          ],
-        ),
-        content: SizedBox(
-          width: MediaQuery.of(context).size.width * 0.6,
-          child: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+            title: Row(
               children: [
-                Text(
-                  'Provide a resolution summary for the reporter. This message will be visible to the person who submitted the report.',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600], height: 1.4),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: resolutionController,
-                  maxLines: 5,
-                  maxLength: 1000,
-                  decoration: InputDecoration(
-                    hintText: 'e.g., The incident has been investigated and appropriate disciplinary action has been taken...',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[50],
-                    labelText: 'Resolution Message',
-                    alignLabelWithHint: true,
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Please provide a resolution message';
-                    }
-                    return null;
-                  },
+                  child: const Icon(
+                    Icons.check_circle_outline,
+                    color: Colors.green,
+                    size: 24,
+                  ),
                 ),
+                const SizedBox(width: 12),
+                const Text('Resolve Report'),
               ],
             ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, null),
-            child: Text('Cancel', style: TextStyle(color: Colors.grey[600])),
-          ),
-          ElevatedButton.icon(
-            onPressed: () {
-              if (formKey.currentState!.validate()) {
-                Navigator.pop(context, resolutionController.text.trim());
-              }
-            },
-            icon: const Icon(Icons.check, size: 18),
-            label: const Text('Resolve'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            content: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.6,
+              child: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Provide a resolution summary for the reporter. This message will be visible to the person who submitted the report.',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: resolutionController,
+                      maxLines: 5,
+                      maxLength: 1000,
+                      decoration: InputDecoration(
+                        hintText:
+                            'e.g., The incident has been investigated and appropriate disciplinary action has been taken...',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey[50],
+                        labelText: 'Resolution Message',
+                        alignLabelWithHint: true,
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please provide a resolution message';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+                ),
+              ),
             ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, null),
+                child: Text(
+                  'Cancel',
+                  style: TextStyle(color: Colors.grey[600]),
+                ),
+              ),
+              ElevatedButton.icon(
+                onPressed: () {
+                  if (formKey.currentState!.validate()) {
+                    Navigator.pop(context, resolutionController.text.trim());
+                  }
+                },
+                icon: const Icon(Icons.check, size: 18),
+                label: const Text('Resolve'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
     );
 
     resolutionController.dispose();
 
     if (result != null) {
-      await _updateReportStatus(reportId, 'resolved', resolutionMessage: result);
+      await _updateReportStatus(
+        reportId,
+        'resolved',
+        resolutionMessage: result,
+      );
     }
   }
 
@@ -344,10 +399,16 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
 
               return Dialog(
                 backgroundColor: Colors.transparent,
-                insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                insetPadding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 24,
+                ),
                 child: Container(
                   width: MediaQuery.of(context).size.width * 0.9,
-                  constraints: const BoxConstraints(maxWidth: 1000, maxHeight: 900),
+                  constraints: const BoxConstraints(
+                    maxWidth: 1000,
+                    maxHeight: 900,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
@@ -380,7 +441,11 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                 color: Colors.white.withOpacity(0.15),
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: const Icon(Icons.assignment, color: Colors.white, size: 28),
+                              child: const Icon(
+                                Icons.assignment,
+                                color: Colors.white,
+                                size: 28,
+                              ),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
@@ -408,11 +473,16 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                               ),
                             ),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
                               decoration: BoxDecoration(
                                 color: statusColor.withOpacity(0.2),
                                 borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: Colors.white.withOpacity(0.3)),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.3),
+                                ),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -445,7 +515,11 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                   color: Colors.white.withOpacity(0.15),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: const Icon(Icons.close, color: Colors.white, size: 20),
+                                child: const Icon(
+                                  Icons.close,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
                               ),
                               onPressed: () => Navigator.pop(context),
                             ),
@@ -464,10 +538,11 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                               LayoutBuilder(
                                 builder: (context, constraints) {
                                   final isWide = constraints.maxWidth > 600;
-                                  
+
                                   if (isWide) {
                                     return Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         // Left column
                                         Expanded(
@@ -478,22 +553,40 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                                 Icons.info_outline,
                                                 AppColors.primaryGreen,
                                                 [
-                                                  _buildDetailRow('Report ID', reportDoc.id),
-                                                  _buildDetailRow('Type', data['type'] ?? 'N/A'),
+                                                  _buildDetailRow(
+                                                    'Report ID',
+                                                    reportDoc.id,
+                                                  ),
+                                                  _buildDetailRow(
+                                                    'Type',
+                                                    data['type'] ?? 'N/A',
+                                                  ),
                                                   _buildDetailRow(
                                                     'Submitted',
                                                     data['createdAt'] != null
-                                                        ? DateFormat('MMM dd, yyyy hh:mm a').format(
-                                                            (data['createdAt'] as Timestamp).toDate(),
-                                                          )
+                                                        ? DateFormat(
+                                                          'MMM dd, yyyy hh:mm a',
+                                                        ).format(
+                                                          (data['createdAt']
+                                                                  as Timestamp)
+                                                              .toDate(),
+                                                        )
                                                         : 'N/A',
                                                   ),
                                                   _buildDetailRow(
                                                     'Anonymous',
-                                                    (data['isAnonymous'] == true) ? 'Yes' : 'No',
+                                                    (data['isAnonymous'] ==
+                                                            true)
+                                                        ? 'Yes'
+                                                        : 'No',
                                                   ),
-                                                  if (data['isAnonymous'] == true && data['trackingToken'] != null)
-                                                    _buildTokenRow(data['trackingToken']),
+                                                  if (data['isAnonymous'] ==
+                                                          true &&
+                                                      data['trackingToken'] !=
+                                                          null)
+                                                    _buildTokenRow(
+                                                      data['trackingToken'],
+                                                    ),
                                                 ],
                                               ),
                                               const SizedBox(height: 16),
@@ -503,15 +596,45 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                                   Icons.person_outline,
                                                   AppColors.secondaryOrange,
                                                   [
-                                                    _buildDetailRow('Full Name', userData?['fullName'] ?? data['reporterName'] ?? 'N/A'),
-                                                    _buildDetailRow('Email', userData?['email'] ?? data['reporterEmail'] ?? 'N/A'),
-                                                    _buildDetailRow('Phone', userData?['phoneNumber'] ?? data['reporterPhone'] ?? 'N/A'),
-                                                    if (userData?['role'] != null)
-                                                      _buildDetailRow('Role', userData?['role'] ?? 'N/A'),
-                                                    if (userData?['department'] != null)
-                                                      _buildDetailRow('Faculty', userData?['department'] ?? 'N/A'),
-                                                    if (userData?['facultyDepartment'] != null)
-                                                      _buildDetailRow('Department', userData?['facultyDepartment'] ?? 'N/A'),
+                                                    _buildDetailRow(
+                                                      'Full Name',
+                                                      userData?['fullName'] ??
+                                                          data['reporterName'] ??
+                                                          'N/A',
+                                                    ),
+                                                    _buildDetailRow(
+                                                      'Email',
+                                                      userData?['email'] ??
+                                                          data['reporterEmail'] ??
+                                                          'N/A',
+                                                    ),
+                                                    _buildDetailRow(
+                                                      'Phone',
+                                                      userData?['phoneNumber'] ??
+                                                          data['reporterPhone'] ??
+                                                          'N/A',
+                                                    ),
+                                                    if (userData?['role'] !=
+                                                        null)
+                                                      _buildDetailRow(
+                                                        'Role',
+                                                        userData?['role'] ??
+                                                            'N/A',
+                                                      ),
+                                                    if (userData?['department'] !=
+                                                        null)
+                                                      _buildDetailRow(
+                                                        'Faculty',
+                                                        userData?['department'] ??
+                                                            'N/A',
+                                                      ),
+                                                    if (userData?['facultyDepartment'] !=
+                                                        null)
+                                                      _buildDetailRow(
+                                                        'Department',
+                                                        userData?['facultyDepartment'] ??
+                                                            'N/A',
+                                                      ),
                                                   ],
                                                 ),
                                             ],
@@ -527,18 +650,48 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                                 Icons.event_note_outlined,
                                                 Colors.orange,
                                                 [
-                                                  _buildDetailRow('Location', data['location'] ?? 'N/A'),
+                                                  _buildDetailRow(
+                                                    'Location',
+                                                    data['location'] ?? 'N/A',
+                                                  ),
                                                   _buildDetailRow(
                                                     'Date',
                                                     data['incidentDate'] != null
-                                                        ? DateFormat('MMM dd, yyyy').format((data['incidentDate'] as Timestamp).toDate())
-                                                        : (data['incidentDateString'] ?? data['date'] ?? 'N/A'),
+                                                        ? DateFormat(
+                                                          'MMM dd, yyyy',
+                                                        ).format(
+                                                          (data['incidentDate']
+                                                                  as Timestamp)
+                                                              .toDate(),
+                                                        )
+                                                        : (data['incidentDateString'] ??
+                                                            data['date'] ??
+                                                            'N/A'),
                                                   ),
-                                                  _buildDetailRow('Time', data['incidentTime'] ?? data['time'] ?? 'N/A'),
-                                                  if (data['perpetratorInfo'] != null && data['perpetratorInfo'].toString().isNotEmpty)
-                                                    _buildDetailRow('Person(s) Involved', data['perpetratorInfo']),
-                                                  if (data['witnessName'] != null && data['witnessName'].toString().isNotEmpty)
-                                                    _buildDetailRow('Witness', data['witnessName']),
+                                                  _buildDetailRow(
+                                                    'Time',
+                                                    data['incidentTime'] ??
+                                                        data['time'] ??
+                                                        'N/A',
+                                                  ),
+                                                  if (data['perpetratorInfo'] !=
+                                                          null &&
+                                                      data['perpetratorInfo']
+                                                          .toString()
+                                                          .isNotEmpty)
+                                                    _buildDetailRow(
+                                                      'Person(s) Involved',
+                                                      data['perpetratorInfo'],
+                                                    ),
+                                                  if (data['witnessName'] !=
+                                                          null &&
+                                                      data['witnessName']
+                                                          .toString()
+                                                          .isNotEmpty)
+                                                    _buildDetailRow(
+                                                      'Witness',
+                                                      data['witnessName'],
+                                                    ),
                                                 ],
                                               ),
                                             ],
@@ -547,7 +700,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                       ],
                                     );
                                   }
-                                  
+
                                   // Single column for narrow screens
                                   return Column(
                                     children: [
@@ -556,17 +709,37 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                         Icons.info_outline,
                                         AppColors.primaryGreen,
                                         [
-                                          _buildDetailRow('Report ID', reportDoc.id),
-                                          _buildDetailRow('Type', data['type'] ?? 'N/A'),
+                                          _buildDetailRow(
+                                            'Report ID',
+                                            reportDoc.id,
+                                          ),
+                                          _buildDetailRow(
+                                            'Type',
+                                            data['type'] ?? 'N/A',
+                                          ),
                                           _buildDetailRow(
                                             'Submitted',
                                             data['createdAt'] != null
-                                                ? DateFormat('MMM dd, yyyy hh:mm a').format((data['createdAt'] as Timestamp).toDate())
+                                                ? DateFormat(
+                                                  'MMM dd, yyyy hh:mm a',
+                                                ).format(
+                                                  (data['createdAt']
+                                                          as Timestamp)
+                                                      .toDate(),
+                                                )
                                                 : 'N/A',
                                           ),
-                                          _buildDetailRow('Anonymous', (data['isAnonymous'] == true) ? 'Yes' : 'No'),
-                                          if (data['isAnonymous'] == true && data['trackingToken'] != null)
-                                            _buildTokenRow(data['trackingToken']),
+                                          _buildDetailRow(
+                                            'Anonymous',
+                                            (data['isAnonymous'] == true)
+                                                ? 'Yes'
+                                                : 'No',
+                                          ),
+                                          if (data['isAnonymous'] == true &&
+                                              data['trackingToken'] != null)
+                                            _buildTokenRow(
+                                              data['trackingToken'],
+                                            ),
                                         ],
                                       ),
                                       const SizedBox(height: 16),
@@ -576,9 +749,24 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                           Icons.person_outline,
                                           AppColors.secondaryOrange,
                                           [
-                                            _buildDetailRow('Full Name', userData?['fullName'] ?? data['reporterName'] ?? 'N/A'),
-                                            _buildDetailRow('Email', userData?['email'] ?? data['reporterEmail'] ?? 'N/A'),
-                                            _buildDetailRow('Phone', userData?['phoneNumber'] ?? data['reporterPhone'] ?? 'N/A'),
+                                            _buildDetailRow(
+                                              'Full Name',
+                                              userData?['fullName'] ??
+                                                  data['reporterName'] ??
+                                                  'N/A',
+                                            ),
+                                            _buildDetailRow(
+                                              'Email',
+                                              userData?['email'] ??
+                                                  data['reporterEmail'] ??
+                                                  'N/A',
+                                            ),
+                                            _buildDetailRow(
+                                              'Phone',
+                                              userData?['phoneNumber'] ??
+                                                  data['reporterPhone'] ??
+                                                  'N/A',
+                                            ),
                                           ],
                                         ),
                                         const SizedBox(height: 16),
@@ -588,25 +776,44 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                         Icons.event_note_outlined,
                                         Colors.orange,
                                         [
-                                          _buildDetailRow('Location', data['location'] ?? 'N/A'),
+                                          _buildDetailRow(
+                                            'Location',
+                                            data['location'] ?? 'N/A',
+                                          ),
                                           _buildDetailRow(
                                             'Date',
                                             data['incidentDate'] != null
-                                                ? DateFormat('MMM dd, yyyy').format((data['incidentDate'] as Timestamp).toDate())
-                                                : (data['incidentDateString'] ?? data['date'] ?? 'N/A'),
+                                                ? DateFormat(
+                                                  'MMM dd, yyyy',
+                                                ).format(
+                                                  (data['incidentDate']
+                                                          as Timestamp)
+                                                      .toDate(),
+                                                )
+                                                : (data['incidentDateString'] ??
+                                                    data['date'] ??
+                                                    'N/A'),
                                           ),
-                                          _buildDetailRow('Time', data['incidentTime'] ?? data['time'] ?? 'N/A'),
+                                          _buildDetailRow(
+                                            'Time',
+                                            data['incidentTime'] ??
+                                                data['time'] ??
+                                                'N/A',
+                                          ),
                                         ],
                                       ),
                                     ],
                                   );
                                 },
                               ),
-                              
+
                               const SizedBox(height: 20),
 
                               // Complainant Response
-                              if (data['complainantResponse'] != null && data['complainantResponse'].toString().isNotEmpty)
+                              if (data['complainantResponse'] != null &&
+                                  data['complainantResponse']
+                                      .toString()
+                                      .isNotEmpty)
                                 _buildDetailCard(
                                   'Complainant Response',
                                   Icons.question_answer_outlined,
@@ -621,13 +828,19 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                       ),
                                       child: Text(
                                         data['complainantResponse'],
-                                        style: const TextStyle(fontSize: 14, height: 1.6),
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          height: 1.6,
+                                        ),
                                       ),
                                     ),
                                   ],
                                 ),
 
-                              if (data['complainantResponse'] != null && data['complainantResponse'].toString().isNotEmpty)
+                              if (data['complainantResponse'] != null &&
+                                  data['complainantResponse']
+                                      .toString()
+                                      .isNotEmpty)
                                 const SizedBox(height: 16),
 
                               // Description
@@ -642,11 +855,17 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                     decoration: BoxDecoration(
                                       color: Colors.grey[50],
                                       borderRadius: BorderRadius.circular(10),
-                                      border: Border.all(color: Colors.grey[200]!),
+                                      border: Border.all(
+                                        color: Colors.grey[200]!,
+                                      ),
                                     ),
                                     child: Text(
-                                      data['description'] ?? 'No description provided',
-                                      style: const TextStyle(fontSize: 14, height: 1.6),
+                                      data['description'] ??
+                                          'No description provided',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        height: 1.6,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -654,241 +873,501 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                               const SizedBox(height: 20),
 
                               // Evidence section
-                              Builder(builder: (context) {
-                                final imageUrls = _getListFromData(data, 'imageUrls');
-                                final videoUrls = _getListFromData(data, 'videoUrls');
-                                final audioUrls = _getListFromData(data, 'audioUrls');
-                                final hasEvidence = imageUrls.isNotEmpty || videoUrls.isNotEmpty || audioUrls.isNotEmpty;
-                                
-                                print('ADMIN DEBUG: imageUrls=$imageUrls');
-                                print('ADMIN DEBUG: videoUrls=$videoUrls');
-                                print('ADMIN DEBUG: audioUrls=$audioUrls');
-                                print('ADMIN DEBUG: hasEvidence=$hasEvidence');
-
-                                if (!hasEvidence) {
-                                  return _buildDetailCard(
-                                    'Evidence',
-                                    Icons.folder_outlined,
-                                    Colors.grey,
-                                    [
-                                      Container(
-                                        width: double.infinity,
-                                        padding: const EdgeInsets.all(20),
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey[50],
-                                          borderRadius: BorderRadius.circular(10),
-                                        ),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Icon(Icons.folder_off, color: Colors.grey[400], size: 24),
-                                            const SizedBox(width: 12),
-                                            Text('No evidence files submitted', style: TextStyle(color: Colors.grey[500], fontSize: 14)),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
+                              Builder(
+                                builder: (context) {
+                                  final imageUrls = _getListFromData(
+                                    data,
+                                    'imageUrls',
                                   );
-                                }
+                                  final videoUrls = _getListFromData(
+                                    data,
+                                    'videoUrls',
+                                  );
+                                  final audioUrls = _getListFromData(
+                                    data,
+                                    'audioUrls',
+                                  );
+                                  final hasEvidence =
+                                      imageUrls.isNotEmpty ||
+                                      videoUrls.isNotEmpty ||
+                                      audioUrls.isNotEmpty;
 
-                                return Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    if (imageUrls.isNotEmpty) ...[
-                                      _buildDetailCard(
-                                        'Photo Evidence (${imageUrls.length})',
-                                        Icons.photo_library_outlined,
-                                        Colors.teal,
-                                        [
-                                          SizedBox(
-                                            height: 200,
-                                            child: ListView.builder(
-                                              scrollDirection: Axis.horizontal,
-                                              itemCount: imageUrls.length,
-                                              itemBuilder: (context, imgIndex) {
-                                                final url = imageUrls[imgIndex];
-                                                return Padding(
-                                                  padding: const EdgeInsets.only(right: 12),
-                                                  child: GestureDetector(
-                                                    onTap: () => _showFullImage(context, url, imgIndex + 1),
-                                                    child: ClipRRect(
-                                                      borderRadius: BorderRadius.circular(12),
-                                                      child: Stack(
-                                                        children: [
-                                                          Image.network(
-                                                            url,
-                                                            width: 180,
-                                                            height: 200,
-                                                            fit: BoxFit.cover,
-                                                            loadingBuilder: (context, child, progress) {
-                                                              if (progress == null) return child;
-                                                              return Container(
-                                                                width: 180, height: 200,
-                                                                color: Colors.grey[100],
-                                                                child: Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.secondaryOrange)),
-                                                              );
-                                                            },
-                                                            errorBuilder: (context, error, stack) => Container(
-                                                              width: 180, height: 200,
-                                                              color: Colors.grey[200],
-                                                              child: Column(
-                                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                                children: [
-                                                                  Icon(Icons.broken_image, color: Colors.grey[400], size: 36),
-                                                                  const SizedBox(height: 4),
-                                                                  Text('Load failed', style: TextStyle(fontSize: 11, color: Colors.grey[500])),
-                                                                ],
-                                                              ),
-                                                            ),
-                                                          ),
-                                                          Positioned(
-                                                            bottom: 0, left: 0, right: 0,
-                                                            child: Container(
-                                                              padding: const EdgeInsets.symmetric(vertical: 6),
-                                                              decoration: const BoxDecoration(
-                                                                gradient: LinearGradient(
-                                                                  begin: Alignment.bottomCenter,
-                                                                  end: Alignment.topCenter,
-                                                                  colors: [Colors.black54, Colors.transparent],
-                                                                ),
-                                                              ),
-                                                              child: Row(
-                                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                                children: [
-                                                                  Icon(Icons.zoom_in, size: 14, color: Colors.white70),
-                                                                  const SizedBox(width: 4),
-                                                                  Text('Tap to view', style: TextStyle(fontSize: 10, color: Colors.white70)),
-                                                                ],
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                );
-                                              },
+                                  print('ADMIN DEBUG: imageUrls=$imageUrls');
+                                  print('ADMIN DEBUG: videoUrls=$videoUrls');
+                                  print('ADMIN DEBUG: audioUrls=$audioUrls');
+                                  print(
+                                    'ADMIN DEBUG: hasEvidence=$hasEvidence',
+                                  );
+
+                                  if (!hasEvidence) {
+                                    return _buildDetailCard(
+                                      'Evidence',
+                                      Icons.folder_outlined,
+                                      Colors.grey,
+                                      [
+                                        Container(
+                                          width: double.infinity,
+                                          padding: const EdgeInsets.all(20),
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey[50],
+                                            borderRadius: BorderRadius.circular(
+                                              10,
                                             ),
                                           ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 16),
-                                    ],
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                Icons.folder_off,
+                                                color: Colors.grey[400],
+                                                size: 24,
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Text(
+                                                'No evidence files submitted',
+                                                style: TextStyle(
+                                                  color: Colors.grey[500],
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  }
 
-                                    if (videoUrls.isNotEmpty) ...[
-                                      _buildDetailCard(
-                                        'Video Evidence (${videoUrls.length})',
-                                        Icons.videocam_outlined,
-                                        Colors.purple,
-                                        [
-                                          ...videoUrls.asMap().entries.map((entry) {
-                                            final videoUrl = entry.value;
-                                            final videoNum = entry.key + 1;
-                                            return Padding(
-                                              padding: const EdgeInsets.only(bottom: 8),
-                                              child: InkWell(
-                                                onTap: () async {
-                                                  final uri = Uri.parse(videoUrl);
-                                                  if (await canLaunchUrl(uri)) {
-                                                    await launchUrl(uri, mode: LaunchMode.externalApplication);
-                                                  }
-                                                },
-                                                borderRadius: BorderRadius.circular(10),
-                                                child: Container(
-                                                  padding: const EdgeInsets.all(14),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.purple[50],
-                                                    borderRadius: BorderRadius.circular(10),
-                                                  ),
-                                                  child: Row(
-                                                    children: [
-                                                      Container(
-                                                        padding: const EdgeInsets.all(10),
-                                                        decoration: BoxDecoration(
-                                                          color: Colors.purple[100],
-                                                          borderRadius: BorderRadius.circular(8),
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      if (imageUrls.isNotEmpty) ...[
+                                        _buildDetailCard(
+                                          'Photo Evidence (${imageUrls.length})',
+                                          Icons.photo_library_outlined,
+                                          Colors.teal,
+                                          [
+                                            SizedBox(
+                                              height: 200,
+                                              child: ListView.builder(
+                                                scrollDirection:
+                                                    Axis.horizontal,
+                                                itemCount: imageUrls.length,
+                                                itemBuilder: (
+                                                  context,
+                                                  imgIndex,
+                                                ) {
+                                                  final url =
+                                                      imageUrls[imgIndex];
+                                                  return Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                          right: 12,
                                                         ),
-                                                        child: Icon(Icons.videocam, color: Colors.purple[700], size: 22),
-                                                      ),
-                                                      const SizedBox(width: 14),
-                                                      Expanded(
-                                                        child: Column(
-                                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                                    child: GestureDetector(
+                                                      onTap:
+                                                          () => _showFullImage(
+                                                            context,
+                                                            url,
+                                                            imgIndex + 1,
+                                                          ),
+                                                      child: ClipRRect(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              12,
+                                                            ),
+                                                        child: Stack(
                                                           children: [
-                                                            Text('Video $videoNum', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                                                            Text('Tap to open in browser', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                                                            Image.network(
+                                                              url,
+                                                              width: 180,
+                                                              height: 200,
+                                                              fit: BoxFit.cover,
+                                                              loadingBuilder: (
+                                                                context,
+                                                                child,
+                                                                progress,
+                                                              ) {
+                                                                if (progress ==
+                                                                    null)
+                                                                  return child;
+                                                                return Container(
+                                                                  width: 180,
+                                                                  height: 200,
+                                                                  color:
+                                                                      Colors
+                                                                          .grey[100],
+                                                                  child: Center(
+                                                                    child: CircularProgressIndicator(
+                                                                      strokeWidth:
+                                                                          2,
+                                                                      color:
+                                                                          AppColors
+                                                                              .secondaryOrange,
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                              },
+                                                              errorBuilder:
+                                                                  (
+                                                                    context,
+                                                                    error,
+                                                                    stack,
+                                                                  ) => Container(
+                                                                    width: 180,
+                                                                    height: 200,
+                                                                    color:
+                                                                        Colors
+                                                                            .grey[200],
+                                                                    child: Column(
+                                                                      mainAxisAlignment:
+                                                                          MainAxisAlignment
+                                                                              .center,
+                                                                      children: [
+                                                                        Icon(
+                                                                          Icons
+                                                                              .broken_image,
+                                                                          color:
+                                                                              Colors.grey[400],
+                                                                          size:
+                                                                              36,
+                                                                        ),
+                                                                        const SizedBox(
+                                                                          height:
+                                                                              4,
+                                                                        ),
+                                                                        Text(
+                                                                          'Load failed',
+                                                                          style: TextStyle(
+                                                                            fontSize:
+                                                                                11,
+                                                                            color:
+                                                                                Colors.grey[500],
+                                                                          ),
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                  ),
+                                                            ),
+                                                            Positioned(
+                                                              bottom: 0,
+                                                              left: 0,
+                                                              right: 0,
+                                                              child: Container(
+                                                                padding:
+                                                                    const EdgeInsets.symmetric(
+                                                                      vertical:
+                                                                          6,
+                                                                    ),
+                                                                decoration: const BoxDecoration(
+                                                                  gradient: LinearGradient(
+                                                                    begin:
+                                                                        Alignment
+                                                                            .bottomCenter,
+                                                                    end:
+                                                                        Alignment
+                                                                            .topCenter,
+                                                                    colors: [
+                                                                      Colors
+                                                                          .black54,
+                                                                      Colors
+                                                                          .transparent,
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                                child: Row(
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .center,
+                                                                  children: [
+                                                                    Icon(
+                                                                      Icons
+                                                                          .zoom_in,
+                                                                      size: 14,
+                                                                      color:
+                                                                          Colors
+                                                                              .white70,
+                                                                    ),
+                                                                    const SizedBox(
+                                                                      width: 4,
+                                                                    ),
+                                                                    Text(
+                                                                      'Tap to view',
+                                                                      style: TextStyle(
+                                                                        fontSize:
+                                                                            10,
+                                                                        color:
+                                                                            Colors.white70,
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                            ),
                                                           ],
                                                         ),
                                                       ),
-                                                      Icon(Icons.open_in_new, color: Colors.purple[400], size: 20),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                            );
-                                          }),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 20),
-                                    ],
-
-                                    // Audio Evidence
-                                    if (audioUrls.isNotEmpty) ...[
-                                      _buildDetailCard('Audio Evidence (${audioUrls.length})', Icons.headphones_rounded, Colors.deepPurple, [
-                                        ...audioUrls.asMap().entries.map((entry) {
-                                          final audioUrl = entry.value;
-                                          final audioNum = entry.key + 1;
-                                          return Padding(
-                                            padding: const EdgeInsets.only(bottom: 8),
-                                            child: InkWell(
-                                              onTap: () async {
-                                                final uri = Uri.parse(audioUrl);
-                                                if (await canLaunchUrl(uri)) {
-                                                  await launchUrl(uri, mode: LaunchMode.externalApplication);
-                                                }
-                                              },
-                                              borderRadius: BorderRadius.circular(10),
-                                              child: Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.deepPurple.withOpacity(0.05),
-                                                  borderRadius: BorderRadius.circular(10),
-                                                  border: Border.all(color: Colors.deepPurple.withOpacity(0.2)),
-                                                ),
-                                                child: Row(
-                                                  children: [
-                                                    Container(
-                                                      padding: const EdgeInsets.all(8),
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.deepPurple.withOpacity(0.1),
-                                                        borderRadius: BorderRadius.circular(8),
-                                                      ),
-                                                      child: const Icon(Icons.headphones_rounded, color: Colors.deepPurple, size: 22),
                                                     ),
-                                                    const SizedBox(width: 12),
-                                                    Expanded(
-                                                      child: Column(
-                                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                                        children: [
-                                                          Text('Audio $audioNum', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                                                          const SizedBox(height: 2),
-                                                          Text('Tap to listen in browser', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                    Icon(Icons.open_in_new, color: Colors.deepPurple.withOpacity(0.6), size: 20),
-                                                  ],
-                                                ),
+                                                  );
+                                                },
                                               ),
                                             ),
-                                          );
-                                        }),
-                                      ]),
-                                      const SizedBox(height: 20),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 16),
+                                      ],
+
+                                      if (videoUrls.isNotEmpty) ...[
+                                        _buildDetailCard(
+                                          'Video Evidence (${videoUrls.length})',
+                                          Icons.videocam_outlined,
+                                          Colors.purple,
+                                          [
+                                            ...videoUrls.asMap().entries.map((
+                                              entry,
+                                            ) {
+                                              final videoUrl = entry.value;
+                                              final videoNum = entry.key + 1;
+                                              return Padding(
+                                                padding: const EdgeInsets.only(
+                                                  bottom: 8,
+                                                ),
+                                                child: InkWell(
+                                                  onTap: () async {
+                                                    final uri = Uri.parse(
+                                                      videoUrl,
+                                                    );
+                                                    if (await canLaunchUrl(
+                                                      uri,
+                                                    )) {
+                                                      await launchUrl(
+                                                        uri,
+                                                        mode:
+                                                            LaunchMode
+                                                                .externalApplication,
+                                                      );
+                                                    }
+                                                  },
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                  child: Container(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                          14,
+                                                        ),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.purple[50],
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            10,
+                                                          ),
+                                                    ),
+                                                    child: Row(
+                                                      children: [
+                                                        Container(
+                                                          padding:
+                                                              const EdgeInsets.all(
+                                                                10,
+                                                              ),
+                                                          decoration: BoxDecoration(
+                                                            color:
+                                                                Colors
+                                                                    .purple[100],
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  8,
+                                                                ),
+                                                          ),
+                                                          child: Icon(
+                                                            Icons.videocam,
+                                                            color:
+                                                                Colors
+                                                                    .purple[700],
+                                                            size: 22,
+                                                          ),
+                                                        ),
+                                                        const SizedBox(
+                                                          width: 14,
+                                                        ),
+                                                        Expanded(
+                                                          child: Column(
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .start,
+                                                            children: [
+                                                              Text(
+                                                                'Video $videoNum',
+                                                                style: const TextStyle(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  fontSize: 14,
+                                                                ),
+                                                              ),
+                                                              Text(
+                                                                'Tap to open in browser',
+                                                                style: TextStyle(
+                                                                  fontSize: 12,
+                                                                  color:
+                                                                      Colors
+                                                                          .grey[500],
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                        Icon(
+                                                          Icons.open_in_new,
+                                                          color:
+                                                              Colors
+                                                                  .purple[400],
+                                                          size: 20,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                            }),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 20),
+                                      ],
+
+                                      // Audio Evidence
+                                      if (audioUrls.isNotEmpty) ...[
+                                        _buildDetailCard(
+                                          'Audio Evidence (${audioUrls.length})',
+                                          Icons.headphones_rounded,
+                                          Colors.deepPurple,
+                                          [
+                                            ...audioUrls.asMap().entries.map((
+                                              entry,
+                                            ) {
+                                              final audioUrl = entry.value;
+                                              final audioNum = entry.key + 1;
+                                              return Padding(
+                                                padding: const EdgeInsets.only(
+                                                  bottom: 8,
+                                                ),
+                                                child: InkWell(
+                                                  onTap: () async {
+                                                    final uri = Uri.parse(
+                                                      audioUrl,
+                                                    );
+                                                    if (await canLaunchUrl(
+                                                      uri,
+                                                    )) {
+                                                      await launchUrl(
+                                                        uri,
+                                                        mode:
+                                                            LaunchMode
+                                                                .externalApplication,
+                                                      );
+                                                    }
+                                                  },
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                  child: Container(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 14,
+                                                          vertical: 12,
+                                                        ),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.deepPurple
+                                                          .withOpacity(0.05),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            10,
+                                                          ),
+                                                      border: Border.all(
+                                                        color: Colors.deepPurple
+                                                            .withOpacity(0.2),
+                                                      ),
+                                                    ),
+                                                    child: Row(
+                                                      children: [
+                                                        Container(
+                                                          padding:
+                                                              const EdgeInsets.all(
+                                                                8,
+                                                              ),
+                                                          decoration: BoxDecoration(
+                                                            color: Colors
+                                                                .deepPurple
+                                                                .withOpacity(
+                                                                  0.1,
+                                                                ),
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  8,
+                                                                ),
+                                                          ),
+                                                          child: const Icon(
+                                                            Icons
+                                                                .headphones_rounded,
+                                                            color:
+                                                                Colors
+                                                                    .deepPurple,
+                                                            size: 22,
+                                                          ),
+                                                        ),
+                                                        const SizedBox(
+                                                          width: 12,
+                                                        ),
+                                                        Expanded(
+                                                          child: Column(
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .start,
+                                                            children: [
+                                                              Text(
+                                                                'Audio $audioNum',
+                                                                style: const TextStyle(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  fontSize: 14,
+                                                                ),
+                                                              ),
+                                                              const SizedBox(
+                                                                height: 2,
+                                                              ),
+                                                              Text(
+                                                                'Tap to listen in browser',
+                                                                style: TextStyle(
+                                                                  fontSize: 12,
+                                                                  color:
+                                                                      Colors
+                                                                          .grey[500],
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                        Icon(
+                                                          Icons.open_in_new,
+                                                          color: Colors
+                                                              .deepPurple
+                                                              .withOpacity(0.6),
+                                                          size: 20,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                            }),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 20),
+                                      ],
                                     ],
-                                  ],
-                                );
-                              }),
+                                  );
+                                },
+                              ),
 
                               // AI Insights Panel
                               if (widget.admin.canManageReports()) ...[
@@ -925,13 +1404,20 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                           const SizedBox(height: 10),
                                           if (data['retractedAt'] != null)
                                             Text(
-                                              'Retracted on \\${DateFormat('MMM dd, yyyy hh:mm a').format((data['retractedAt'] as Timestamp).toDate())}',
-                                              style: TextStyle(fontSize: 12, color: Colors.grey[600], fontStyle: FontStyle.italic),
+                                              'Retracted on ${DateFormat('MMM dd, yyyy hh:mm a').format((data['retractedAt'] as Timestamp).toDate())}',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.grey[600],
+                                                fontStyle: FontStyle.italic,
+                                              ),
                                             ),
                                           if (data['retractedBy'] != null)
                                             Text(
-                                              'Retracted by: \\${data['retractedBy']}',
-                                              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                                              'Retracted by: ${data['retractedBy']}',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.grey[600],
+                                              ),
                                             ),
                                         ],
                                       ),
@@ -940,7 +1426,9 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                 ),
                               ],
                               // Resolution Message
-                              if (data['resolutionMessage'] != null && (data['resolutionMessage'] as String).isNotEmpty) ...[
+                              if (data['resolutionMessage'] != null &&
+                                  (data['resolutionMessage'] as String)
+                                      .isNotEmpty) ...[
                                 const SizedBox(height: 16),
                                 _buildDetailCard(
                                   'Resolution',
@@ -955,17 +1443,25 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                         borderRadius: BorderRadius.circular(10),
                                       ),
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             data['resolutionMessage'],
-                                            style: const TextStyle(fontSize: 14, height: 1.6),
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              height: 1.6,
+                                            ),
                                           ),
                                           if (data['resolvedAt'] != null) ...[
                                             const SizedBox(height: 10),
                                             Text(
-                                              'Resolved on \\${DateFormat('MMM dd, yyyy hh:mm a').format((data['resolvedAt'] as Timestamp).toDate())}',
-                                              style: TextStyle(fontSize: 12, color: Colors.grey[600], fontStyle: FontStyle.italic),
+                                              'Resolved on ${DateFormat('MMM dd, yyyy hh:mm a').format((data['resolvedAt'] as Timestamp).toDate())}',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.grey[600],
+                                                fontStyle: FontStyle.italic,
+                                              ),
                                             ),
                                           ],
                                         ],
@@ -983,25 +1479,38 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                   decoration: BoxDecoration(
                                     color: Colors.grey[50],
                                     borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(color: Colors.grey[200]!),
+                                    border: Border.all(
+                                      color: Colors.grey[200]!,
+                                    ),
                                   ),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Row(
                                         children: [
                                           Container(
                                             padding: const EdgeInsets.all(8),
                                             decoration: BoxDecoration(
-                                              color: AppColors.primaryGreen.withOpacity(0.1),
-                                              borderRadius: BorderRadius.circular(8),
+                                              color: AppColors.primaryGreen
+                                                  .withOpacity(0.1),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
                                             ),
-                                            child: Icon(Icons.edit_note, color: AppColors.primaryGreen, size: 20),
+                                            child: Icon(
+                                              Icons.edit_note,
+                                              color: AppColors.primaryGreen,
+                                              size: 20,
+                                            ),
                                           ),
                                           const SizedBox(width: 12),
                                           const Text(
                                             'Update Status',
-                                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primaryGreen),
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.primaryGreen,
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -1009,30 +1518,61 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                       Wrap(
                                         spacing: 10,
                                         runSpacing: 10,
-                                        children: _statusLabels.entries.where((e) => e.key != 'all').map((entry) {
-                                          final isCurrentStatus = data['status'] == entry.key;
-                                          return ElevatedButton(
-                                            onPressed: isCurrentStatus
-                                                ? null
-                                                : () {
-                                                    if (entry.key == 'resolved') {
-                                                      Navigator.pop(context);
-                                                      _showResolutionDialog(reportDoc.id);
-                                                    } else {
-                                                      _updateReportStatus(reportDoc.id, entry.key);
-                                                      Navigator.pop(context);
-                                                    }
-                                                  },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: _statusColors[entry.key],
-                                              foregroundColor: Colors.white,
-                                              disabledBackgroundColor: Colors.grey[300],
-                                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                            ),
-                                            child: Text(entry.value, style: const TextStyle(fontWeight: FontWeight.w600)),
-                                          );
-                                        }).toList(),
+                                        children:
+                                            _statusLabels.entries.where((e) => e.key != 'all').map((
+                                              entry,
+                                            ) {
+                                              final isCurrentStatus =
+                                                  data['status'] == entry.key;
+                                              return ElevatedButton(
+                                                onPressed:
+                                                    isCurrentStatus
+                                                        ? null
+                                                        : () {
+                                                          if (entry.key ==
+                                                              'resolved') {
+                                                            Navigator.pop(
+                                                              context,
+                                                            );
+                                                            _showResolutionDialog(
+                                                              reportDoc.id,
+                                                            );
+                                                          } else {
+                                                            _updateReportStatus(
+                                                              reportDoc.id,
+                                                              entry.key,
+                                                            );
+                                                            Navigator.pop(
+                                                              context,
+                                                            );
+                                                          }
+                                                        },
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor:
+                                                      _statusColors[entry.key],
+                                                  foregroundColor: Colors.white,
+                                                  disabledBackgroundColor:
+                                                      Colors.grey[300],
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 20,
+                                                        vertical: 12,
+                                                      ),
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          10,
+                                                        ),
+                                                  ),
+                                                ),
+                                                child: Text(
+                                                  entry.value,
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              );
+                                            }).toList(),
                                       ),
                                     ],
                                   ),
@@ -1051,7 +1591,12 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
     );
   }
 
-  Widget _buildDetailCard(String title, IconData icon, Color color, List<Widget> children) {
+  Widget _buildDetailCard(
+    String title,
+    IconData icon,
+    Color color,
+    List<Widget> children,
+  ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -1151,12 +1696,18 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
               decoration: BoxDecoration(
                 color: AppColors.secondaryOrange.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.secondaryOrange.withOpacity(0.3)),
+                border: Border.all(
+                  color: AppColors.secondaryOrange.withOpacity(0.3),
+                ),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.vpn_key, size: 16, color: AppColors.secondaryOrange),
+                  Icon(
+                    Icons.vpn_key,
+                    size: 16,
+                    color: AppColors.secondaryOrange,
+                  ),
                   const SizedBox(width: 8),
                   Flexible(
                     child: SelectableText(
@@ -1192,89 +1743,121 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
   void _showFullImage(BuildContext context, String url, int imageNum) {
     showDialog(
       context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.all(16),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Image
-            GestureDetector(
-              onTap: () => Navigator.pop(context),
-              child: InteractiveViewer(
-                minScale: 0.5,
-                maxScale: 4.0,
-                child: Image.network(
-                  url,
-                  fit: BoxFit.contain,
-                  loadingBuilder: (context, child, progress) {
-                    if (progress == null) return child;
-                    return Center(
-                      child: CircularProgressIndicator(
-                        value: progress.expectedTotalBytes != null
-                            ? progress.cumulativeBytesLoaded / progress.expectedTotalBytes!
-                            : null,
-                        color: AppColors.secondaryOrange,
-                      ),
-                    );
-                  },
-                  errorBuilder: (context, error, stack) => Container(
-                    padding: const EdgeInsets.all(40),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
+      builder:
+          (context) => Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(16),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // Image
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: InteractiveViewer(
+                    minScale: 0.5,
+                    maxScale: 4.0,
+                    child: Image.network(
+                      url,
+                      fit: BoxFit.contain,
+                      loadingBuilder: (context, child, progress) {
+                        if (progress == null) return child;
+                        return Center(
+                          child: CircularProgressIndicator(
+                            value:
+                                progress.expectedTotalBytes != null
+                                    ? progress.cumulativeBytesLoaded /
+                                        progress.expectedTotalBytes!
+                                    : null,
+                            color: AppColors.secondaryOrange,
+                          ),
+                        );
+                      },
+                      errorBuilder:
+                          (context, error, stack) => Container(
+                            padding: const EdgeInsets.all(40),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.broken_image,
+                                  size: 64,
+                                  color: Colors.grey[400],
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  'Failed to load image',
+                                  style: TextStyle(color: Colors.grey[600]),
+                                ),
+                              ],
+                            ),
+                          ),
                     ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
+                  ),
+                ),
+                // Top bar
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Colors.black54, Colors.transparent],
+                      ),
+                    ),
+                    child: Row(
                       children: [
-                        Icon(Icons.broken_image, size: 64, color: Colors.grey[400]),
-                        const SizedBox(height: 12),
-                        Text('Failed to load image', style: TextStyle(color: Colors.grey[600])),
+                        Text(
+                          'Image $imageNum',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.open_in_new,
+                            color: Colors.white,
+                            size: 22,
+                          ),
+                          tooltip: 'Open in browser',
+                          onPressed: () async {
+                            final uri = Uri.parse(url);
+                            if (await canLaunchUrl(uri)) {
+                              await launchUrl(
+                                uri,
+                                mode: LaunchMode.externalApplication,
+                              );
+                            }
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.close,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                          onPressed: () => Navigator.pop(context),
+                        ),
                       ],
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
-            // Top bar
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Colors.black54, Colors.transparent],
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Text('Image $imageNum', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 16)),
-                    const Spacer(),
-                    IconButton(
-                      icon: const Icon(Icons.open_in_new, color: Colors.white, size: 22),
-                      tooltip: 'Open in browser',
-                      onPressed: () async {
-                        final uri = Uri.parse(url);
-                        if (await canLaunchUrl(uri)) {
-                          await launchUrl(uri, mode: LaunchMode.externalApplication);
-                        }
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white, size: 24),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
     );
   }
 
@@ -1284,16 +1867,17 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
       firstDate: DateTime(2023),
       lastDate: DateTime.now(),
       initialDateRange: _dateRange,
-      builder: (context, child) => Theme(
-        data: Theme.of(context).copyWith(
-          colorScheme: const ColorScheme.light(
-            primary: AppColors.primaryGreen,
-            onPrimary: Colors.white,
-            secondary: AppColors.secondaryOrange,
+      builder:
+          (context, child) => Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: const ColorScheme.light(
+                primary: AppColors.primaryGreen,
+                onPrimary: Colors.white,
+                secondary: AppColors.secondaryOrange,
+              ),
+            ),
+            child: child!,
           ),
-        ),
-        child: child!,
-      ),
     );
     if (picked != null) setState(() => _dateRange = picked);
   }
@@ -1314,11 +1898,13 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
 
   Future<void> _showTrendAnalysis() async {
     final aiService = FirebaseAIReportService.instance;
-    
+
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => _TrendAnalysisDialog(aiService: aiService, firestore: _firestore),
+      builder:
+          (context) =>
+              _TrendAnalysisDialog(aiService: aiService, firestore: _firestore),
     );
   }
 
@@ -1340,7 +1926,13 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: AppColors.background,
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 4, offset: const Offset(0, 2))],
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Column(
             children: [
@@ -1348,18 +1940,40 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
               TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
-                  hintText: 'Search by ID, type, location, or tracking token...',
+                  hintText:
+                      'Search by ID, type, location, or tracking token...',
                   prefixIcon: const Icon(Icons.search),
-                  suffixIcon: _searchQuery.isNotEmpty
-                      ? IconButton(icon: const Icon(Icons.clear, size: 20), onPressed: () { _searchController.clear(); setState(() => _searchQuery = ''); })
-                      : null,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[300]!)),
-                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primaryGreen, width: 2)),
+                  suffixIcon:
+                      _searchQuery.isNotEmpty
+                          ? IconButton(
+                            icon: const Icon(Icons.clear, size: 20),
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() => _searchQuery = '');
+                            },
+                          )
+                          : null,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(
+                      color: AppColors.primaryGreen,
+                      width: 2,
+                    ),
+                  ),
                   filled: true,
                   fillColor: Colors.grey[50],
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                 ),
-                onChanged: (value) => setState(() => _searchQuery = value.toLowerCase()),
+                onChanged:
+                    (value) =>
+                        setState(() => _searchQuery = value.toLowerCase()),
               ),
               const SizedBox(height: 12),
 
@@ -1372,18 +1986,47 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: _selectedStatus != 'all' ? AppColors.secondaryOrange.withOpacity(0.1) : Colors.grey[100],
+                        color:
+                            _selectedStatus != 'all'
+                                ? AppColors.secondaryOrange.withOpacity(0.1)
+                                : Colors.grey[100],
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: _selectedStatus != 'all' ? AppColors.secondaryOrange : Colors.grey[300]!),
+                        border: Border.all(
+                          color:
+                              _selectedStatus != 'all'
+                                  ? AppColors.secondaryOrange
+                                  : Colors.grey[300]!,
+                        ),
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           value: _selectedStatus,
                           isDense: true,
                           icon: const Icon(Icons.arrow_drop_down, size: 20),
-                          style: TextStyle(fontSize: 13, color: _selectedStatus != 'all' ? AppColors.primaryGreen : Colors.grey[700], fontWeight: _selectedStatus != 'all' ? FontWeight.w600 : FontWeight.normal),
-                          items: _statusLabels.entries.map((e) => DropdownMenuItem(value: e.key, child: Text(e.value))).toList(),
-                          onChanged: (val) => setState(() => _selectedStatus = val ?? 'all'),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color:
+                                _selectedStatus != 'all'
+                                    ? AppColors.primaryGreen
+                                    : Colors.grey[700],
+                            fontWeight:
+                                _selectedStatus != 'all'
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
+                          ),
+                          items:
+                              _statusLabels.entries
+                                  .map(
+                                    (e) => DropdownMenuItem(
+                                      value: e.key,
+                                      child: Text(e.value),
+                                    ),
+                                  )
+                                  .toList(),
+                          onChanged:
+                              (val) => setState(
+                                () => _selectedStatus = val ?? 'all',
+                              ),
                         ),
                       ),
                     ),
@@ -1393,24 +2036,51 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: _selectedFaculty != 'all' ? AppColors.secondaryOrange.withOpacity(0.1) : Colors.grey[100],
+                        color:
+                            _selectedFaculty != 'all'
+                                ? AppColors.secondaryOrange.withOpacity(0.1)
+                                : Colors.grey[100],
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: _selectedFaculty != 'all' ? AppColors.secondaryOrange : Colors.grey[300]!),
+                        border: Border.all(
+                          color:
+                              _selectedFaculty != 'all'
+                                  ? AppColors.secondaryOrange
+                                  : Colors.grey[300]!,
+                        ),
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           value: _selectedFaculty,
                           isDense: true,
                           icon: const Icon(Icons.arrow_drop_down, size: 20),
-                          style: TextStyle(fontSize: 13, color: _selectedFaculty != 'all' ? AppColors.primaryGreen : Colors.grey[700], fontWeight: _selectedFaculty != 'all' ? FontWeight.w600 : FontWeight.normal),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color:
+                                _selectedFaculty != 'all'
+                                    ? AppColors.primaryGreen
+                                    : Colors.grey[700],
+                            fontWeight:
+                                _selectedFaculty != 'all'
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
+                          ),
                           items: [
-                            const DropdownMenuItem(value: 'all', child: Text('All Faculties')),
-                            ..._faculties.map((f) => DropdownMenuItem(value: f, child: Text(f.replaceAll('Faculty of ', 'F. ')))),
+                            const DropdownMenuItem(
+                              value: 'all',
+                              child: Text('All Faculties'),
+                            ),
+                            ..._faculties.map(
+                              (f) => DropdownMenuItem(
+                                value: f,
+                                child: Text(f.replaceAll('Faculty of ', 'F. ')),
+                              ),
+                            ),
                           ],
                           onChanged: (val) {
                             setState(() {
                               _selectedFaculty = val ?? 'all';
-                              _selectedDepartment = 'all'; // Reset department when faculty changes
+                              _selectedDepartment =
+                                  'all'; // Reset department when faculty changes
                             });
                           },
                         ),
@@ -1422,21 +2092,54 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: _selectedDepartment != 'all' ? AppColors.secondaryOrange.withOpacity(0.1) : Colors.grey[100],
+                        color:
+                            _selectedDepartment != 'all'
+                                ? AppColors.secondaryOrange.withOpacity(0.1)
+                                : Colors.grey[100],
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: _selectedDepartment != 'all' ? AppColors.secondaryOrange : Colors.grey[300]!),
+                        border: Border.all(
+                          color:
+                              _selectedDepartment != 'all'
+                                  ? AppColors.secondaryOrange
+                                  : Colors.grey[300]!,
+                        ),
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           value: _selectedDepartment,
                           isDense: true,
                           icon: const Icon(Icons.arrow_drop_down, size: 20),
-                          style: TextStyle(fontSize: 13, color: _selectedDepartment != 'all' ? AppColors.primaryGreen : Colors.grey[700], fontWeight: _selectedDepartment != 'all' ? FontWeight.w600 : FontWeight.normal),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color:
+                                _selectedDepartment != 'all'
+                                    ? AppColors.primaryGreen
+                                    : Colors.grey[700],
+                            fontWeight:
+                                _selectedDepartment != 'all'
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
+                          ),
                           items: [
-                            const DropdownMenuItem(value: 'all', child: Text('All Departments')),
-                            ..._availableDepartments.map((d) => DropdownMenuItem(value: d, child: Text(d.length > 20 ? '${d.substring(0, 18)}...' : d))),
+                            const DropdownMenuItem(
+                              value: 'all',
+                              child: Text('All Departments'),
+                            ),
+                            ..._availableDepartments.map(
+                              (d) => DropdownMenuItem(
+                                value: d,
+                                child: Text(
+                                  d.length > 20
+                                      ? '${d.substring(0, 18)}...'
+                                      : d,
+                                ),
+                              ),
+                            ),
                           ],
-                          onChanged: (val) => setState(() => _selectedDepartment = val ?? 'all'),
+                          onChanged:
+                              (val) => setState(
+                                () => _selectedDepartment = val ?? 'all',
+                              ),
                         ),
                       ),
                     ),
@@ -1446,21 +2149,46 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: _selectedRole != 'all' ? AppColors.secondaryOrange.withOpacity(0.1) : Colors.grey[100],
+                        color:
+                            _selectedRole != 'all'
+                                ? AppColors.secondaryOrange.withOpacity(0.1)
+                                : Colors.grey[100],
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: _selectedRole != 'all' ? AppColors.secondaryOrange : Colors.grey[300]!),
+                        border: Border.all(
+                          color:
+                              _selectedRole != 'all'
+                                  ? AppColors.secondaryOrange
+                                  : Colors.grey[300]!,
+                        ),
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           value: _selectedRole,
                           isDense: true,
                           icon: const Icon(Icons.arrow_drop_down, size: 20),
-                          style: TextStyle(fontSize: 13, color: _selectedRole != 'all' ? AppColors.primaryGreen : Colors.grey[700], fontWeight: _selectedRole != 'all' ? FontWeight.w600 : FontWeight.normal),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color:
+                                _selectedRole != 'all'
+                                    ? AppColors.primaryGreen
+                                    : Colors.grey[700],
+                            fontWeight:
+                                _selectedRole != 'all'
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
+                          ),
                           items: [
-                            const DropdownMenuItem(value: 'all', child: Text('All Roles')),
-                            ..._roles.map((r) => DropdownMenuItem(value: r, child: Text(r))),
+                            const DropdownMenuItem(
+                              value: 'all',
+                              child: Text('All Roles'),
+                            ),
+                            ..._roles.map(
+                              (r) => DropdownMenuItem(value: r, child: Text(r)),
+                            ),
                           ],
-                          onChanged: (val) => setState(() => _selectedRole = val ?? 'all'),
+                          onChanged:
+                              (val) =>
+                                  setState(() => _selectedRole = val ?? 'all'),
                         ),
                       ),
                     ),
@@ -1470,21 +2198,47 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: _selectedStudyLevel != 'all' ? AppColors.secondaryOrange.withOpacity(0.1) : Colors.grey[100],
+                        color:
+                            _selectedStudyLevel != 'all'
+                                ? AppColors.secondaryOrange.withOpacity(0.1)
+                                : Colors.grey[100],
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: _selectedStudyLevel != 'all' ? AppColors.secondaryOrange : Colors.grey[300]!),
+                        border: Border.all(
+                          color:
+                              _selectedStudyLevel != 'all'
+                                  ? AppColors.secondaryOrange
+                                  : Colors.grey[300]!,
+                        ),
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           value: _selectedStudyLevel,
                           isDense: true,
                           icon: const Icon(Icons.arrow_drop_down, size: 20),
-                          style: TextStyle(fontSize: 13, color: _selectedStudyLevel != 'all' ? AppColors.primaryGreen : Colors.grey[700], fontWeight: _selectedStudyLevel != 'all' ? FontWeight.w600 : FontWeight.normal),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color:
+                                _selectedStudyLevel != 'all'
+                                    ? AppColors.primaryGreen
+                                    : Colors.grey[700],
+                            fontWeight:
+                                _selectedStudyLevel != 'all'
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
+                          ),
                           items: [
-                            const DropdownMenuItem(value: 'all', child: Text('All Study Levels')),
-                            ..._studyLevels.map((l) => DropdownMenuItem(value: l, child: Text(l))),
+                            const DropdownMenuItem(
+                              value: 'all',
+                              child: Text('All Study Levels'),
+                            ),
+                            ..._studyLevels.map(
+                              (l) => DropdownMenuItem(value: l, child: Text(l)),
+                            ),
                           ],
-                          onChanged: (val) => setState(() => _selectedStudyLevel = val ?? 'all'),
+                          onChanged:
+                              (val) => setState(
+                                () => _selectedStudyLevel = val ?? 'all',
+                              ),
                         ),
                       ),
                     ),
@@ -1503,42 +2257,107 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                       onTap: _pickDateRange,
                       borderRadius: BorderRadius.circular(10),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: _dateRange != null ? AppColors.secondaryOrange.withOpacity(0.1) : Colors.grey[100],
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: _dateRange != null ? AppColors.secondaryOrange : Colors.grey[300]!),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
                         ),
-                        child: Row(children: [
-                          Icon(Icons.calendar_today, size: 16, color: _dateRange != null ? AppColors.primaryGreen : Colors.grey[600]),
-                          const SizedBox(width: 6),
-                          Text(
-                            _dateRange != null
-                                ? '${DateFormat('MMM d').format(_dateRange!.start)} - ${DateFormat('MMM d').format(_dateRange!.end)}'
-                                : 'Date Range',
-                            style: TextStyle(fontSize: 13, color: _dateRange != null ? AppColors.primaryGreen : Colors.grey[600], fontWeight: _dateRange != null ? FontWeight.w600 : FontWeight.normal),
+                        decoration: BoxDecoration(
+                          color:
+                              _dateRange != null
+                                  ? AppColors.secondaryOrange.withOpacity(0.1)
+                                  : Colors.grey[100],
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color:
+                                _dateRange != null
+                                    ? AppColors.secondaryOrange
+                                    : Colors.grey[300]!,
                           ),
-                        ]),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.calendar_today,
+                              size: 16,
+                              color:
+                                  _dateRange != null
+                                      ? AppColors.primaryGreen
+                                      : Colors.grey[600],
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              _dateRange != null
+                                  ? '${DateFormat('MMM d').format(_dateRange!.start)} - ${DateFormat('MMM d').format(_dateRange!.end)}'
+                                  : 'Date Range',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color:
+                                    _dateRange != null
+                                        ? AppColors.primaryGreen
+                                        : Colors.grey[600],
+                                fontWeight:
+                                    _dateRange != null
+                                        ? FontWeight.w600
+                                        : FontWeight.normal,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),
 
                     // Anonymous toggle
                     InkWell(
-                      onTap: () => setState(() => _anonymousOnly = !_anonymousOnly),
+                      onTap:
+                          () =>
+                              setState(() => _anonymousOnly = !_anonymousOnly),
                       borderRadius: BorderRadius.circular(10),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: _anonymousOnly ? AppColors.secondaryOrange.withOpacity(0.1) : Colors.grey[100],
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: _anonymousOnly ? AppColors.secondaryOrange : Colors.grey[300]!),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
                         ),
-                        child: Row(children: [
-                          Icon(Icons.visibility_off, size: 16, color: _anonymousOnly ? AppColors.primaryGreen : Colors.grey[600]),
-                          const SizedBox(width: 6),
-                          Text('Anonymous', style: TextStyle(fontSize: 13, color: _anonymousOnly ? AppColors.primaryGreen : Colors.grey[600], fontWeight: _anonymousOnly ? FontWeight.w600 : FontWeight.normal)),
-                        ]),
+                        decoration: BoxDecoration(
+                          color:
+                              _anonymousOnly
+                                  ? AppColors.secondaryOrange.withOpacity(0.1)
+                                  : Colors.grey[100],
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color:
+                                _anonymousOnly
+                                    ? AppColors.secondaryOrange
+                                    : Colors.grey[300]!,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.visibility_off,
+                              size: 16,
+                              color:
+                                  _anonymousOnly
+                                      ? AppColors.primaryGreen
+                                      : Colors.grey[600],
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Anonymous',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color:
+                                    _anonymousOnly
+                                        ? AppColors.primaryGreen
+                                        : Colors.grey[600],
+                                fontWeight:
+                                    _anonymousOnly
+                                        ? FontWeight.w600
+                                        : FontWeight.normal,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -1548,17 +2367,35 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                       onTap: () => _showTrendAnalysis(),
                       borderRadius: BorderRadius.circular(10),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.primaryGreen.withOpacity(0.05),
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColors.primaryGreen.withOpacity(0.3)),
+                          border: Border.all(
+                            color: AppColors.primaryGreen.withOpacity(0.3),
+                          ),
                         ),
-                        child: Row(children: [
-                          Icon(Icons.auto_awesome, size: 16, color: AppColors.primaryGreen),
-                          const SizedBox(width: 6),
-                          Text('AI Trends', style: TextStyle(fontSize: 13, color: AppColors.primaryGreen, fontWeight: FontWeight.w600)),
-                        ]),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.auto_awesome,
+                              size: 16,
+                              color: AppColors.primaryGreen,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'AI Trends',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: AppColors.primaryGreen,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -1569,13 +2406,33 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                         onTap: _clearFilters,
                         borderRadius: BorderRadius.circular(10),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          decoration: BoxDecoration(color: Colors.red[50], borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.red[200]!)),
-                          child: Row(children: [
-                            Icon(Icons.clear_all, size: 16, color: Colors.red[700]),
-                            const SizedBox(width: 4),
-                            Text('Clear All', style: TextStyle(fontSize: 13, color: Colors.red[700], fontWeight: FontWeight.w600)),
-                          ]),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.red[50],
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.red[200]!),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.clear_all,
+                                size: 16,
+                                color: Colors.red[700],
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Clear All',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.red[700],
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                   ],
@@ -1588,102 +2445,133 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
         // Reports List
         Expanded(
           child: StreamBuilder<QuerySnapshot>(
-            stream: _firestore.collection('reports').orderBy('createdAt', descending: true).snapshots(),
+            stream:
+                _firestore
+                    .collection('reports')
+                    .orderBy('createdAt', descending: true)
+                    .snapshots(),
             builder: (context, snapshot) {
-              if (snapshot.hasError) return Center(child: Text('Error: ${snapshot.error}'));
+              if (snapshot.hasError)
+                return Center(child: Text('Error: ${snapshot.error}'));
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(
-                  child: CircularProgressIndicator(color: AppColors.primaryGreen),
+                  child: CircularProgressIndicator(
+                    color: AppColors.primaryGreen,
+                  ),
                 );
               }
 
-              final reports = snapshot.data!.docs.where((doc) {
-                final data = doc.data() as Map<String, dynamic>;
+              final reports =
+                  snapshot.data!.docs.where((doc) {
+                    final data = doc.data() as Map<String, dynamic>;
 
-                // Status filter
-                if (_selectedStatus != 'all' && data['status'] != _selectedStatus) return false;
-
-                // Anonymous filter
-                if (_anonymousOnly && data['isAnonymous'] != true) return false;
-
-                // Date range filter
-                if (_dateRange != null && data['createdAt'] != null) {
-                  final createdAt = (data['createdAt'] as Timestamp).toDate();
-                  if (createdAt.isBefore(_dateRange!.start) || createdAt.isAfter(_dateRange!.end.add(const Duration(days: 1)))) return false;
-                }
-
-                // User-based filters (faculty, department, role, study level)
-                if (_selectedFaculty != 'all' || _selectedDepartment != 'all' || _selectedRole != 'all' || _selectedStudyLevel != 'all') {
-                  final userId = data['userId'] as String?;
-                  if (userId == null) {
-                    // Anonymous reports without userId - can't filter by user attributes
-                    if (_selectedFaculty != 'all' || _selectedDepartment != 'all' || _selectedRole != 'all' || _selectedStudyLevel != 'all') {
+                    // Status filter
+                    if (_selectedStatus != 'all' &&
+                        data['status'] != _selectedStatus)
                       return false;
-                    }
-                  } else if (_usersCacheLoaded) {
-                    final userData = _usersCache[userId];
-                    if (userData == null) return false;
 
-                    // Faculty filter
-                    if (_selectedFaculty != 'all') {
-                      final userFaculty = userData['department'] ?? '';
-                      if (userFaculty != _selectedFaculty) return false;
-                    }
+                    // Anonymous filter
+                    if (_anonymousOnly && data['isAnonymous'] != true)
+                      return false;
 
-                    // Department filter
-                    if (_selectedDepartment != 'all') {
-                      final userDept = userData['facultyDepartment'] ?? '';
-                      if (userDept != _selectedDepartment) return false;
-                    }
-
-                    // Role filter
-                    if (_selectedRole != 'all') {
-                      final userRole = userData['role'] ?? '';
-                      if (userRole != _selectedRole) return false;
+                    // Date range filter
+                    if (_dateRange != null && data['createdAt'] != null) {
+                      final createdAt =
+                          (data['createdAt'] as Timestamp).toDate();
+                      if (createdAt.isBefore(_dateRange!.start) ||
+                          createdAt.isAfter(
+                            _dateRange!.end.add(const Duration(days: 1)),
+                          ))
+                        return false;
                     }
 
-                    // Study level filter
-                    if (_selectedStudyLevel != 'all') {
-                      final userStudyLevel = userData['studyLevel'] ?? '';
-                      if (userStudyLevel != _selectedStudyLevel) return false;
+                    // User-based filters (faculty, department, role, study level)
+                    if (_selectedFaculty != 'all' ||
+                        _selectedDepartment != 'all' ||
+                        _selectedRole != 'all' ||
+                        _selectedStudyLevel != 'all') {
+                      final userId = data['userId'] as String?;
+                      if (userId == null) {
+                        // Anonymous reports without userId - can't filter by user attributes
+                        if (_selectedFaculty != 'all' ||
+                            _selectedDepartment != 'all' ||
+                            _selectedRole != 'all' ||
+                            _selectedStudyLevel != 'all') {
+                          return false;
+                        }
+                      } else if (_usersCacheLoaded) {
+                        final userData = _usersCache[userId];
+                        if (userData == null) return false;
+
+                        // Faculty filter
+                        if (_selectedFaculty != 'all') {
+                          final userFaculty = userData['department'] ?? '';
+                          if (userFaculty != _selectedFaculty) return false;
+                        }
+
+                        // Department filter
+                        if (_selectedDepartment != 'all') {
+                          final userDept = userData['facultyDepartment'] ?? '';
+                          if (userDept != _selectedDepartment) return false;
+                        }
+
+                        // Role filter
+                        if (_selectedRole != 'all') {
+                          final userRole = userData['role'] ?? '';
+                          if (userRole != _selectedRole) return false;
+                        }
+
+                        // Study level filter
+                        if (_selectedStudyLevel != 'all') {
+                          final userStudyLevel = userData['studyLevel'] ?? '';
+                          if (userStudyLevel != _selectedStudyLevel)
+                            return false;
+                        }
+                      }
                     }
-                  }
-                }
 
-                // Search (includes tracking token search)
-                if (_searchQuery.isNotEmpty) {
-                  final type = (data['type'] ?? '').toLowerCase();
-                  final location = (data['location'] ?? '').toLowerCase();
-                  final reportId = doc.id.toLowerCase();
-                  final token = (data['trackingToken'] ?? '').toLowerCase();
+                    // Search (includes tracking token search)
+                    if (_searchQuery.isNotEmpty) {
+                      final type = (data['type'] ?? '').toLowerCase();
+                      final location = (data['location'] ?? '').toLowerCase();
+                      final reportId = doc.id.toLowerCase();
+                      final token = (data['trackingToken'] ?? '').toLowerCase();
 
-                  if (!type.contains(_searchQuery) &&
-                      !location.contains(_searchQuery) &&
-                      !reportId.contains(_searchQuery) &&
-                      !token.contains(_searchQuery)) {
-                    return false;
-                  }
-                }
+                      if (!type.contains(_searchQuery) &&
+                          !location.contains(_searchQuery) &&
+                          !reportId.contains(_searchQuery) &&
+                          !token.contains(_searchQuery)) {
+                        return false;
+                      }
+                    }
 
-                return true;
-              }).toList();
+                    return true;
+                  }).toList();
 
               if (reports.isEmpty) {
                 return Center(
-                  child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Icon(Icons.search_off, size: 56, color: Colors.grey[300]),
-                    const SizedBox(height: 12),
-                    Text('No reports found', style: TextStyle(color: Colors.grey[500], fontSize: 16)),
-                    if (_hasActiveFilters) ...[
-                      const SizedBox(height: 8),
-                      TextButton.icon(
-                        onPressed: _clearFilters,
-                        icon: const Icon(Icons.clear_all),
-                        label: const Text('Clear Filters'),
-                        style: TextButton.styleFrom(foregroundColor: AppColors.primaryGreen),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.search_off, size: 56, color: Colors.grey[300]),
+                      const SizedBox(height: 12),
+                      Text(
+                        'No reports found',
+                        style: TextStyle(color: Colors.grey[500], fontSize: 16),
                       ),
+                      if (_hasActiveFilters) ...[
+                        const SizedBox(height: 8),
+                        TextButton.icon(
+                          onPressed: _clearFilters,
+                          icon: const Icon(Icons.clear_all),
+                          label: const Text('Clear Filters'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppColors.primaryGreen,
+                          ),
+                        ),
+                      ],
                     ],
-                  ]),
+                  ),
                 );
               }
 
@@ -1701,16 +2589,29 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(color: statusColor.withOpacity(0.25), width: 1.5),
+                      side: BorderSide(
+                        color: statusColor.withOpacity(0.25),
+                        width: 1.5,
+                      ),
                     ),
                     child: ListTile(
                       contentPadding: const EdgeInsets.all(16),
                       leading: Container(
-                        width: 50, height: 50,
-                        decoration: BoxDecoration(color: statusColor.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: statusColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                         child: Icon(Icons.report, color: statusColor),
                       ),
-                      title: Text(data['type'] ?? 'Report', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      title: Text(
+                        data['type'] ?? 'Report',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -1719,23 +2620,40 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                           const SizedBox(height: 2),
                           Text(
                             data['createdAt'] != null
-                                ? DateFormat('MMM dd, yyyy').format((data['createdAt'] as Timestamp).toDate())
+                                ? DateFormat('MMM dd, yyyy').format(
+                                  (data['createdAt'] as Timestamp).toDate(),
+                                )
                                 : 'N/A',
-                            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
                           ),
-                          if (data['isAnonymous'] == true && data['trackingToken'] != null) ...[
+                          if (data['isAnonymous'] == true &&
+                              data['trackingToken'] != null) ...[
                             const SizedBox(height: 4),
-                            Row(children: [
-                              Icon(Icons.vpn_key, size: 12, color: AppColors.secondaryOrange),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Text(
-                                  data['trackingToken'],
-                                  style: TextStyle(fontSize: 11, color: AppColors.secondaryOrange, fontFamily: 'monospace', fontWeight: FontWeight.w600),
-                                  overflow: TextOverflow.ellipsis,
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.vpn_key,
+                                  size: 12,
+                                  color: AppColors.secondaryOrange,
                                 ),
-                              ),
-                            ]),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    data['trackingToken'],
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.secondaryOrange,
+                                      fontFamily: 'monospace',
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ],
                         ],
                       ),
@@ -1744,17 +2662,36 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               color: statusColor.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: statusColor.withOpacity(0.5)),
+                              border: Border.all(
+                                color: statusColor.withOpacity(0.5),
+                              ),
                             ),
-                            child: Text(_statusLabels[status] ?? status, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: statusColor)),
+                            child: Text(
+                              _statusLabels[status] ?? status,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: statusColor,
+                              ),
+                            ),
                           ),
                           const SizedBox(height: 4),
                           if (data['isAnonymous'] == true)
-                            Text('Anonymous', style: TextStyle(fontSize: 11, color: Colors.grey[600], fontStyle: FontStyle.italic)),
+                            Text(
+                              'Anonymous',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey[600],
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
                         ],
                       ),
                       onTap: () => _showReportDetails(reportDoc),
@@ -1775,7 +2712,10 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Reports Management', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Reports Management',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: AppColors.primaryGreen,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -1790,7 +2730,10 @@ class _TrendAnalysisDialog extends StatefulWidget {
   final FirebaseAIReportService aiService;
   final FirebaseFirestore firestore;
 
-  const _TrendAnalysisDialog({required this.aiService, required this.firestore});
+  const _TrendAnalysisDialog({
+    required this.aiService,
+    required this.firestore,
+  });
 
   @override
   State<_TrendAnalysisDialog> createState() => _TrendAnalysisDialogState();
@@ -1810,20 +2753,23 @@ class _TrendAnalysisDialogState extends State<_TrendAnalysisDialog> {
   Future<void> _loadTrends() async {
     try {
       // Fetch recent reports for analysis
-      final snapshot = await widget.firestore
-          .collection('reports')
-          .orderBy('createdAt', descending: true)
-          .limit(50)
-          .get();
+      final snapshot =
+          await widget.firestore
+              .collection('reports')
+              .orderBy('createdAt', descending: true)
+              .limit(50)
+              .get();
 
-      final reportsData = snapshot.docs.map((doc) {
-        final data = doc.data();
-        // Convert Timestamp to string for AI context
-        if (data['createdAt'] != null) {
-          data['createdAt'] = (data['createdAt'] as Timestamp).toDate().toString();
-        }
-        return data;
-      }).toList();
+      final reportsData =
+          snapshot.docs.map((doc) {
+            final data = doc.data();
+            // Convert Timestamp to string for AI context
+            if (data['createdAt'] != null) {
+              data['createdAt'] =
+                  (data['createdAt'] as Timestamp).toDate().toString();
+            }
+            return data;
+          }).toList();
 
       if (reportsData.isEmpty) {
         if (mounted) {
@@ -1842,6 +2788,246 @@ class _TrendAnalysisDialogState extends State<_TrendAnalysisDialog> {
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  Future<void> _printTrendAsPdf() async {
+    final trendText = _normalizeForPdf(_trendResult ?? '');
+    if (trendText.isEmpty) return;
+
+    try {
+      final pdf = pw.Document();
+      final generatedAt = DateFormat(
+        'yyyy-MM-dd HH:mm:ss',
+      ).format(DateTime.now());
+      final sections =
+          trendText
+              .split(RegExp(r'\n\s*\n'))
+              .map((section) => section.trim())
+              .where((section) => section.isNotEmpty)
+              .toList();
+
+      pdf.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(24),
+          build:
+              (context) => [
+                pw.Text(
+                  'AI Trend Analysis Report',
+                  style: pw.TextStyle(
+                    fontSize: 22,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+                pw.SizedBox(height: 6),
+                pw.Text('Generated: $generatedAt'),
+                pw.SizedBox(height: 16),
+                ...sections.map(
+                  (section) => pw.Padding(
+                    padding: const pw.EdgeInsets.only(bottom: 10),
+                    child: pw.Text(
+                      section,
+                      style: const pw.TextStyle(fontSize: 12, lineSpacing: 1.4),
+                    ),
+                  ),
+                ),
+              ],
+        ),
+      );
+
+      final pdfBytes = await pdf.save();
+      final blob = html.Blob([Uint8List.fromList(pdfBytes)], 'application/pdf');
+      final url = html.Url.createObjectUrlFromBlob(blob);
+
+      html.window.open(url, '_blank');
+
+      Future.delayed(const Duration(seconds: 10), () {
+        html.Url.revokeObjectUrl(url);
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'AI trends exported to PDF. Use print in the opened PDF tab.',
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to create PDF: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  String _cleanMarkdownLine(String line) {
+    return line
+        .replaceAll(RegExp(r'\*\*\*'), '')
+        .replaceAll(RegExp(r'\*\*'), '')
+        .replaceAll(RegExp(r'__'), '')
+        .replaceAll('`', '')
+        .replaceAll(RegExp(r'^\>\s*'), '')
+        .replaceAllMapped(
+          RegExp(r'\[(.*?)\]\((.*?)\)'),
+          (match) => match.group(1) ?? '',
+        )
+        .trim();
+  }
+
+  String _normalizeForPdf(String text) {
+    final lines = text.split('\n');
+    final normalized =
+        lines.map((rawLine) {
+          final line = rawLine.trim();
+          if (line.isEmpty) return '';
+
+          final numbered = RegExp(r'^(\d+)[\)\.\:-]\s+').firstMatch(line);
+          final bullet = RegExp(r'^[-*•]\s+').hasMatch(line);
+          final heading = RegExp(r'^#{1,6}\s+').hasMatch(line);
+
+          if (numbered != null) {
+            final index = numbered.group(1) ?? '';
+            return '$index. ${_cleanMarkdownLine(line.substring(numbered.end))}';
+          }
+          if (bullet) {
+            return '- ${_cleanMarkdownLine(line.replaceFirst(RegExp(r'^[-*•]\s+'), ''))}';
+          }
+          if (heading) {
+            return _cleanMarkdownLine(
+              line.replaceFirst(RegExp(r'^#{1,6}\s+'), ''),
+            );
+          }
+          return _cleanMarkdownLine(line);
+        }).toList();
+
+    return normalized.join('\n').trim();
+  }
+
+  Widget _buildFormattedTrendText(String text) {
+    final lines = text.split('\n');
+    final widgets = <Widget>[];
+
+    for (final rawLine in lines) {
+      final line = rawLine.trim();
+      if (line.isEmpty) {
+        widgets.add(const SizedBox(height: 8));
+        continue;
+      }
+
+      final isHeading = RegExp(r'^#{1,6}\s+').hasMatch(line);
+      final numbered = RegExp(r'^(\d+)[\)\.\:-]\s+').firstMatch(line);
+      final bullet = RegExp(r'^[-*•]\s+').hasMatch(line);
+
+      if (isHeading) {
+        final body = _cleanMarkdownLine(
+          line.replaceFirst(RegExp(r'^#{1,6}\s+'), ''),
+        );
+        widgets.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Text(
+              body,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primaryGreen,
+              ),
+            ),
+          ),
+        );
+        continue;
+      }
+
+      if (numbered != null) {
+        final index = numbered.group(1) ?? '';
+        final body = _cleanMarkdownLine(line.substring(numbered.end));
+        widgets.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$index. ',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primaryGreen,
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    body,
+                    style: const TextStyle(fontSize: 14, height: 1.55),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+        continue;
+      }
+
+      if (bullet) {
+        final body = _cleanMarkdownLine(
+          line.replaceFirst(RegExp(r'^[-*•]\s+'), ''),
+        );
+        widgets.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(top: 6),
+                  child: Icon(
+                    Icons.circle,
+                    size: 7,
+                    color: AppColors.primaryGreen,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    body,
+                    style: const TextStyle(fontSize: 14, height: 1.55),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+        continue;
+      }
+
+      final cleaned = _cleanMarkdownLine(line);
+      final looksLikeSection = cleaned.endsWith(':') && cleaned.length <= 70;
+      widgets.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Text(
+            cleaned,
+            style: TextStyle(
+              fontSize: 14,
+              height: 1.55,
+              fontWeight: looksLikeSection ? FontWeight.w700 : FontWeight.w400,
+              color: looksLikeSection ? AppColors.primaryGreen : Colors.black87,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: widgets,
+    );
   }
 
   @override
@@ -1866,16 +3052,28 @@ class _TrendAnalysisDialogState extends State<_TrendAnalysisDialog> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.auto_awesome, color: AppColors.secondaryOrange, size: 24),
+                  const Icon(
+                    Icons.auto_awesome,
+                    color: AppColors.secondaryOrange,
+                    size: 24,
+                  ),
                   const SizedBox(width: 10),
                   const Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('AI Trend Analysis',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-                        Text('Cross-report pattern recognition',
-                            style: TextStyle(fontSize: 12, color: Colors.white70)),
+                        Text(
+                          'AI Trend Analysis',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Text(
+                          'Cross-report pattern recognition',
+                          style: TextStyle(fontSize: 12, color: Colors.white70),
+                        ),
                       ],
                     ),
                   ),
@@ -1889,64 +3087,93 @@ class _TrendAnalysisDialogState extends State<_TrendAnalysisDialog> {
 
             // Content
             Flexible(
-              child: _loading
-                  ? const Padding(
-                      padding: EdgeInsets.all(40),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          CircularProgressIndicator(color: AppColors.primaryGreen),
-                          SizedBox(height: 16),
-                          Text('Analyzing report trends...', style: TextStyle(color: Colors.grey)),
-                          SizedBox(height: 4),
-                          Text('This may take a moment', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                        ],
-                      ),
-                    )
-                  : _error != null
-                      ? Padding(
-                          padding: const EdgeInsets.all(32),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.error_outline, size: 40, color: Colors.red[300]),
-                              const SizedBox(height: 12),
-                              Text('Analysis failed', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.red[700])),
-                              const SizedBox(height: 6),
-                              Text(_error!, style: const TextStyle(color: Colors.grey, fontSize: 12), textAlign: TextAlign.center),
-                              const SizedBox(height: 16),
-                              ElevatedButton.icon(
-                                onPressed: () {
-                                  setState(() {
-                                    _loading = true;
-                                    _error = null;
-                                    _trendResult = null;
-                                  });
-                                  _loadTrends();
-                                },
-                                icon: const Icon(Icons.refresh, size: 18),
-                                label: const Text('Retry'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primaryGreen,
-                                  foregroundColor: Colors.white,
-                                ),
+              child:
+                  _loading
+                      ? const Padding(
+                        padding: EdgeInsets.all(40),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CircularProgressIndicator(
+                              color: AppColors.primaryGreen,
+                            ),
+                            SizedBox(height: 16),
+                            Text(
+                              'Analyzing report trends...',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'This may take a moment',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
                               ),
-                            ],
-                          ),
-                        )
-                      : SingleChildScrollView(
-                          padding: const EdgeInsets.all(20),
-                          child: SelectableText(
-                            _trendResult ?? '',
-                            style: const TextStyle(fontSize: 14, height: 1.6),
-                          ),
+                            ),
+                          ],
                         ),
+                      )
+                      : _error != null
+                      ? Padding(
+                        padding: const EdgeInsets.all(32),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              size: 40,
+                              color: Colors.red[300],
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Analysis failed',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: Colors.red[700],
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              _error!,
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 16),
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                setState(() {
+                                  _loading = true;
+                                  _error = null;
+                                  _trendResult = null;
+                                });
+                                _loadTrends();
+                              },
+                              icon: const Icon(Icons.refresh, size: 18),
+                              label: const Text('Retry'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryGreen,
+                                foregroundColor: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                      : SingleChildScrollView(
+                        padding: const EdgeInsets.all(20),
+                        child: _buildFormattedTrendText(_trendResult ?? ''),
+                      ),
             ),
 
             // Footer
             if (_trendResult != null)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.grey[50],
                   borderRadius: const BorderRadius.only(
@@ -1961,10 +3188,19 @@ class _TrendAnalysisDialogState extends State<_TrendAnalysisDialog> {
                       onPressed: () {
                         Clipboard.setData(ClipboardData(text: _trendResult!));
                         ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Trend analysis copied to clipboard')));
+                          const SnackBar(
+                            content: Text('Trend analysis copied to clipboard'),
+                          ),
+                        );
                       },
                       icon: const Icon(Icons.copy, size: 16),
                       label: const Text('Copy'),
+                    ),
+                    const SizedBox(width: 8),
+                    TextButton.icon(
+                      onPressed: _printTrendAsPdf,
+                      icon: const Icon(Icons.print, size: 16),
+                      label: const Text('Print (PDF)'),
                     ),
                     const SizedBox(width: 8),
                     ElevatedButton(
@@ -1972,7 +3208,9 @@ class _TrendAnalysisDialogState extends State<_TrendAnalysisDialog> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryGreen,
                         foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                       child: const Text('Close'),
                     ),
