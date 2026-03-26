@@ -26,10 +26,14 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final List<String> imageUrls = List<String>.from(widget.reportData['imageUrls'] ?? []);
-    final List<String> videoUrls = List<String>.from(widget.reportData['videoUrls'] ?? []);
-    final List<String> audioUrls = List<String>.from(widget.reportData['audioUrls'] ?? []);
-    final bool hasAttachments = imageUrls.isNotEmpty || videoUrls.isNotEmpty || audioUrls.isNotEmpty;
+    final List<String> imageUrls =
+        List<String>.from(widget.reportData['imageUrls'] ?? []);
+    final List<String> videoUrls =
+        List<String>.from(widget.reportData['videoUrls'] ?? []);
+    final List<String> audioUrls =
+        List<String>.from(widget.reportData['audioUrls'] ?? []);
+    final bool hasAttachments =
+        imageUrls.isNotEmpty || videoUrls.isNotEmpty || audioUrls.isNotEmpty;
 
     return Scaffold(
       backgroundColor: Colors.grey[100],
@@ -44,7 +48,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
+              colors: [AppColors.primaryGreen, AppColors.primaryGreen],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -58,56 +62,50 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Status Banner
                 _buildStatusBanner(widget.reportData['status'] ?? 'Pending'),
-                
                 const SizedBox(height: 16),
-
-                // Resolution Message Card (shown when report is resolved)
                 if (widget.reportData['resolutionMessage'] != null &&
-                    (widget.reportData['resolutionMessage'] as String).isNotEmpty)
+                    (widget.reportData['resolutionMessage'] as String)
+                        .isNotEmpty) ...[
                   _buildResolutionCard(
                     widget.reportData['resolutionMessage'],
                     widget.reportData['resolvedAt'],
                   ),
-
-                if (widget.reportData['resolutionMessage'] != null &&
-                    (widget.reportData['resolutionMessage'] as String).isNotEmpty)
                   const SizedBox(height: 16),
-                
-                // Report Info Card
+                ],
                 _buildSectionCard(
                   title: 'Report Information',
                   icon: Icons.info_outline,
                   child: Column(
                     children: [
                       _buildInfoRow(
-                        icon: Icons.category_rounded,
+                        icon: Icons.category,
                         label: 'Category',
                         value: widget.reportData['category'] ?? 'N/A',
                       ),
                       const Divider(height: 24),
                       _buildInfoRow(
-                        icon: Icons.calendar_today_rounded,
-                        label: 'Date of Incident',
+                        icon: Icons.calendar_today,
+                        label: 'Date',
                         value: _formatDate(widget.reportData['date']),
                       ),
                       if (widget.reportData['time'] != null) ...[
                         const Divider(height: 24),
                         _buildInfoRow(
                           icon: Icons.access_time,
-                          label: 'Time of Incident',
+                          label: 'Time',
                           value: widget.reportData['time'] ?? 'N/A',
                         ),
                       ],
                       const Divider(height: 24),
                       _buildInfoRow(
-                        icon: Icons.location_on_rounded,
+                        icon: Icons.location_on,
                         label: 'Location',
                         value: widget.reportData['location'] ?? 'N/A',
                       ),
-                      if (widget.reportData['perpetratorInfo'] != null && 
-                          (widget.reportData['perpetratorInfo'] as String).isNotEmpty) ...[
+                      if (widget.reportData['perpetratorInfo'] != null &&
+                          (widget.reportData['perpetratorInfo'] as String)
+                              .isNotEmpty) ...[
                         const Divider(height: 24),
                         _buildInfoRow(
                           icon: Icons.person_outline,
@@ -115,8 +113,9 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                           value: widget.reportData['perpetratorInfo'],
                         ),
                       ],
-                      if (widget.reportData['witnesses'] != null && 
-                          (widget.reportData['witnesses'] as String).isNotEmpty) ...[
+                      if (widget.reportData['witnesses'] != null &&
+                          (widget.reportData['witnesses'] as String)
+                              .isNotEmpty) ...[
                         const Divider(height: 24),
                         _buildInfoRow(
                           icon: Icons.groups,
@@ -127,7 +126,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                       if (widget.reportData['createdAt'] != null) ...[
                         const Divider(height: 24),
                         _buildInfoRow(
-                          icon: Icons.access_time_rounded,
+                          icon: Icons.access_time,
                           label: 'Reported On',
                           value: _formatDate(widget.reportData['createdAt']),
                         ),
@@ -135,15 +134,13 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                     ],
                   ),
                 ),
-                
                 const SizedBox(height: 16),
-                
-                // Description Card
                 _buildSectionCard(
                   title: 'Description',
-                  icon: Icons.description_outlined,
+                  icon: Icons.description,
                   child: Text(
-                    widget.reportData['description'] ?? 'No description provided',
+                    widget.reportData['description'] ??
+                        'No description provided',
                     style: TextStyle(
                       fontSize: 15,
                       color: Colors.grey[800],
@@ -151,11 +148,10 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                     ),
                   ),
                 ),
-                
-                // Complainant Response Card (per MUST Policy Section 8.4)
-                if (widget.reportData['complainantResponse'] != null && 
-                    (widget.reportData['complainantResponse'] as String).isNotEmpty) ...[
-                  const SizedBox(height: 16),
+                const SizedBox(height: 16),
+                if (widget.reportData['complainantResponse'] != null &&
+                    (widget.reportData['complainantResponse'] as String)
+                        .isNotEmpty) ...[
                   _buildSectionCard(
                     title: 'Your Response to Incident',
                     icon: Icons.reply,
@@ -168,29 +164,22 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 16),
                 ],
-                
-                const SizedBox(height: 16),
-                
-                // Attachments Card
-                if (hasAttachments)
-                  _buildSectionCard(
-                    title: 'Attachments',
-                    icon: Icons.attach_file_rounded,
-                    child: _buildAttachmentsSection(imageUrls, videoUrls, audioUrls),
-                  ),
-                
-                if (hasAttachments) const SizedBox(height: 16),
-                
-                // Action Buttons
+                _buildSectionCard(
+                  title: 'Evidence',
+                  icon: Icons.attach_file,
+                  child: hasAttachments
+                      ? _buildAttachmentsSection(
+                          imageUrls, videoUrls, audioUrls)
+                      : const Text('No evidence attached.'),
+                ),
+                const SizedBox(height: 24),
                 _buildActionButtons(),
-                
                 const SizedBox(height: 16),
               ],
             ),
           ),
-          
-          // Loading Overlay
           if (_isDeleting)
             Container(
               color: Colors.black.withOpacity(0.5),
@@ -212,7 +201,8 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            AppColors.primaryGreen),
                       ),
                       const SizedBox(height: 16),
                       const Text(
@@ -244,21 +234,21 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
     Color statusColor;
     IconData statusIcon;
     String statusMessage;
-    
+
     switch (status.toLowerCase()) {
       case 'pending':
-        statusColor = Colors.orange;
+        statusColor = AppColors.primaryGreen;
         statusIcon = Icons.pending_outlined;
         statusMessage = 'Your report is awaiting review';
         break;
       case 'in progress':
       case 'investigating':
-        statusColor = AppColors.mustBlue;
+        statusColor = AppColors.primaryGreen;
         statusIcon = Icons.search_rounded;
         statusMessage = 'Your report is being investigated';
         break;
       case 'resolved':
-        statusColor = AppColors.mustGreen;
+        statusColor = AppColors.primaryGreen;
         statusIcon = Icons.check_circle_outline_rounded;
         statusMessage = 'This report has been resolved';
         break;
@@ -277,7 +267,10 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [statusColor.withOpacity(0.1), statusColor.withOpacity(0.05)],
+          colors: [
+            statusColor.withOpacity(0.1),
+            statusColor.withOpacity(0.05)
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -300,7 +293,8 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: statusColor,
                     borderRadius: BorderRadius.circular(20),
@@ -335,7 +329,8 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
     String resolvedDate = '';
     if (resolvedAt != null && resolvedAt is Timestamp) {
       final dt = resolvedAt.toDate();
-      resolvedDate = '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+      resolvedDate =
+          '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
     }
 
     return Container(
@@ -443,7 +438,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.mustBlue.withOpacity(0.05),
+              color: AppColors.primaryGreen.withOpacity(0.05),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
@@ -454,12 +449,12 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.mustBlue.withOpacity(0.1),
+                    color: AppColors.primaryGreen.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     icon,
-                    color: AppColors.mustBlue,
+                    color: AppColors.primaryGreen,
                     size: 20,
                   ),
                 ),
@@ -527,21 +522,21 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
     );
   }
 
-  Widget _buildAttachmentsSection(List<String> imageUrls, List<String> videoUrls, List<String> audioUrls) {
+  Widget _buildAttachmentsSection(
+      List<String> imageUrls, List<String> videoUrls, List<String> audioUrls) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Images
         if (imageUrls.isNotEmpty) ...[
           Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: AppColors.mustBlue.withOpacity(0.1),
+                  color: AppColors.primaryGreen.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: Icon(Icons.photo, size: 16, color: AppColors.mustBlue),
+                child: Icon(Icons.photo, size: 16, color: AppColors.primaryGreen),
               ),
               const SizedBox(width: 8),
               Text(
@@ -549,7 +544,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.mustBlue,
+                  color: AppColors.primaryGreen,
                 ),
               ),
             ],
@@ -591,7 +586,9 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                                 child: Center(
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.mustBlue),
+                                    valueColor:
+                                        AlwaysStoppedAnimation<Color>(
+                                            AppColors.primaryGreen),
                                   ),
                                 ),
                               );
@@ -599,7 +596,8 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                             errorBuilder: (context, error, stackTrace) {
                               return Container(
                                 color: Colors.grey[200],
-                                child: const Icon(Icons.broken_image, color: Colors.grey),
+                                child: const Icon(Icons.broken_image,
+                                    color: Colors.grey),
                               );
                             },
                           ),
@@ -612,8 +610,6 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
             ),
           ),
         ],
-        
-        // Videos
         if (videoUrls.isNotEmpty) ...[
           if (imageUrls.isNotEmpty) const SizedBox(height: 20),
           Row(
@@ -621,10 +617,11 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: AppColors.mustBlueMedium.withOpacity(0.1),
+                  color: AppColors.primaryGreen.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: Icon(Icons.videocam, size: 16, color: AppColors.mustBlueMedium),
+                child:
+                    Icon(Icons.videocam, size: 16, color: AppColors.primaryGreen),
               ),
               const SizedBox(width: 8),
               Text(
@@ -632,7 +629,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.mustBlueMedium,
+                  color: AppColors.primaryGreen,
                 ),
               ),
             ],
@@ -640,22 +637,20 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
           const SizedBox(height: 12),
           ...videoUrls.asMap().entries.map((entry) {
             final isPending = entry.value.startsWith('video_pending:');
-            final videoName = isPending 
+            final videoName = isPending
                 ? entry.value.replaceFirst('video_pending:', '')
                 : 'Video ${entry.key + 1}';
-            
+
             return Container(
               margin: const EdgeInsets.only(bottom: 10),
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: isPending 
-                    ? Colors.orange.withOpacity(0.05)
-                    : AppColors.mustBlueMedium.withOpacity(0.05),
+                color: AppColors.primaryGreen.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: isPending 
-                      ? Colors.orange.withOpacity(0.3)
-                      : AppColors.mustBlueMedium.withOpacity(0.2),
+                  color: isPending
+                      ? AppColors.primaryGreen.withOpacity(0.3)
+                      : AppColors.primaryGreen.withOpacity(0.2),
                 ),
               ),
               child: Row(
@@ -663,14 +658,12 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: isPending 
-                          ? Colors.orange.withOpacity(0.1)
-                          : AppColors.mustBlueMedium.withOpacity(0.1),
+                      color: AppColors.primaryGreen.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
-                      isPending ? Icons.videocam_off : Icons.play_circle_fill, 
-                      color: isPending ? Colors.orange : AppColors.mustBlueMedium, 
+                      isPending ? Icons.videocam_off : Icons.play_circle_fill,
+                      color: AppColors.primaryGreen,
                       size: 24,
                     ),
                   ),
@@ -690,10 +683,12 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          isPending ? 'Stored locally (not uploaded)' : 'Tap to view',
+                          isPending
+                              ? 'Stored locally (not uploaded)'
+                              : 'Tap to view',
                           style: TextStyle(
                             fontSize: 12,
-                            color: isPending ? Colors.orange[700] : Colors.grey[500],
+                            color: AppColors.primaryGreen,
                           ),
                         ),
                       ],
@@ -707,15 +702,17 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                         borderRadius: BorderRadius.circular(8),
                         child: Container(
                           padding: const EdgeInsets.all(8),
-                          child: Icon(Icons.open_in_new, color: AppColors.mustBlueMedium, size: 20),
+                          child: Icon(Icons.open_in_new,
+                              color: AppColors.primaryGreen, size: 20),
                         ),
                       ),
                     )
                   else
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.orange.withOpacity(0.1),
+                        color: AppColors.primaryGreen.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
@@ -723,7 +720,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: Colors.orange[700],
+                          color: AppColors.primaryGreen,
                         ),
                       ),
                     ),
@@ -732,10 +729,9 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
             );
           }),
         ],
-
-        // Audio
         if (audioUrls.isNotEmpty) ...[
-          if (imageUrls.isNotEmpty || videoUrls.isNotEmpty) const SizedBox(height: 20),
+          if (imageUrls.isNotEmpty || videoUrls.isNotEmpty)
+            const SizedBox(height: 20),
           Row(
             children: [
               Container(
@@ -744,7 +740,8 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                   color: Colors.deepPurple.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: const Icon(Icons.audiotrack, size: 16, color: Colors.deepPurple),
+                child: const Icon(Icons.audiotrack,
+                    size: 16, color: Colors.deepPurple),
               ),
               const SizedBox(width: 8),
               Text(
@@ -815,7 +812,8 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                       borderRadius: BorderRadius.circular(8),
                       child: Container(
                         padding: const EdgeInsets.all(8),
-                        child: const Icon(Icons.open_in_new, color: Colors.deepPurple, size: 20),
+                        child: const Icon(Icons.open_in_new,
+                            color: Colors.deepPurple, size: 20),
                       ),
                     ),
                   ),
@@ -828,102 +826,88 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
     );
   }
 
-  bool get _isPending {
-    final status = (widget.reportData['status'] ?? 'pending').toString().toLowerCase();
-    return status == 'pending';
-  }
+  bool get _isEditable => true;
+  bool get _isRetractable => true;
 
   Widget _buildActionButtons() {
     return Row(
       children: [
         Expanded(
-          child: Tooltip(
-            message: _isPending ? '' : 'Only pending reports can be edited',
-            child: Container(
-              height: 54,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                gradient: _isPending
-                    ? const LinearGradient(
-                        colors: [
-                          AppColors.mustBlue,
-                          AppColors.mustBlueMedium,
-                        ],
-                      )
-                    : LinearGradient(
-                        colors: [
-                          Colors.grey[400]!,
-                          Colors.grey[300]!,
-                        ],
-                      ),
-                boxShadow: _isPending
-                    ? [
-                        BoxShadow(
-                          color: AppColors.mustBlue.withOpacity(0.4),
-                          blurRadius: 12,
-                          offset: const Offset(0, 6),
-                        ),
-                      ]
-                    : [],
+          child: Container(
+            height: 54,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              gradient: const LinearGradient(
+                colors: [AppColors.primaryGreen, AppColors.primaryGreen],
               ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: (_isDeleting || !_isPending) ? null : _navigateToEdit,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        _isPending ? Icons.edit_rounded : Icons.lock_rounded,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primaryGreen.withOpacity(0.4),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: _isDeleting ? null : _navigateToEdit,
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.edit_rounded, color: Colors.white, size: 20),
+                    SizedBox(width: 8),
+                    Text(
+                      'Edit Report',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
                         color: Colors.white,
-                        size: 20,
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        _isPending ? 'Edit Report' : 'Editing Locked',
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
         ),
         const SizedBox(width: 12),
-        Tooltip(
-          message: _isPending ? '' : 'Only pending reports can be deleted',
+        Expanded(
           child: Container(
             height: 54,
-            width: 54,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
-              color: _isPending
-                  ? Colors.red.withOpacity(0.1)
-                  : Colors.grey.withOpacity(0.1),
-              border: Border.all(
-                color: _isPending
-                    ? Colors.red.withOpacity(0.3)
-                    : Colors.grey.withOpacity(0.3),
-                width: 2,
+              gradient: const LinearGradient(
+                colors: [Colors.deepOrange, AppColors.primaryGreen],
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.deepOrange.withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
+              ],
             ),
             child: Material(
               color: Colors.transparent,
               child: InkWell(
                 borderRadius: BorderRadius.circular(12),
-                onTap: (_isDeleting || !_isPending) ? null : () => _deleteReport(context),
-                child: Center(
-                  child: Icon(
-                    _isPending ? Icons.delete_outline_rounded : Icons.lock_rounded,
-                    color: _isPending ? Colors.red : Colors.grey,
-                    size: 24,
-                  ),
+                onTap: _isDeleting ? null : () => _showRetractDialog(context),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.undo_rounded, color: Colors.white, size: 20),
+                    SizedBox(width: 8),
+                    Text(
+                      'Retract Report',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -933,57 +917,90 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
     );
   }
 
-  void _showFullImage(BuildContext context, String imageUrl) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => Scaffold(
-          backgroundColor: Colors.black,
-          appBar: AppBar(
-            backgroundColor: Colors.black,
-            foregroundColor: Colors.white,
-            elevation: 0,
-          ),
-          body: Center(
-            child: InteractiveViewer(
-              child: Image.network(
-                imageUrl,
-                fit: BoxFit.contain,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Center(
-                    child: CircularProgressIndicator(
-                      valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                          : null,
-                    ),
-                  );
-                },
+  void _showRetractDialog(BuildContext context) {
+    final TextEditingController reasonController = TextEditingController();
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Retract Report'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Please provide a reason for retracting this report. This action will be sent to the admin and cannot be undone.',
+                style: TextStyle(fontSize: 14),
               ),
-            ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: reasonController,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Retraction Reason',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
           ),
-        ),
-      ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final reason = reasonController.text.trim();
+                if (reason.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content:
+                            Text('Please provide a reason for retraction.')),
+                  );
+                  return;
+                }
+                Navigator.of(context).pop();
+                await _retractReport(context, reason);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.deepOrange,
+              ),
+              child: const Text('Retract'),
+            ),
+          ],
+        );
+      },
     );
   }
 
-  Future<void> _openVideoUrl(String url) async {
-    // Check if this is a pending video (ImgBB doesn't support video uploads)
-    if (url.startsWith('video_pending:')) {
-      final filename = url.replaceFirst('video_pending:', '');
+  Future<void> _retractReport(BuildContext context, String reason) async {
+    setState(() => _isDeleting = true);
+    try {
+      // Optionally, you can log the retraction reason elsewhere before deletion
+      await _firestore.collection('reports').doc(widget.reportId).delete();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Report retracted (deleted) successfully'),
+            backgroundColor: AppColors.primaryGreen,
+          ),
+        );
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isDeleting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Video "$filename" is stored locally and cannot be previewed online.'),
-            duration: const Duration(seconds: 3),
+            content: Text('Failed to retract (delete) report: $e'),
+            backgroundColor: Colors.red,
           ),
         );
       }
-      return;
     }
-    
-    // Try to open valid video URLs
+  }
+
+  Future<void> _openVideoUrl(String url) async {
     try {
       final uri = Uri.parse(url);
       if (await canLaunchUrl(uri)) {
@@ -1025,8 +1042,27 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
     }
   }
 
+  void _showFullImage(BuildContext context, String imageUrl) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => Scaffold(
+          backgroundColor: Colors.black,
+          appBar: AppBar(
+            backgroundColor: Colors.black,
+            foregroundColor: Colors.white,
+          ),
+          body: Center(
+            child: InteractiveViewer(
+              child: Image.network(imageUrl),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _navigateToEdit({bool evidenceOnly = false}) async {
-    // Verify ownership before allowing edit
     final currentUser = _auth.currentUser;
     final reportOwnerId = widget.reportData['userId'] as String?;
 
@@ -1061,93 +1097,5 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
       return '${dateTime.day.toString().padLeft(2, '0')}/${dateTime.month.toString().padLeft(2, '0')}/${dateTime.year}';
     }
     return 'N/A';
-  }
-
-  void _deleteReport(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.warning_rounded, color: Colors.red, size: 24),
-            ),
-            const SizedBox(width: 12),
-            const Text('Delete Report?'),
-          ],
-        ),
-        content: const Text(
-          'This action cannot be undone. Are you sure you want to permanently delete this report?',
-          style: TextStyle(height: 1.5),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: Colors.grey[600]),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(dialogContext);
-              await _performDelete();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _performDelete() async {
-    // Verify ownership before deletion
-    final currentUser = _auth.currentUser;
-    final reportOwnerId = widget.reportData['userId'] as String?;
-
-    if (currentUser == null || reportOwnerId != currentUser.uid) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('You can only delete your own reports.'),
-        ),
-      );
-      return;
-    }
-
-    setState(() => _isDeleting = true);
-
-    try {
-      await _firestore.collection('reports').doc(widget.reportId).delete();
-      if (mounted) {
-        Navigator.pop(context, true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Report deleted successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isDeleting = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to delete report. Please try again.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
   }
 }

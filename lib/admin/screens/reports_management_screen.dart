@@ -900,6 +900,45 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                 ),
                               ],
 
+                              // Retraction Info (if retracted)
+                              if (data['status'] == 'retracted') ...[
+                                const SizedBox(height: 16),
+                                _buildDetailCard(
+                                  'Report Retraction',
+                                  Icons.undo_rounded,
+                                  Colors.deepOrange,
+                                  [
+                                    Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(14),
+                                      decoration: BoxDecoration(
+                                        color: Colors.deepOrange.withOpacity(0.07),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            data['retractionReason'] ?? 'No reason provided',
+                                            style: const TextStyle(fontSize: 14, height: 1.6),
+                                          ),
+                                          const SizedBox(height: 10),
+                                          if (data['retractedAt'] != null)
+                                            Text(
+                                              'Retracted on \\${DateFormat('MMM dd, yyyy hh:mm a').format((data['retractedAt'] as Timestamp).toDate())}',
+                                              style: TextStyle(fontSize: 12, color: Colors.grey[600], fontStyle: FontStyle.italic),
+                                            ),
+                                          if (data['retractedBy'] != null)
+                                            Text(
+                                              'Retracted by: \\${data['retractedBy']}',
+                                              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                               // Resolution Message
                               if (data['resolutionMessage'] != null && (data['resolutionMessage'] as String).isNotEmpty) ...[
                                 const SizedBox(height: 16),
@@ -925,7 +964,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                           if (data['resolvedAt'] != null) ...[
                                             const SizedBox(height: 10),
                                             Text(
-                                              'Resolved on ${DateFormat('MMM dd, yyyy hh:mm a').format((data['resolvedAt'] as Timestamp).toDate())}',
+                                              'Resolved on \\${DateFormat('MMM dd, yyyy hh:mm a').format((data['resolvedAt'] as Timestamp).toDate())}',
                                               style: TextStyle(fontSize: 12, color: Colors.grey[600], fontStyle: FontStyle.italic),
                                             ),
                                           ],

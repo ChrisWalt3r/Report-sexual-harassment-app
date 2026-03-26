@@ -596,6 +596,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         'Track status of submitted cases',
         Icons.folder_open,
         AppColors.royalBlue,
+        badge: null,
         onTap: () {
           Navigator.push(
             context,
@@ -619,7 +620,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           'Track status of submitted cases',
           Icons.folder_open,
           AppColors.royalBlue,
-          badge: reportCount > 0 ? reportCount.toString() : null,
+          badge: reportCount.toString(),
           onTap: () {
             Navigator.push(
               context,

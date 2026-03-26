@@ -28,31 +28,68 @@ class ReportEditScreen extends StatefulWidget {
 }
 
 class _ReportEditScreenState extends State<ReportEditScreen> {
+    String? _editReason;
+
+    Future<void> _showEditReasonDialog() async {
+      final TextEditingController reasonController = TextEditingController();
+      final result = await showDialog<String>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Reason for Editing'),
+          content: TextField(
+            controller: reasonController,
+            maxLines: 3,
+            decoration: const InputDecoration(
+              hintText: 'Please provide a reason for editing this report',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (reasonController.text.trim().isEmpty) return;
+                Navigator.pop(context, reasonController.text.trim());
+              },
+              child: const Text('Continue'),
+            ),
+          ],
+        ),
+      );
+      if (result != null && result.isNotEmpty) {
+        _editReason = result;
+        await _saveChanges();
+      }
+    }
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+
   late TextEditingController _descriptionController;
   late TextEditingController _locationController;
   late TextEditingController _perpetratorController;
   late TextEditingController _witnessesController;
   late TextEditingController _responseController;
+
   bool _isSaving = false;
 
-  // Existing attachments from the report
+  // Existing media (loaded from reportData)
   late List<String> _existingImageUrls;
   late List<String> _existingVideoUrls;
   late List<String> _existingAudioUrls;
-  
-  // New attachments to upload
-  final List<File> _newImages = [];
-  final List<File> _newVideos = [];
-  final List<File> _newAudios = [];
-  
-  // URLs marked for removal
+
+  // Removed existing media
   final List<String> _removedImageUrls = [];
   final List<String> _removedVideoUrls = [];
   final List<String> _removedAudioUrls = [];
 
-  // Audio recording state
+  // Newly picked / recorded media
+  final List<File> _newImages = [];
+  final List<File> _newVideos = [];
+  final List<File> _newAudios = [];
+
+  // Audio recording
   final AudioRecorder _audioRecorder = AudioRecorder();
   bool _isRecording = false;
   Duration _recordingDuration = Duration.zero;
@@ -61,37 +98,34 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
   @override
   void initState() {
     super.initState();
-    _descriptionController = TextEditingController(
-      text: widget.reportData['description'] ?? '',
-    );
-    _locationController = TextEditingController(
-      text: widget.reportData['location'] ?? '',
-    );
-    _perpetratorController = TextEditingController(
-      text: widget.reportData['perpetratorInfo'] ?? '',
-    );
-    _witnessesController = TextEditingController(
-      text: widget.reportData['witnesses'] ?? '',
-    );
+    _descriptionController =
+        TextEditingController(text: widget.reportData['description'] ?? '');
+    _locationController =
+        TextEditingController(text: widget.reportData['location'] ?? '');
+    _perpetratorController =
+        TextEditingController(text: widget.reportData['perpetratorInfo'] ?? '');
+    _witnessesController =
+        TextEditingController(text: widget.reportData['witnesses'] ?? '');
     _responseController = TextEditingController(
-      text: widget.reportData['complainantResponse'] ?? '',
-    );
-    
-    // Initialize existing attachments
-    _existingImageUrls = List<String>.from(widget.reportData['imageUrls'] ?? []);
-    _existingVideoUrls = List<String>.from(widget.reportData['videoUrls'] ?? []);
-    _existingAudioUrls = List<String>.from(widget.reportData['audioUrls'] ?? []);
+        text: widget.reportData['complainantResponse'] ?? '');
+
+    _existingImageUrls =
+        List<String>.from(widget.reportData['imageUrls'] ?? []);
+    _existingVideoUrls =
+        List<String>.from(widget.reportData['videoUrls'] ?? []);
+    _existingAudioUrls =
+        List<String>.from(widget.reportData['audioUrls'] ?? []);
   }
 
   @override
   void dispose() {
     _descriptionController.dispose();
     _locationController.dispose();
-    _audioRecorder.dispose();
-    _recordingTimer?.cancel();
     _perpetratorController.dispose();
     _witnessesController.dispose();
     _responseController.dispose();
+    _recordingTimer?.cancel();
+    _audioRecorder.dispose();
     super.dispose();
   }
 
@@ -100,9 +134,9 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: Text(
-          widget.evidenceOnly ? 'Add Evidence' : 'Edit Report',
-          style: const TextStyle(fontWeight: FontWeight.bold),
+        title: const Text(
+          'Edit Report',
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         foregroundColor: Colors.white,
@@ -110,7 +144,7 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
+              colors: [AppColors.primaryGreen, AppColors.primaryGreen],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -124,7 +158,7 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Report Info Card
+                // Read-only info card
                 _buildSectionCard(
                   title: 'Report Information',
                   icon: Icons.info_outline,
@@ -136,22 +170,46 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
                         value: widget.reportData['category'] ?? 'N/A',
                       ),
                       const Divider(height: 24),
-                      _buildStatusRow(
-                        widget.reportData['status'] ?? 'Pending',
-                      ),
-                      const Divider(height: 24),
                       _buildInfoRow(
                         icon: Icons.calendar_today,
                         label: 'Date',
                         value: _formatDate(widget.reportData['date']),
                       ),
+                      const Divider(height: 24),
+                      _buildStatusRow(widget.reportData['status'] ?? 'Pending'),
                     ],
                   ),
                 ),
-                
                 const SizedBox(height: 16),
-                
-                // Editable Fields Card (hidden in evidence-only mode)
+
+                // Evidence-only notice
+                if (widget.evidenceOnly)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: AppColors.mustBlue.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                          color: AppColors.mustBlue.withOpacity(0.2)),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.info_outline,
+                            color: AppColors.mustBlue, size: 20),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'This report is under review. You can add more evidence but cannot edit other details or remove existing evidence.',
+                            style: TextStyle(
+                                fontSize: 13, color: Colors.grey[700]),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                // Editable fields (hidden in evidence-only mode)
                 if (!widget.evidenceOnly) ...[
                   _buildSectionCard(
                     title: 'Edit Details',
@@ -178,7 +236,8 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
                           _perpetratorController,
                           maxLines: 2,
                           icon: Icons.person_outline,
-                          hintText: 'Name, position, or identifying details (optional)',
+                          hintText:
+                              'Name, position, or identifying details (optional)',
                         ),
                         const SizedBox(height: 20),
                         _buildEditableField(
@@ -186,7 +245,8 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
                           _witnessesController,
                           maxLines: 2,
                           icon: Icons.groups,
-                          hintText: 'Witness names and contact info (optional)',
+                          hintText:
+                              'Witness names and contact info (optional)',
                         ),
                         const SizedBox(height: 20),
                         _buildEditableField(
@@ -194,55 +254,30 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
                           _responseController,
                           maxLines: 3,
                           icon: Icons.reply,
-                          hintText: 'How did you respond at the time? (optional)',
+                          hintText:
+                              'How did you respond at the time? (optional)',
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 16),
                 ],
-                
-                if (widget.evidenceOnly)
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: AppColors.mustBlue.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.mustBlue.withOpacity(0.2)),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.info_outline, color: AppColors.mustBlue, size: 20),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            'This report is under review. You can add more evidence but cannot edit other details or remove existing evidence.',
-                            style: TextStyle(fontSize: 13, color: Colors.grey[700]),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                
-                // Attachments Card
+
+                // Attachments card
                 _buildSectionCard(
                   title: 'Attachments',
                   icon: Icons.attach_file,
                   child: _buildAttachmentsSection(),
                 ),
-                
                 const SizedBox(height: 24),
-                
-                // Action Buttons
+
                 _buildActionButtons(),
-                
                 const SizedBox(height: 16),
               ],
             ),
           ),
-          
-          // Loading Overlay
+
+          // Loading overlay
           if (_isSaving)
             Container(
               color: Colors.black.withOpacity(0.5),
@@ -263,8 +298,9 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.mustBlue),
+                      const CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            AppColors.mustBlue),
                       ),
                       const SizedBox(height: 16),
                       const Text(
@@ -291,6 +327,10 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
       ),
     );
   }
+
+  // ---------------------------------------------------------------------------
+  // Section card
+  // ---------------------------------------------------------------------------
 
   Widget _buildSectionCard({
     required String title,
@@ -329,11 +369,7 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
                     color: AppColors.mustBlue.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(
-                    icon,
-                    color: AppColors.mustBlue,
-                    size: 20,
-                  ),
+                  child: Icon(icon, color: AppColors.mustBlue, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Text(
@@ -355,6 +391,10 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
       ),
     );
   }
+
+  // ---------------------------------------------------------------------------
+  // Info rows
+  // ---------------------------------------------------------------------------
 
   Widget _buildInfoRow({
     required IconData icon,
@@ -402,7 +442,7 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
   Widget _buildStatusRow(String status) {
     Color statusColor;
     IconData statusIcon;
-    
+
     switch (status.toLowerCase()) {
       case 'pending':
         statusColor = Colors.orange;
@@ -451,11 +491,13 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
               ),
               const SizedBox(height: 4),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: statusColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: statusColor.withOpacity(0.3)),
+                  border:
+                      Border.all(color: statusColor.withOpacity(0.3)),
                 ),
                 child: Text(
                   status.toUpperCase(),
@@ -474,83 +516,9 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
     );
   }
 
-  Widget _buildActionButtons() {
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            height: 54,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade300, width: 2),
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(12),
-                onTap: _isSaving ? null : () => Navigator.pop(context),
-                child: Center(
-                  child: Text(
-                    'Cancel',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          flex: 2,
-          child: Container(
-            height: 54,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              gradient: const LinearGradient(
-                colors: [
-                  AppColors.mustGold,
-                  AppColors.mustGoldLight,
-                ],
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.mustGold.withOpacity(0.4),
-                  blurRadius: 12,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(12),
-                onTap: _isSaving ? null : _saveChanges,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.save_rounded, color: AppColors.mustBlue, size: 22),
-                    const SizedBox(width: 10),
-                    Text(
-                      widget.evidenceOnly ? 'Save Evidence' : 'Save Changes',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.mustBlue,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+  // ---------------------------------------------------------------------------
+  // Editable text field
+  // ---------------------------------------------------------------------------
 
   Widget _buildEditableField(
     String label,
@@ -591,14 +559,16 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
             style: const TextStyle(fontSize: 15),
             decoration: InputDecoration(
               hintText: hintText,
-              hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+              hintStyle:
+                  TextStyle(color: Colors.grey[400], fontSize: 14),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: AppColors.mustBlue, width: 2),
+                borderSide:
+                    BorderSide(color: AppColors.mustBlue, width: 2),
               ),
               contentPadding: const EdgeInsets.all(16),
             ),
@@ -608,11 +578,106 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // Action buttons
+  // ---------------------------------------------------------------------------
+
+  Widget _buildActionButtons() {
+    return Row(
+      children: [
+        Expanded(
+          child: Container(
+            height: 54,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade300, width: 2),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: _isSaving ? null : () => Navigator.pop(context),
+                child: Center(
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          flex: 2,
+          child: Container(
+            height: 54,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              gradient: const LinearGradient(
+                colors: [AppColors.mustGold, AppColors.mustGoldLight],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.mustGold.withOpacity(0.4),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: _isSaving ? null : _showEditReasonDialog,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.save_rounded,
+                        color: AppColors.mustBlue, size: 22),
+                    const SizedBox(width: 10),
+                    Text(
+                      widget.evidenceOnly
+                          ? 'Save Evidence'
+                          : 'Save Changes',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.mustBlue,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Save logic
+  // ---------------------------------------------------------------------------
+
   Future<void> _saveChanges() async {
+        if (_editReason == null || _editReason!.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('A reason for editing is required.'),
+            ),
+          );
+          return;
+        }
     final String description = _descriptionController.text.trim();
     final String location = _locationController.text.trim();
 
-    if (!widget.evidenceOnly && (description.isEmpty || location.isEmpty)) {
+    if (!widget.evidenceOnly &&
+        (description.isEmpty || location.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Description and location cannot be empty.'),
@@ -621,22 +686,25 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
       return;
     }
 
-    // Verify ownership before allowing edit
     final currentUser = _auth.currentUser;
     final reportOwnerId = widget.reportData['userId'] as String?;
 
     if (currentUser == null || reportOwnerId != currentUser.uid) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('You can only edit your own reports.')),
+        const SnackBar(
+            content: Text('You can only edit your own reports.')),
       );
       return;
     }
 
-    // In evidence-only mode, ensure new evidence is actually being added
-    if (widget.evidenceOnly && _newImages.isEmpty && _newVideos.isEmpty && _newAudios.isEmpty) {
+    if (widget.evidenceOnly &&
+        _newImages.isEmpty &&
+        _newVideos.isEmpty &&
+        _newAudios.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please add at least one image, video, or audio as evidence.'),
+          content: Text(
+              'Please add at least one image, video, or audio as evidence.'),
         ),
       );
       return;
@@ -645,64 +713,78 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
     setState(() => _isSaving = true);
 
     try {
-      // Upload new images to ImgBB
       List<String> newImageUrls = [];
       if (_newImages.isNotEmpty) {
         newImageUrls = await _uploadImages(_newImages);
       }
 
-      // Upload new videos
       List<String> newVideoUrls = [];
       if (_newVideos.isNotEmpty) {
         newVideoUrls = await _uploadVideos(_newVideos);
       }
 
-      // Upload new audio files
       List<String> newAudioUrls = [];
       if (_newAudios.isNotEmpty) {
         newAudioUrls = await _uploadAudios(_newAudios);
       }
 
-      // Combine existing (minus removed) with new URLs
-      final List<String> finalImageUrls = [..._existingImageUrls, ...newImageUrls];
-      final List<String> finalVideoUrls = [..._existingVideoUrls, ...newVideoUrls];
-      final List<String> finalAudioUrls = [..._existingAudioUrls, ...newAudioUrls];
+      final List<String> finalImageUrls = [
+        ..._existingImageUrls,
+        ...newImageUrls
+      ];
+      final List<String> finalVideoUrls = [
+        ..._existingVideoUrls,
+        ...newVideoUrls
+      ];
+      final List<String> finalAudioUrls = [
+        ..._existingAudioUrls,
+        ...newAudioUrls
+      ];
 
-      // In evidence-only mode, only update evidence fields
       final Map<String, dynamic> updateData = {
         'imageUrls': finalImageUrls,
         'videoUrls': finalVideoUrls,
         'audioUrls': finalAudioUrls,
         'updatedAt': FieldValue.serverTimestamp(),
+        'editReason': _editReason,
+        'editedBy': _auth.currentUser?.uid,
+        'editedAt': FieldValue.serverTimestamp(),
       };
 
       if (!widget.evidenceOnly) {
         updateData['description'] = description;
         updateData['location'] = location;
-        updateData['perpetratorInfo'] = _perpetratorController.text.trim().isNotEmpty 
-            ? _perpetratorController.text.trim() 
-            : null;
-        updateData['witnesses'] = _witnessesController.text.trim().isNotEmpty 
-            ? _witnessesController.text.trim() 
-            : null;
-        updateData['complainantResponse'] = _responseController.text.trim().isNotEmpty 
-            ? _responseController.text.trim() 
-            : null;
+        updateData['perpetratorInfo'] =
+            _perpetratorController.text.trim().isNotEmpty
+                ? _perpetratorController.text.trim()
+                : null;
+        updateData['witnesses'] =
+            _witnessesController.text.trim().isNotEmpty
+                ? _witnessesController.text.trim()
+                : null;
+        updateData['complainantResponse'] =
+            _responseController.text.trim().isNotEmpty
+                ? _responseController.text.trim()
+                : null;
       }
 
-      await _firestore.collection('reports').doc(widget.reportId).update(updateData);
+      await _firestore
+          .collection('reports')
+          .doc(widget.reportId)
+          .update(updateData);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Report updated successfully')),
         );
+        _editReason = null;
         Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error updating report: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error updating report: $e')),
+        );
       }
     } finally {
       if (mounted) {
@@ -711,71 +793,55 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
     }
   }
 
-  String _formatDate(dynamic date) {
-    if (date == null) return 'N/A';
-    if (date is Timestamp) {
-      final dateTime = date.toDate();
-      return '${dateTime.day.toString().padLeft(2, '0')}/${dateTime.month.toString().padLeft(2, '0')}/${dateTime.year}';
+  // ---------------------------------------------------------------------------
+  // Upload helpers
+  // ---------------------------------------------------------------------------
+
+  Future<List<String>> _uploadImages(List<File> files) async {
+    final List<String> urls = [];
+    for (final file in files) {
+      final url = await ImgbbService.uploadImage(file.path);
+      if (url != null) urls.add(url);
     }
-    return 'N/A';
+    return urls;
   }
 
-  // Attachment methods
+  Future<List<String>> _uploadVideos(List<File> files) async {
+    final List<String> urls = [];
+    for (final file in files) {
+      final url = await CloudinaryService.uploadVideo(file.path);
+      if (url != null) urls.add(url);
+    }
+    return urls;
+  }
+
+  Future<List<String>> _uploadAudios(List<File> files) async {
+    final List<String> urls = [];
+    for (final file in files) {
+      final url = await CloudinaryService.uploadAudio(file.path);
+      if (url != null) urls.add(url);
+    }
+    return urls;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Media pickers / recorder
+  // ---------------------------------------------------------------------------
+
   Future<void> _pickImages() async {
-    final ImagePicker picker = ImagePicker();
-    final List<XFile> images = await picker.pickMultiImage();
+    final picker = ImagePicker();
+    final images = await picker.pickMultiImage();
     setState(() {
-      _newImages.addAll(images.map((xfile) => File(xfile.path)));
+      _newImages.addAll(images.map((x) => File(x.path)));
     });
   }
 
   Future<void> _pickVideo() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? video = await picker.pickVideo(source: ImageSource.gallery);
+    final picker = ImagePicker();
+    final video = await picker.pickVideo(source: ImageSource.gallery);
     if (video != null) {
-      setState(() {
-        _newVideos.add(File(video.path));
-      });
+      setState(() => _newVideos.add(File(video.path)));
     }
-  }
-
-  void _removeNewImage(int index) {
-    setState(() {
-      _newImages.removeAt(index);
-    });
-  }
-
-  void _removeNewVideo(int index) {
-    setState(() {
-      _newVideos.removeAt(index);
-    });
-  }
-
-  void _removeExistingImage(int index) {
-    setState(() {
-      _removedImageUrls.add(_existingImageUrls[index]);
-      _existingImageUrls.removeAt(index);
-    });
-  }
-
-  void _removeExistingVideo(int index) {
-    setState(() {
-      _removedVideoUrls.add(_existingVideoUrls[index]);
-      _existingVideoUrls.removeAt(index);
-    });
-  }
-
-  void _removeNewAudio(int index) {
-    setState(() {
-      _newAudios.removeAt(index);
-    });
-  }
-
-  void _removeExistingAudio(int index) {
-    setState(() {
-      _removedAudioUrls.add(_existingAudioUrls[index]);
-      _existingAudioUrls.removeAt(index);
-    });
   }
 
   Future<void> _toggleRecording() async {
@@ -790,7 +856,8 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
     try {
       if (await _audioRecorder.hasPermission()) {
         final tempDir = await getTemporaryDirectory();
-        final filePath = '${tempDir.path}/audio_evidence_${DateTime.now().millisecondsSinceEpoch}.m4a';
+        final filePath =
+            '${tempDir.path}/audio_evidence_${DateTime.now().millisecondsSinceEpoch}.m4a';
 
         await _audioRecorder.start(
           const RecordConfig(
@@ -806,7 +873,8 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
           _recordingDuration = Duration.zero;
         });
 
-        _recordingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        _recordingTimer =
+            Timer.periodic(const Duration(seconds: 1), (timer) {
           setState(() {
             _recordingDuration += const Duration(seconds: 1);
           });
@@ -815,7 +883,8 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Microphone permission is required to record audio'),
+              content: Text(
+                  'Microphone permission is required to record audio'),
               backgroundColor: Colors.orange,
             ),
           );
@@ -861,76 +930,59 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
   }
 
   String _formatRecordingDuration(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final minutes = twoDigits(duration.inMinutes.remainder(60));
-    final seconds = twoDigits(duration.inSeconds.remainder(60));
-    return '$minutes:$seconds';
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${two(duration.inMinutes.remainder(60))}:${two(duration.inSeconds.remainder(60))}';
   }
 
-  /// Upload images to ImgBB
-  Future<List<String>> _uploadImages(List<File> files) async {
-    List<String> urls = [];
-    
-    for (var file in files) {
-      final url = await ImgbbService.uploadImage(file.path);
-      if (url != null) {
-        urls.add(url);
-      }
-    }
-    
-    return urls;
-  }
+  // ---------------------------------------------------------------------------
+  // Remove helpers
+  // ---------------------------------------------------------------------------
 
-  /// Upload videos to Cloudinary
-  Future<List<String>> _uploadVideos(List<File> files) async {
-    List<String> urls = [];
-    
-    for (var file in files) {
-      final url = await CloudinaryService.uploadVideo(file.path);
-      if (url != null) {
-        urls.add(url);
-      }
-    }
-    
-    return urls;
-  }
+  void _removeNewImage(int index) =>
+      setState(() => _newImages.removeAt(index));
 
-  /// Upload audio files to Cloudinary
-  Future<List<String>> _uploadAudios(List<File> files) async {
-    List<String> urls = [];
-    
-    for (var file in files) {
-      final url = await CloudinaryService.uploadAudio(file.path);
-      if (url != null) {
-        urls.add(url);
-      }
-    }
-    
-    return urls;
-  }
+  void _removeNewVideo(int index) =>
+      setState(() => _newVideos.removeAt(index));
+
+  void _removeNewAudio(int index) =>
+      setState(() => _newAudios.removeAt(index));
+
+  void _removeExistingImage(int index) => setState(() {
+        _removedImageUrls.add(_existingImageUrls[index]);
+        _existingImageUrls.removeAt(index);
+      });
+
+  void _removeExistingVideo(int index) => setState(() {
+        _removedVideoUrls.add(_existingVideoUrls[index]);
+        _existingVideoUrls.removeAt(index);
+      });
+
+  void _removeExistingAudio(int index) => setState(() {
+        _removedAudioUrls.add(_existingAudioUrls[index]);
+        _existingAudioUrls.removeAt(index);
+      });
+
+  // ---------------------------------------------------------------------------
+  // Attachments section
+  // ---------------------------------------------------------------------------
 
   Widget _buildAttachmentsSection() {
-    final int existingImageCount = _existingImageUrls.length;
-    final int existingVideoCount = _existingVideoUrls.length;
-    final int existingAudioCount = _existingAudioUrls.length;
-    final int newImageCount = _newImages.length;
-    final int newVideoCount = _newVideos.length;
-    final int newAudioCount = _newAudios.length;
-    final int totalImages = existingImageCount + newImageCount;
-    final int totalVideos = existingVideoCount + newVideoCount;
-    final int totalAudios = existingAudioCount + newAudioCount;
-    final bool hasAttachments = totalImages > 0 || totalVideos > 0 || totalAudios > 0;
+    final int totalImages = _existingImageUrls.length + _newImages.length;
+    final int totalVideos = _existingVideoUrls.length + _newVideos.length;
+    final int totalAudios = _existingAudioUrls.length + _newAudios.length;
+    final bool hasAttachments =
+        totalImages > 0 || totalVideos > 0 || totalAudios > 0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Add buttons
+        // Add buttons row
         Row(
           children: [
             Expanded(
               child: _buildMediaButton(
                 icon: Icons.photo_library_rounded,
-                label: 'Add Photos (evidence)',
+                label: 'Add Photos',
                 onTap: _pickImages,
                 count: totalImages,
               ),
@@ -939,7 +991,7 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
             Expanded(
               child: _buildMediaButton(
                 icon: Icons.videocam_rounded,
-                label: 'Add Videos (evidence)',
+                label: 'Add Videos',
                 onTap: _pickVideo,
                 count: totalVideos,
               ),
@@ -947,29 +999,31 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
           ],
         ),
         const SizedBox(height: 12),
-        // Audio Recording Button
         _buildAudioRecordingButton(totalAudios),
-        
+
         if (!hasAttachments) ...[
           const SizedBox(height: 16),
           Center(
             child: Column(
               children: [
-                Icon(Icons.cloud_upload_outlined, size: 40, color: Colors.grey[300]),
+                Icon(Icons.cloud_upload_outlined,
+                    size: 40, color: Colors.grey[300]),
                 const SizedBox(height: 8),
                 Text(
                   'No attachments yet',
-                  style: TextStyle(color: Colors.grey[400], fontSize: 14),
+                  style:
+                      TextStyle(color: Colors.grey[400], fontSize: 14),
                 ),
               ],
             ),
           ),
         ],
-        
-        // Existing Images Preview
+
+        // Existing images
         if (_existingImageUrls.isNotEmpty) ...[
           const SizedBox(height: 20),
-          _buildSubsectionHeader('Existing Images', Icons.photo, AppColors.mustBlue),
+          _buildSubsectionHeader(
+              'Existing Images', Icons.photo, AppColors.mustBlue),
           const SizedBox(height: 10),
           SizedBox(
             height: 100,
@@ -988,14 +1042,16 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
                           width: 100,
                           height: 100,
                           fit: BoxFit.cover,
-                          loadingBuilder: (context, child, loadingProgress) {
+                          loadingBuilder:
+                              (context, child, loadingProgress) {
                             if (loadingProgress == null) return child;
                             return Container(
                               width: 100,
                               height: 100,
                               color: Colors.grey[200],
                               child: const Center(
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2),
                               ),
                             );
                           },
@@ -1009,27 +1065,23 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
                           },
                         ),
                       ),
-                      Positioned(
-                        top: 4,
-                        right: 4,
-                        child: widget.evidenceOnly
-                            ? const SizedBox.shrink()
-                            : GestureDetector(
-                                onTap: () => _removeExistingImage(index),
-                                child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: const BoxDecoration(
-                                    color: Colors.red,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.close,
-                                    color: Colors.white,
-                                    size: 16,
-                                  ),
-                                ),
+                      if (!widget.evidenceOnly)
+                        Positioned(
+                          top: 4,
+                          right: 4,
+                          child: GestureDetector(
+                            onTap: () => _removeExistingImage(index),
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
                               ),
-                      ),
+                              child: const Icon(Icons.close,
+                                  color: Colors.white, size: 16),
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 );
@@ -1037,11 +1089,12 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
             ),
           ),
         ],
-        
-        // New Images Preview
+
+        // New images
         if (_newImages.isNotEmpty) ...[
           const SizedBox(height: 20),
-          _buildSubsectionHeader('New Images', Icons.add_photo_alternate, AppColors.mustGreen),
+          _buildSubsectionHeader('New Images',
+              Icons.add_photo_alternate, AppColors.mustGreen),
           const SizedBox(height: 10),
           SizedBox(
             height: 100,
@@ -1073,11 +1126,8 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
                               color: Colors.red,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(
-                              Icons.close,
-                              color: Colors.white,
-                              size: 16,
-                            ),
+                            child: const Icon(Icons.close,
+                                color: Colors.white, size: 16),
                           ),
                         ),
                       ),
@@ -1088,185 +1138,77 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
             ),
           ),
         ],
-        
-        // Existing Videos Preview
+
+        // Existing videos
         if (_existingVideoUrls.isNotEmpty) ...[
           const SizedBox(height: 20),
-          _buildSubsectionHeader('Existing Videos', Icons.video_library, AppColors.mustBlue),
+          _buildSubsectionHeader(
+              'Existing Videos', Icons.video_library, AppColors.mustBlue),
           const SizedBox(height: 10),
           ...List.generate(_existingVideoUrls.length, (index) {
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: AppColors.mustBlue.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.mustBlue.withOpacity(0.2)),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.mustBlue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      Icons.videocam,
-                      color: AppColors.mustBlue,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Video ${index + 1}',
-                      style: const TextStyle(fontSize: 14),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  if (!widget.evidenceOnly)
-                    IconButton(
-                      icon: const Icon(Icons.close, color: Colors.red, size: 20),
-                      onPressed: () => _removeExistingVideo(index),
-                    ),
-                ],
-              ),
-            );
-          }),
-        ],
-        
-        // New Videos Preview
-        if (_newVideos.isNotEmpty) ...[
-          const SizedBox(height: 20),
-          _buildSubsectionHeader('New Videos', Icons.video_call, AppColors.mustGreen),
-          const SizedBox(height: 10),
-          ...List.generate(_newVideos.length, (index) {
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: AppColors.mustGreen.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.mustGreen.withOpacity(0.2)),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.mustGreen.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.videocam,
-                      color: AppColors.mustGreen,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      _newVideos[index].path.split(Platform.pathSeparator).last,
-                      style: const TextStyle(fontSize: 14),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Colors.red, size: 20),
-                    onPressed: () => _removeNewVideo(index),
-                  ),
-                ],
-              ),
-            );
-          }),
-        ],
-        
-        // Existing Audio Preview
-        if (_existingAudioUrls.isNotEmpty) ...[
-          const SizedBox(height: 20),
-          _buildSubsectionHeader('Existing Audio', Icons.audiotrack, Colors.deepPurple),
-          const SizedBox(height: 10),
-          ...List.generate(_existingAudioUrls.length, (index) {
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Colors.deepPurple.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.deepPurple.withOpacity(0.2)),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.deepPurple.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.audiotrack,
-                      color: Colors.deepPurple,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Audio ${index + 1}',
-                      style: const TextStyle(fontSize: 14),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  if (!widget.evidenceOnly)
-                    IconButton(
-                      icon: const Icon(Icons.close, color: Colors.red, size: 20),
-                      onPressed: () => _removeExistingAudio(index),
-                    ),
-                ],
-              ),
+            return _buildFileListItem(
+              label: 'Video ${index + 1}',
+              icon: Icons.videocam,
+              color: AppColors.mustBlue,
+              onRemove: widget.evidenceOnly
+                  ? null
+                  : () => _removeExistingVideo(index),
             );
           }),
         ],
 
-        // New Audio Preview
+        // New videos
+        if (_newVideos.isNotEmpty) ...[
+          const SizedBox(height: 20),
+          _buildSubsectionHeader(
+              'New Videos', Icons.video_call, AppColors.mustGreen),
+          const SizedBox(height: 10),
+          ...List.generate(_newVideos.length, (index) {
+            return _buildFileListItem(
+              label: _newVideos[index]
+                  .path
+                  .split(Platform.pathSeparator)
+                  .last,
+              icon: Icons.videocam,
+              color: AppColors.mustGreen,
+              onRemove: () => _removeNewVideo(index),
+            );
+          }),
+        ],
+
+        // Existing audio
+        if (_existingAudioUrls.isNotEmpty) ...[
+          const SizedBox(height: 20),
+          _buildSubsectionHeader(
+              'Existing Audio', Icons.audiotrack, Colors.deepPurple),
+          const SizedBox(height: 10),
+          ...List.generate(_existingAudioUrls.length, (index) {
+            return _buildFileListItem(
+              label: 'Audio ${index + 1}',
+              icon: Icons.audiotrack,
+              color: Colors.deepPurple,
+              onRemove: widget.evidenceOnly
+                  ? null
+                  : () => _removeExistingAudio(index),
+            );
+          }),
+        ],
+
+        // New audio
         if (_newAudios.isNotEmpty) ...[
           const SizedBox(height: 20),
-          _buildSubsectionHeader('New Audio', Icons.mic, AppColors.mustGreen),
+          _buildSubsectionHeader(
+              'New Audio', Icons.mic, AppColors.mustGreen),
           const SizedBox(height: 10),
           ...List.generate(_newAudios.length, (index) {
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: AppColors.mustGreen.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.mustGreen.withOpacity(0.2)),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.mustGreen.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.audiotrack,
-                      color: AppColors.mustGreen,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      _newAudios[index].path.split(Platform.pathSeparator).last,
-                      style: const TextStyle(fontSize: 14),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Colors.red, size: 20),
-                    onPressed: () => _removeNewAudio(index),
-                  ),
-                ],
-              ),
+            return _buildFileListItem(
+              label: _newAudios[index]
+                  .path
+                  .split(Platform.pathSeparator)
+                  .last,
+              icon: Icons.audiotrack,
+              color: AppColors.mustGreen,
+              onRemove: () => _removeNewAudio(index),
             );
           }),
         ],
@@ -1274,7 +1216,50 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
     );
   }
 
-  Widget _buildSubsectionHeader(String title, IconData icon, Color color) {
+  Widget _buildFileListItem({
+    required String label,
+    required IconData icon,
+    required Color color,
+    VoidCallback? onRemove,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: color),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 14),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          if (onRemove != null)
+            IconButton(
+              icon: const Icon(Icons.close, color: Colors.red, size: 20),
+              onPressed: onRemove,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubsectionHeader(
+      String title, IconData icon, Color color) {
     return Row(
       children: [
         Container(
@@ -1305,80 +1290,93 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
     required int count,
   }) {
     final bool hasItems = count > 0;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-          decoration: BoxDecoration(
-            color: hasItems ? AppColors.mustBlue.withOpacity(0.05) : Colors.grey[50],
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: hasItems ? AppColors.mustBlue.withOpacity(0.3) : Colors.grey.shade200,
-              width: hasItems ? 2 : 1,
-            ),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding:
+            const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+        decoration: BoxDecoration(
+          color: hasItems
+              ? AppColors.mustBlue.withOpacity(0.05)
+              : Colors.grey[50],
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: hasItems
+                ? AppColors.mustBlue.withOpacity(0.3)
+                : Colors.grey.shade200,
+            width: hasItems ? 2 : 1,
           ),
-          child: Column(
-            children: [
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: hasItems ? AppColors.mustBlue.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      icon,
-                      size: 28,
-                      color: hasItems ? AppColors.mustBlue : Colors.grey[400],
-                    ),
+        ),
+        child: Row(
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: hasItems
+                        ? AppColors.mustBlue.withOpacity(0.1)
+                        : Colors.grey.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  if (hasItems)
-                    Positioned(
-                      right: -8,
-                      top: -8,
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [AppColors.mustBlue, AppColors.mustBlue.withOpacity(0.8)],
-                          ),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.mustBlue.withOpacity(0.4),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
+                  child: Icon(
+                    icon,
+                    size: 28,
+                    color: hasItems
+                        ? AppColors.mustBlue
+                        : Colors.grey[400],
+                  ),
+                ),
+                if (hasItems)
+                  Positioned(
+                    right: -6,
+                    top: -6,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.mustBlue,
+                            AppColors.mustBlue.withOpacity(0.8)
                           ],
                         ),
-                        child: Text(
-                          '$count',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.mustBlue.withOpacity(0.4),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
                           ),
+                        ],
+                      ),
+                      child: Text(
+                        '$count',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
+                  ),
+              ],
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
                 label,
                 style: TextStyle(
-                  color: hasItems ? AppColors.mustBlue : Colors.grey[600],
-                  fontWeight: hasItems ? FontWeight.bold : FontWeight.w500,
                   fontSize: 13,
+                  fontWeight:
+                      hasItems ? FontWeight.bold : FontWeight.w500,
+                  color: hasItems
+                      ? AppColors.mustBlue
+                      : Colors.grey[600],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -1389,9 +1387,14 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
       onTap: _toggleRecording,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+        padding:
+            const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
         decoration: BoxDecoration(
-          color: _isRecording ? Colors.red.shade50 : (totalAudios > 0 ? Colors.deepPurple.withOpacity(0.05) : Colors.grey[50]),
+          color: _isRecording
+              ? Colors.red.shade50
+              : totalAudios > 0
+                  ? Colors.deepPurple.withOpacity(0.05)
+                  : Colors.grey[50],
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: _isRecording
@@ -1418,7 +1421,9 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
-                    _isRecording ? Icons.stop_rounded : Icons.mic_rounded,
+                    _isRecording
+                        ? Icons.stop_rounded
+                        : Icons.mic_rounded,
                     size: 28,
                     color: _isRecording
                         ? Colors.red
@@ -1435,7 +1440,10 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [Colors.deepPurple, Colors.deepPurple.withOpacity(0.8)],
+                          colors: [
+                            Colors.deepPurple,
+                            Colors.deepPurple.withOpacity(0.8)
+                          ],
                         ),
                         shape: BoxShape.circle,
                         boxShadow: [
@@ -1508,5 +1516,16 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
         ),
       ),
     );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Utilities
+  String _formatDate(dynamic date) {
+    if (date == null) return 'N/A';
+    if (date is Timestamp) {
+      final dt = date.toDate();
+      return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+    }
+    return 'N/A';
   }
 }

@@ -12,6 +12,7 @@ import 'data_export_screen.dart';
 import 'contacts_management_screen.dart';
 import 'policy_management_screen.dart';
 import 'profile_management_screen.dart';
+import 'admin_settings_screen.dart';
 
 // ─── Sidebar navigation item model ───
 class _NavItem {
@@ -60,6 +61,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       const _NavItem(label: 'Admins', icon: Icons.admin_panel_settings_outlined, activeIcon: Icons.admin_panel_settings, index: 6, superAdminOnly: true),
       const _NavItem(label: 'Export', icon: Icons.download_outlined, activeIcon: Icons.download, index: 7),
       const _NavItem(label: 'Profile', icon: Icons.account_circle_outlined, activeIcon: Icons.account_circle, index: 8),
+      const _NavItem(label: 'Settings & Logs', icon: Icons.settings, activeIcon: Icons.settings, index: 9),
     ];
   }
 
@@ -90,6 +92,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
         return const DataExportScreen(embedded: true);
       case 8:
         return ProfileManagementScreen(admin: widget.admin, embedded: true);
+      case 9:
+        return const AdminSettingsScreen(embedded: true);
       default:
         return _DashboardOverview(admin: widget.admin);
     }

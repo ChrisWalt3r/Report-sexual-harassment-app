@@ -367,3 +367,34 @@ exports.healthCheck = functions
       timestamp: new Date().toISOString(),
     });
   });
+
+// --- Admin Invite Email Function ---
+exports.sendAdminInviteEmail = functions.firestore
+  .document('admin_invites/{inviteId}')
+  .onCreate(async (snap, context) => {
+    const data = snap.data();
+    const email = data.email;
+    const token = data.token;
+    const role = data.role;
+    const invitedBy = data.invitedBy;
+    const link = `https://your-app.com/invite-accept?token=${token}`;
+    const transporter = createTransporter();
+    if (!transporter) {
+      console.error('Email transporter not configured.');
+      return null;
+    }
+    const mailOptions = {
+      from: gmailEmail.value(),
+      to: email,
+      subject: 'Admin Invitation',
+      html: `<p>You have been invited as <b>${role}</b> by ${invitedBy}.<br>
+        Click <a href="${link}">here</a> to accept your invitation.</p>`
+    };
+    try {
+      await transporter.sendMail(mailOptions);
+      console.log('Invite email sent to', email);
+    } catch (err) {
+      console.error('Failed to send invite email:', err);
+    }
+    return null;
+  });
