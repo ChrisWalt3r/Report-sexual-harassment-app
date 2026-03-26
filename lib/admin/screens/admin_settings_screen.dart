@@ -30,78 +30,82 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen>
   @override
   void initState() {
     super.initState();
-    final isChairperson = widget.admin?.role == AdminRole.superAdmin;
-
-    _tabs = [
-      _SettingsTab(
-        icon: Icons.history,
-        label: 'Logs',
-        builder: _buildLogsTab,
-      ),
-      _SettingsTab(
-        icon: Icons.notifications,
-        label: 'Notifications',
-        builder: _buildNotificationsTab,
-      ),
-      _SettingsTab(
-        icon: Icons.admin_panel_settings,
-        label: 'Admins',
-        builder: _buildAdminsTab,
-      ),
-      if (!isChairperson)
-        _SettingsTab(
-          icon: Icons.settings,
-          label: 'System',
-          builder: _buildSystemTab,
-        ),
-      if (isChairperson)
-        _SettingsTab(
-          icon: Icons.assignment_ind,
-          label: 'Assign Reports',
-          builder: _buildChairpersonAssignTab,
-        ),
-    ];
-    _tabController = TabController(length: _tabs.length, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isEmbedded = widget.embedded;
-    return Scaffold(
-      appBar: isEmbedded
-          ? null
-          : AppBar(
-              title: const Text('Admin Settings'),
-              backgroundColor: AppColors.primaryGreen,
-              bottom: TabBar(
-                controller: _tabController,
-                isScrollable: true,
-                tabs: _tabs
-                    .map((t) => Tab(icon: Icon(t.icon), text: t.label))
-                    .toList(),
-              ),
-            ),
-      body: isEmbedded
-          ? Column(
-              children: [
-                TabBar(
-                  controller: _tabController,
-                  isScrollable: true,
-                  tabs: _tabs
-                      .map((t) => Tab(icon: Icon(t.icon), text: t.label))
-                      .toList(),
-                ),
-                Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: _tabs.map((t) => t.builder()).toList(),
+    final isSuperAdmin = widget.admin?.role == AdminRole.superAdmin;
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Card(
+        elevation: 2,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Admin & Committee Management',
+                  style:
+                      TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.person_add),
+                    label: const Text('Invite Admin'),
+                    onPressed: isSuperAdmin ? () => _showInviteAdminDialog(context) : null,
+                    style: isSuperAdmin
+                        ? null
+                        : ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all(Colors.grey.shade300),
+                            foregroundColor: MaterialStateProperty.all(Colors.grey.shade600),
+                          ),
                   ),
+                  const SizedBox(width: 16),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Refresh'),
+                    onPressed: () => setState(() {}),
+                  ),
+                  const SizedBox(width: 16),
+                  if (isSuperAdmin)
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.group_add),
+                      label: const Text('Create Ad Hoc Committee'),
+                      onPressed: () =>
+                          _showCreateAdHocCommitteeDialog(context),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Expanded(child: _AdminList(isSuperAdmin: isSuperAdmin)),
+              const SizedBox(height: 24),
+              const Text('Roles:',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              const Wrap(
+                spacing: 16,
+                runSpacing: 8,
+                children: [
+                  Chip(label: Text('Super Admin')),
+                  Chip(label: Text('Chairperson')),
+                  Chip(label: Text('Advisor')),
+                  Chip(label: Text('Committee Member')),
+                  Chip(label: Text('Ad Hoc')),
+                  Chip(label: Text('Student Rep')),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Text('Ad Hoc Committee Rules:', style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              const Text('• All members must have no previous allegations of sexual harassment.'),
+              const Text('• No conflict of interest.'),
+              const Text('• At least half of members are female.'),
+              const Text('• Odd number of members.'),
+              const Text('• Student reps only if students involved.'),
+              const Text('• No junior staff to investigate senior staff unless victim is junior.'),
+              const Text('• If perpetrator is Top Management, Council committee investigates.'),
+            ],
+          ),
+        ),
+      ),
+    );
                 ),
               ],
             )
