@@ -31,8 +31,13 @@ extension AdminRoleExtension on AdminRole {
   }
 
   static AdminRole fromString(String role) {
-    switch (role) {
-      case 'super_admin':
+    final compact = role
+        .trim()
+        .replaceAll(RegExp(r'[^a-zA-Z]'), '')
+        .toLowerCase();
+
+    switch (compact) {
+      case 'superadmin':
         return AdminRole.superAdmin;
       case 'reviewer':
         return AdminRole.reviewer;
@@ -73,7 +78,7 @@ class AdminUser {
       email: data['email'] ?? '',
       fullName: data['fullName'] ?? '',
       role: AdminRoleExtension.fromString(data['role'] ?? 'moderator'),
-      isActive: data['isActive'] ?? true,
+      isActive: data['isActive'] ?? data['active'] ?? true,
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       lastLoginAt: data['lastLoginAt'] != null
           ? (data['lastLoginAt'] as Timestamp).toDate()

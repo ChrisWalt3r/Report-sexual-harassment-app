@@ -9,6 +9,9 @@ class AdminAuthService {
   // Get current admin user
   User? get currentUser => _auth.currentUser;
 
+  // Get current admin email
+  String? get currentAdminEmail => _auth.currentUser?.email;
+
   // Stream of auth state changes
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
@@ -31,6 +34,14 @@ class AdminAuthService {
         // Not an admin, sign out
         await _auth.signOut();
         throw Exception('Unauthorized: This account is not an admin.');
+      }
+
+      final adminData = adminDoc.data() as Map<String, dynamic>;
+      final canAccess =
+          adminData['isActive'] != false && adminData['active'] != false;
+      if (!canAccess) {
+        await _auth.signOut();
+        throw Exception('Account is deactivated. Contact super admin.');
       }
 
       // Get admin data
@@ -125,6 +136,7 @@ class AdminAuthService {
         'email': email,
         'fullName': fullName,
         'role': role.value,
+        'active': true,
         'isActive': true,
         'createdAt': FieldValue.serverTimestamp(),
         'permissions': permissions,
@@ -146,7 +158,10 @@ class AdminAuthService {
 
       if (role != null) updates['role'] = role.value;
       if (permissions != null) updates['permissions'] = permissions;
-      if (isActive != null) updates['isActive'] = isActive;
+      if (isActive != null) {
+        updates['isActive'] = isActive;
+        updates['active'] = isActive;
+      }
 
       if (updates.isNotEmpty) {
         await _firestore.collection('admins').doc(adminId).update(updates);

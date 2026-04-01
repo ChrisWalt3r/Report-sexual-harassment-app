@@ -724,58 +724,62 @@ class _PolicyManagementScreenState extends State<PolicyManagementScreen> {
   @override
   Widget build(BuildContext context) {
     final isNarrowLayout = MediaQuery.of(context).size.width < 1150;
-    final content = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Header
-        Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    final content = SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                children: [
-                  const Icon(
+                children: const [
+                  Icon(
                     Icons.policy,
                     size: 32,
                     color: AppColors.secondaryOrange,
                   ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Policy Knowledge Base',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  const Spacer(),
-                  if (_isUploading)
-                    const CircularProgressIndicator(
-                      color: AppColors.primaryGreen,
-                    )
-                  else
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        OutlinedButton.icon(
-                          onPressed: _showAddPolicyDialog,
-                          icon: const Icon(Icons.note_add),
-                          label: const Text('Add Policy'),
-                        ),
-                        ElevatedButton.icon(
-                          onPressed: _uploadAllChunks,
-                          icon: const Icon(Icons.cloud_upload),
-                          label: const Text('Upload/Sync All'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.secondaryOrange,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 12,
-                            ),
-                          ),
-                        ),
-                      ],
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Policy Knowledge Base',
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      overflow: TextOverflow.ellipsis,
                     ),
+                  ),
                 ],
               ),
+              const SizedBox(height: 12),
+              if (_isUploading)
+                const CircularProgressIndicator(color: AppColors.primaryGreen)
+              else
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: _showAddPolicyDialog,
+                        icon: const Icon(Icons.note_add),
+                        label: const Text('Add Policy'),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton.icon(
+                        onPressed: _uploadAllChunks,
+                        icon: const Icon(Icons.cloud_upload),
+                        label: const Text('Upload/Sync All'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.secondaryOrange,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               const SizedBox(height: 8),
               Text(
                 'Manage policy content used by the AI chat assistant (RAG system)',
@@ -1003,78 +1007,81 @@ class _PolicyManagementScreenState extends State<PolicyManagementScreen> {
                       ),
                     ],
                   )
-                  : Row(
-                    children: [
-                      SizedBox(
-                        width: 200,
-                        child: DropdownButtonFormField<String>(
-                          initialValue: _selectedCategory,
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                            ),
-                          ),
-                          items: [
-                            const DropdownMenuItem(
-                              value: 'all',
-                              child: Text('All Categories'),
-                            ),
-                            ..._categories.map(
-                              (c) => DropdownMenuItem(
-                                value: c,
-                                child: Text(
-                                  c.replaceFirst(c[0], c[0].toUpperCase()),
-                                ),
+                  : SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 200,
+                          child: DropdownButtonFormField<String>(
+                            initialValue: _selectedCategory,
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
                               ),
                             ),
-                          ],
-                          onChanged:
-                              (v) => setState(() => _selectedCategory = v!),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      SizedBox(
-                        width: 220,
-                        child: DropdownButtonFormField<String>(
-                          initialValue: _selectedOffice,
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                            ),
+                            items: [
+                              const DropdownMenuItem(
+                                value: 'all',
+                                child: Text('All Categories'),
+                              ),
+                              ..._categories.map(
+                                (c) => DropdownMenuItem(
+                                  value: c,
+                                  child: Text(
+                                    c.replaceFirst(c[0], c[0].toUpperCase()),
+                                  ),
+                                ),
+                              ),
+                            ],
+                            onChanged:
+                                (v) => setState(() => _selectedCategory = v!),
                           ),
-                          items:
-                              _officeOptions
-                                  .map(
-                                    (office) => DropdownMenuItem(
-                                      value: office,
-                                      child: Text(
-                                        office == 'all'
-                                            ? 'All Offices'
-                                            : office,
-                                      ),
-                                    ),
-                                  )
-                                  .toList(),
-                          onChanged: (value) {
-                            if (value != null) {
-                              setState(() => _selectedOffice = value);
-                            }
-                          },
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      IconButton(
-                        icon: const Icon(Icons.refresh),
-                        onPressed: _loadChunks,
-                        tooltip: 'Refresh',
-                      ),
-                    ],
+                        const SizedBox(width: 16),
+                        SizedBox(
+                          width: 220,
+                          child: DropdownButtonFormField<String>(
+                            initialValue: _selectedOffice,
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                            ),
+                            items:
+                                _officeOptions
+                                    .map(
+                                      (office) => DropdownMenuItem(
+                                        value: office,
+                                        child: Text(
+                                          office == 'all'
+                                              ? 'All Offices'
+                                              : office,
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
+                            onChanged: (value) {
+                              if (value != null) {
+                                setState(() => _selectedOffice = value);
+                              }
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        IconButton(
+                          icon: const Icon(Icons.refresh),
+                          onPressed: _loadChunks,
+                          tooltip: 'Refresh',
+                        ),
+                      ],
+                    ),
                   ),
             ],
           ),
@@ -1083,7 +1090,8 @@ class _PolicyManagementScreenState extends State<PolicyManagementScreen> {
         const SizedBox(height: 16),
 
         // Chunks list
-        Expanded(
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child:
               _isLoading
                   ? const Center(
@@ -1112,21 +1120,27 @@ class _PolicyManagementScreenState extends State<PolicyManagementScreen> {
                       ],
                     ),
                   )
-                  : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    itemCount: _filteredChunks.length,
-                    itemBuilder: (context, index) {
-                      final chunk = _filteredChunks[index];
-                      return _ChunkCard(
-                        chunk: chunk,
-                        onTap: () => _showChunkDetails(chunk),
-                        onEdit: () => _showEditDialog(chunk),
-                        onDelete: () => _deleteChunk(chunk.id),
-                      );
-                    },
+                  : Column(
+                    children:
+                        _filteredChunks
+                            .asMap()
+                            .entries
+                            .map((entry) {
+                              final index = entry.key;
+                              final chunk = entry.value;
+                              return _ChunkCard(
+                                chunk: chunk,
+                                onTap: () => _showChunkDetails(chunk),
+                                onEdit: () => _showEditDialog(chunk),
+                                onDelete: () => _deleteChunk(chunk.id),
+                              );
+                            })
+                            .toList(),
                   ),
         ),
+        const SizedBox(height: 24),
       ],
+    ),
     );
 
     if (widget.embedded) {

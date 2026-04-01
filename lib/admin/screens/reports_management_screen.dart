@@ -41,6 +41,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
   // Cached user data for filtering
   Map<String, Map<String, dynamic>> _usersCache = {};
   bool _usersCacheLoaded = false;
+  String _currentRoleKey = 'moderator';
 
   final List<String> _faculties = [
     'Faculty of Medicine',
@@ -120,10 +121,96 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
     'closed': Colors.grey,
   };
 
+  final List<String> _workflowStages = const [
+    'pending',
+    'submitted',
+    'under_review',
+    'investigating',
+    'resolved',
+    'closed',
+  ];
+
   @override
   void initState() {
     super.initState();
+    _loadCurrentAdminRole();
     _loadUsersCache();
+  }
+
+  String _normalizeRoleKey(String? rawRole) {
+    final compact = (rawRole ?? '')
+        .trim()
+        .replaceAll(RegExp(r'[^a-zA-Z]'), '')
+        .toLowerCase();
+
+    switch (compact) {
+      case 'devteam':
+        return 'devTeam';
+      case 'superadmin':
+        return 'superAdmin';
+      case 'chairperson':
+        return 'chairperson';
+      case 'committeemember':
+        return 'committeeMember';
+      case 'adhocmember':
+        return 'adHocMember';
+      case 'advisor':
+        return 'advisor';
+      case 'studentrep':
+        return 'studentRep';
+      case 'technicalofficer':
+        return 'technicalOfficer';
+      case 'reviewer':
+        return 'reviewer';
+      case 'moderator':
+        return 'moderator';
+      default:
+        return 'moderator';
+    }
+  }
+
+  String _toTitle(String value) {
+    final normalized = value.replaceAll('_', ' ').trim();
+    if (normalized.isEmpty) return normalized;
+    return normalized[0].toUpperCase() + normalized.substring(1);
+  }
+
+  Future<void> _loadCurrentAdminRole() async {
+    try {
+      final adminDoc =
+          await _firestore.collection('admins').doc(widget.admin.uid).get();
+      final data = adminDoc.data();
+      final rawRole = (data?['shcRole'] ?? data?['role']) as String?;
+      final normalized = _normalizeRoleKey(rawRole ?? widget.admin.role.value);
+      if (!mounted) return;
+      setState(() => _currentRoleKey = normalized);
+    } catch (_) {
+      final fallback = _normalizeRoleKey(widget.admin.role.value);
+      if (!mounted) return;
+      setState(() => _currentRoleKey = fallback);
+    }
+  }
+
+  bool _canManageReportsByRole() {
+    return {
+      'devTeam',
+      'superAdmin',
+      'chairperson',
+      'committeeMember',
+      'adHocMember',
+      'reviewer',
+      'moderator',
+    }.contains(_currentRoleKey);
+  }
+
+  bool _canAssignReportsByRole() {
+    return {
+      'devTeam',
+      'superAdmin',
+      'chairperson',
+      'committeeMember',
+      'reviewer',
+    }.contains(_currentRoleKey);
   }
 
   Future<void> _loadUsersCache() async {
@@ -133,6 +220,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
       for (final doc in usersSnapshot.docs) {
         cache[doc.id] = doc.data();
       }
+      if (!mounted) return;
       setState(() {
         _usersCache = cache;
         _usersCacheLoaded = true;
@@ -156,6 +244,48 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
     super.dispose();
   }
 
+  String _getReportCategory(Map<String, dynamic> data) {
+    final raw =
+        data['category'] ?? data['reportCategory'] ?? data['type'] ?? 'N/A';
+    final value = raw.toString().trim();
+    return value.isEmpty ? 'N/A' : value;
+  }
+
+  bool _canTransitionStatus(String from, String to) {
+    if (from == to) return false;
+    if (!_workflowStages.contains(from) || !_workflowStages.contains(to)) {
+      return false;
+    }
+
+    final fromIndex = _workflowStages.indexOf(from);
+    final toIndex = _workflowStages.indexOf(to);
+
+    switch (_currentRoleKey) {
+      case 'devTeam':
+      case 'superAdmin':
+      case 'chairperson':
+        // Full control for top governance roles.
+        return true;
+      case 'committeeMember':
+      case 'adHocMember':
+      case 'reviewer':
+        // Working committee lanes: move the case forward only.
+        return toIndex == fromIndex + 1;
+      case 'advisor':
+        // Advisors can push investigations but not close cases.
+        return (from == 'under_review' && to == 'investigating') ||
+            (from == 'investigating' && to == 'under_review');
+      case 'technicalOfficer':
+      case 'studentRep':
+        return false;
+      case 'moderator':
+        // Legacy moderator role: triage into review.
+        return from == 'submitted' && to == 'under_review';
+      default:
+        return false;
+    }
+  }
+
   Future<void> _updateReportStatus(
     String reportId,
     String newStatus, {
@@ -172,6 +302,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
         'status': newStatus,
         'updatedAt': FieldValue.serverTimestamp(),
         'updatedBy': widget.admin.uid,
+        'currentStage': newStatus,
       };
 
       // Add resolution details if provided
@@ -183,6 +314,18 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
 
       // Update report status
       await _firestore.collection('reports').doc(reportId).update(updateData);
+
+      // Track process event for role-based auditing
+      await _logProcessEvent(
+        reportId: reportId,
+        action: 'status_changed',
+        stage: newStatus,
+        meta: {
+          'status': newStatus,
+          if (resolutionMessage != null && resolutionMessage.isNotEmpty)
+            'resolutionMessage': resolutionMessage,
+        },
+      );
 
       // Send notification to reporter (only if not anonymous)
       if (reportData != null &&
@@ -251,6 +394,153 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
         ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
       }
     }
+  }
+
+  Future<void> _logProcessEvent({
+    required String reportId,
+    required String action,
+    required String stage,
+    Map<String, dynamic>? meta,
+  }) async {
+    await _firestore
+        .collection('reports')
+        .doc(reportId)
+        .collection('process_logs')
+        .add({
+          'action': action,
+          'stage': stage,
+          'actorId': widget.admin.uid,
+          'actorEmail': widget.admin.email,
+          'actorRole': _currentRoleKey,
+          'timestamp': FieldValue.serverTimestamp(),
+          'meta': meta ?? <String, dynamic>{},
+        });
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchAssignableAdmins() async {
+    final query = await _firestore
+        .collection('admins')
+        .where('isActive', isEqualTo: true)
+        .get();
+
+    return query.docs
+        .map((d) => <String, dynamic>{
+              'uid': d.id,
+              'email': (d.data()['email'] ?? '') as String,
+              'name': (d.data()['fullName'] ?? d.data()['name'] ?? 'Unnamed')
+                  as String,
+              'role': (d.data()['shcRole'] ?? d.data()['role'] ?? 'moderator')
+                  as String,
+            })
+        .where((a) {
+          final role = _normalizeRoleKey(a['role'] as String?);
+          return {
+            'superAdmin',
+            'chairperson',
+            'committeeMember',
+            'adHocMember',
+            'reviewer',
+          }.contains(role);
+        })
+        .where((a) => (a['uid'] as String).isNotEmpty)
+        .toList();
+  }
+
+  Future<void> _showAssignReportDialog(
+    String reportId,
+    Map<String, dynamic> reportData,
+  ) async {
+    if (!_canAssignReportsByRole()) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('You do not have permission to assign reports.')),
+        );
+      }
+      return;
+    }
+
+    final admins = await _fetchAssignableAdmins();
+    if (!mounted) return;
+
+    String? selectedUid = reportData['assignedToUid'] as String?;
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setS) => AlertDialog(
+          title: const Text('Assign Report'),
+          content: SizedBox(
+            width: 420,
+            child: admins.isEmpty
+                ? const Text('No active admins available for assignment.')
+                : DropdownButtonFormField<String>(
+                    value: selectedUid,
+                    decoration: const InputDecoration(
+                      labelText: 'Assign to',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: admins
+                        .map(
+                          (a) => DropdownMenuItem<String>(
+                            value: a['uid'] as String,
+                            child: Text('${a['name']} (${a['email']})'),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (v) => setS(() => selectedUid = v),
+                  ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: selectedUid == null
+                  ? null
+                  : () async {
+                      final selected = admins.firstWhere(
+                        (a) => a['uid'] == selectedUid,
+                        orElse: () => <String, dynamic>{},
+                      );
+                      if (selected.isEmpty) return;
+
+                      await _firestore.collection('reports').doc(reportId).update({
+                        'assignedToUid': selected['uid'],
+                        'assignedToEmail': selected['email'],
+                        'assignedToName': selected['name'],
+                        'assignedToRole': selected['role'],
+                        'assignedAt': FieldValue.serverTimestamp(),
+                        'assignedBy': widget.admin.uid,
+                        'updatedAt': FieldValue.serverTimestamp(),
+                        'updatedBy': widget.admin.uid,
+                      });
+
+                      await _logProcessEvent(
+                        reportId: reportId,
+                        action: 'assigned',
+                        stage: (reportData['status'] ?? 'submitted') as String,
+                        meta: {
+                          'assignedToUid': selected['uid'],
+                          'assignedToEmail': selected['email'],
+                          'assignedToRole': selected['role'],
+                        },
+                      );
+
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Report assignment updated.')),
+                        );
+                      }
+
+                      if (ctx.mounted) Navigator.pop(ctx);
+                    },
+              child: const Text('Save Assignment'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _showResolutionDialog(String reportId) async {
@@ -558,8 +848,8 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                                     reportDoc.id,
                                                   ),
                                                   _buildDetailRow(
-                                                    'Type',
-                                                    data['type'] ?? 'N/A',
+                                                    'Category',
+                                                    _getReportCategory(data),
                                                   ),
                                                   _buildDetailRow(
                                                     'Submitted',
@@ -714,8 +1004,8 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                             reportDoc.id,
                                           ),
                                           _buildDetailRow(
-                                            'Type',
-                                            data['type'] ?? 'N/A',
+                                            'Category',
+                                            _getReportCategory(data),
                                           ),
                                           _buildDetailRow(
                                             'Submitted',
@@ -1370,7 +1660,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                               ),
 
                               // AI Insights Panel
-                              if (widget.admin.canManageReports()) ...[
+                              if (_canManageReportsByRole()) ...[
                                 const SizedBox(height: 16),
                                 AIInsightsPanel(
                                   reportData: data,
@@ -1472,7 +1762,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                               ],
 
                               // Status Update Section
-                              if (widget.admin.canManageReports()) ...[
+                              if (_canManageReportsByRole()) ...[
                                 const SizedBox(height: 24),
                                 Container(
                                   padding: const EdgeInsets.all(20),
@@ -1524,9 +1814,15 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                             ) {
                                               final isCurrentStatus =
                                                   data['status'] == entry.key;
+                                              final canTransition =
+                                                  _canTransitionStatus(
+                                                    (data['status'] as String?) ??
+                                                        'submitted',
+                                                    entry.key,
+                                                  );
                                               return ElevatedButton(
                                                 onPressed:
-                                                    isCurrentStatus
+                                                    (isCurrentStatus || !canTransition)
                                                         ? null
                                                         : () {
                                                           if (entry.key ==
@@ -1578,6 +1874,169 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                   ),
                                 ),
                               ],
+
+                              const SizedBox(height: 16),
+                              _buildDetailCard(
+                                'Assignment',
+                                Icons.assignment_ind,
+                                AppColors.secondaryOrange,
+                                [
+                                  Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.all(14),
+                                    decoration: BoxDecoration(
+                                      color: Colors.orange[50],
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          (data['assignedToName'] as String?)
+                                                      ?.isNotEmpty ==
+                                                  true
+                                              ? data['assignedToName'] as String
+                                              : 'Unassigned',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Text(
+                                          (data['assignedToEmail'] as String?) ??
+                                              'No assignee email',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey[700],
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Text(
+                                          'Role: ${(data['assignedToRole'] as String?) ?? 'N/A'}',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey[700],
+                                          ),
+                                        ),
+                                        if (data['assignedAt'] != null) ...[
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            'Assigned on ${DateFormat('MMM dd, yyyy hh:mm a').format((data['assignedAt'] as Timestamp).toDate())}',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey[600],
+                                            ),
+                                          ),
+                                        ],
+                                        if (_canAssignReportsByRole()) ...[
+                                          const SizedBox(height: 12),
+                                          OutlinedButton.icon(
+                                            icon: const Icon(Icons.group_add),
+                                            label: Text(
+                                              data['assignedToUid'] != null
+                                                  ? 'Reassign'
+                                                  : 'Assign',
+                                            ),
+                                            onPressed: () => _showAssignReportDialog(
+                                              reportDoc.id,
+                                              data,
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 16),
+                              _buildDetailCard(
+                                'Process Timeline',
+                                Icons.timeline,
+                                AppColors.primaryDark,
+                                [
+                                  StreamBuilder<QuerySnapshot>(
+                                    stream: _firestore
+                                        .collection('reports')
+                                        .doc(reportDoc.id)
+                                        .collection('process_logs')
+                                        .orderBy('timestamp', descending: true)
+                                        .limit(10)
+                                        .snapshots(),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        return const Padding(
+                                          padding: EdgeInsets.symmetric(
+                                            vertical: 12,
+                                          ),
+                                          child: Center(
+                                            child: CircularProgressIndicator(),
+                                          ),
+                                        );
+                                      }
+
+                                      if (!snapshot.hasData ||
+                                          snapshot.data!.docs.isEmpty) {
+                                        return Text(
+                                          'No process history yet. Status updates and assignments will appear here.',
+                                          style: TextStyle(
+                                            color: Colors.grey[700],
+                                            fontSize: 13,
+                                          ),
+                                        );
+                                      }
+
+                                      return Column(
+                                        children: snapshot.data!.docs.map((doc) {
+                                          final event =
+                                              doc.data() as Map<String, dynamic>;
+                                          final ts = event['timestamp'] as Timestamp?;
+                                          final actorEmail =
+                                              (event['actorEmail'] as String?) ??
+                                                  'Unknown actor';
+                                          final actorRole =
+                                              (event['actorRole'] as String?) ??
+                                                  'unknown';
+                                          final action =
+                                              (event['action'] as String?) ??
+                                                  'updated';
+                                          final stage =
+                                              (event['stage'] as String?) ??
+                                                  'unknown';
+
+                                          return ListTile(
+                                            dense: true,
+                                            contentPadding: EdgeInsets.zero,
+                                            leading: const Icon(
+                                              Icons.fiber_manual_record,
+                                              size: 12,
+                                              color: AppColors.primaryGreen,
+                                            ),
+                                            title: Text(
+                                              '${_toTitle(action)} • ${_toTitle(stage)}',
+                                              style: const TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                            subtitle: Text(
+                                              '$actorEmail (${actorRole.replaceAll('_', ' ')})'
+                                              '${ts != null ? ' • ${DateFormat('MMM dd, yyyy hh:mm a').format(ts.toDate())}' : ''}',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.grey[700],
+                                              ),
+                                            ),
+                                          );
+                                        }).toList(),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
                             ],
                           ),
                         ),
@@ -2532,12 +2991,13 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
 
                     // Search (includes tracking token search)
                     if (_searchQuery.isNotEmpty) {
-                      final type = (data['type'] ?? '').toLowerCase();
+                      final category =
+                          _getReportCategory(data).toLowerCase();
                       final location = (data['location'] ?? '').toLowerCase();
                       final reportId = doc.id.toLowerCase();
                       final token = (data['trackingToken'] ?? '').toLowerCase();
 
-                      if (!type.contains(_searchQuery) &&
+                      if (!category.contains(_searchQuery) &&
                           !location.contains(_searchQuery) &&
                           !reportId.contains(_searchQuery) &&
                           !token.contains(_searchQuery)) {
@@ -2606,7 +3066,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                         child: Icon(Icons.report, color: statusColor),
                       ),
                       title: Text(
-                        data['type'] ?? 'Report',
+                        _getReportCategory(data),
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -2658,13 +3118,14 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                         ],
                       ),
                       trailing: Column(
+                        mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 12,
-                              vertical: 6,
+                              vertical: 4,
                             ),
                             decoration: BoxDecoration(
                               color: statusColor.withOpacity(0.1),
@@ -2682,12 +3143,12 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 2),
                           if (data['isAnonymous'] == true)
                             Text(
                               'Anonymous',
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: 10,
                                 color: Colors.grey[600],
                                 fontStyle: FontStyle.italic,
                               ),

@@ -147,7 +147,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       case 8:
         return ProfileManagementScreen(admin: widget.admin, embedded: true);
       case 9:
-        return const AdminSettingsScreen(embedded: true);
+        return AdminSettingsScreen(admin: widget.admin, embedded: true);
       default:
         return _DashboardOverview(admin: widget.admin);
     }
@@ -721,6 +721,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
   }
 
   Future<void> _loadData() async {
+    if (!mounted) return;
     setState(() => _isLoading = true);
     try {
       // Load users
@@ -757,8 +758,10 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
             return data;
           }).toList();
 
+      if (!mounted) return;
       setState(() => _isLoading = false);
     } catch (e) {
+      if (!mounted) return;
       setState(() => _isLoading = false);
     }
   }
