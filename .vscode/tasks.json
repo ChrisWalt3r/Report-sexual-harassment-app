@@ -1,0 +1,23 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Flutter Web Build (Admin)",
+			"type": "shell",
+			"command": "flutter build web --release --web-renderer html",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Flutter Web Build (Admin)",
+			"type": "shell",
+			"command": "flutter build web --release",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		}
+	]
+}

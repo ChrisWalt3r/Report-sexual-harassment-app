@@ -1,0 +1,16 @@
+/// API Keys Configuration - EXAMPLE FILE
+/// 
+/// Copy this file to api_keys.dart and fill in your own API keys.
+/// The api_keys.dart file should NOT be committed to version control.
+
+class ApiKeys {
+  // ImgBB API Key
+  // Get yours at: https://api.imgbb.com/
+  static const String imgbbApiKey = 'YOUR_IMGBB_API_KEY_HERE';
+
+  // Cloudinary Configuration
+  // Get yours at: https://cloudinary.com
+  // Create an unsigned upload preset in Settings > Upload > Upload presets
+  static const String cloudinaryCloudName = 'YOUR_CLOUD_NAME_HERE';
+  static const String cloudinaryUploadPreset = 'YOUR_UPLOAD_PRESET_HERE';
+}

@@ -1,0 +1,91 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Users collection
+    match /users/{userId} {
+      // Users can read and write their own data
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      // Allow users to read other users' basic info (for displaying names, etc.)
+      allow read: if request.auth != null;
+    }
+
+    // Phone login lookup collection
+    match /phone_login_lookup/{lookupId} {
+      // Public read is required so the app can resolve a phone number before Firebase sign-in
+      allow read: if true;
+      // Only authenticated users can create or update their own lookup entry
+      allow create, update, delete: if request.auth != null;
+    }
+    
+    // Reports collection
+    match /reports/{reportId} {
+      // Anyone (including anonymous/unauthenticated) can create a report
+      allow create: if true;
+      // Users can read their own reports, OR unauthenticated users can read via trackingToken
+      allow read: if (request.auth != null && 
+                     (resource.data.userId == request.auth.uid || 
+                      resource.data.reporterEmail == request.auth.token.email))
+                  || (resource.data.trackingToken != null && 
+                      resource.data.trackingToken is string);
+      // Users can update their own reports (for editing)
+      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
+      // Only allow deletion by the owner
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      
+      // Comments subcollection
+      match /comments/{commentId} {
+        // Anyone authenticated can read comments
+        allow read: if request.auth != null;
+        // Anyone authenticated can create comments
+        allow create: if request.auth != null;
+      }
+    }
+    
+    // Notifications collection
+    match /notifications/{notificationId} {
+      // Users can only read their own notifications
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      // Allow creating notifications (system or user-initiated)
+      allow create: if request.auth != null;
+      // Users can update (mark as read) and delete their own notifications
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+    
+    // Emergency contacts collection
+    match /emergency_contacts/{contactId} {
+      allow read: if request.auth != null;
+    }
+    
+    // Support services collection
+    match /support_services/{serviceId} {
+      allow read: if request.auth != null;
+    }
+    
+    // Policy Knowledge Base for RAG AI system
+    // Anyone can read (needed for AI responses), only authenticated users can write (admin setup)
+    match /policy_knowledge_base/{chunkId} {
+      allow read: if true;  // Allow public read for AI to retrieve policy info
+      allow write: if request.auth != null;  // Only authenticated users can update
+    }
+    
+    // Official Contacts for AI and user queries
+    // Public read for AI retrieval, admin write for management
+    match /official_contacts/{contactId} {
+      allow read: if true;  // Allow public read for AI to retrieve contact info
+      allow write: if request.auth != null;  // Only authenticated admins can update
+    }
+    
+    // Also support space-separated collection name
+    match /official%20contacts/{contactId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Fallback: Allow authenticated users to access any other documents
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
