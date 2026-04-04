@@ -228,8 +228,8 @@ class _PolicyManagementScreenState extends State<PolicyManagementScreen> {
                               child: TextField(
                                 controller: officeController,
                                 decoration: const InputDecoration(
-                                  labelText: 'Office / Faculty',
-                                  hintText: 'e.g. Faculty of Medicine',
+                                  labelText: 'Office / School',
+                                  hintText: 'e.g. School of Health Sciences',
                                   border: OutlineInputBorder(),
                                 ),
                               ),

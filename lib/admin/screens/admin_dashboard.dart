@@ -651,16 +651,16 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
   bool _isLoading = true;
 
   final List<String> _faculties = [
-    'Faculty of Medicine',
-    'Faculty of Science',
-    'Faculty of Computing and Informatics',
-    'Faculty of Applied Sciences and Technology',
-    'Faculty of Business and Management Sciences',
-    'Faculty of Interdisciplinary Studies',
+    'School of Health Sciences',
+    'School of Science',
+    'School of Computing and Informatics',
+    'School of Applied Sciences and Technology',
+    'School of Business and Management Sciences',
+    'School of Interdisciplinary Studies',
   ];
 
   final Map<String, List<String>> _facultyDepartments = {
-    'Faculty of Medicine': [
+    'School of Health Sciences': [
       'Anatomy',
       'Biochemistry',
       'Internal Medicine',

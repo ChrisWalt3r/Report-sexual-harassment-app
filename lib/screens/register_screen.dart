@@ -43,20 +43,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final List<String> _studyLevels = ['Undergraduate', 'Postgraduate'];
 
   final List<String> _faculties = [
-    'Faculty of Medicine',
-    'Faculty of Science',
-    'Faculty of Computing and Informatics',
-    'Faculty of Applied Sciences and Technology',
-    'Faculty of Business and Management Sciences',
-    'Faculty of Interdisciplinary Studies',
+    'School of Health Sciences',
+    'School of Science',
+    'School of Computing and Informatics',
+    'School of Applied Sciences and Technology',
+    'School of Business and Management Sciences',
+    'School of Interdisciplinary Studies',
   ];
 
   String? _selectedFaculty;
   String? _selectedDepartment;
 
-  // Faculty → Departments mapping
+  // School → Departments mapping
   final Map<String, List<String>> _facultyDepartments = {
-    'Faculty of Medicine': [
+    'School of Health Sciences': [
       'Anatomy',
       'Biochemistry',
       'Internal Medicine',
@@ -74,27 +74,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
       'Community Health',
       'Nursing/Midwifery',
     ],
-    'Faculty of Science': ['Biology', 'Chemistry', 'Physics', 'Mathematics'],
-    'Faculty of Computing and Informatics': [
+    'School of Science': ['Biology', 'Chemistry', 'Physics', 'Mathematics'],
+    'School of Computing and Informatics': [
       'Computer Science',
       'Information Technology',
       'Software Engineering',
     ],
-    'Faculty of Applied Sciences and Technology': [
+    'School of Applied Sciences and Technology': [
       'Biomedical Sciences & Engineering',
       'Civil Engineering',
       'Electrical & Electronics Engineering',
       'Mechanical Engineering',
       'Petroleum & Environmental Management',
     ],
-    'Faculty of Business and Management Sciences': [
+    'School of Business and Management Sciences': [
       'Accounting & Finance',
       'Business Administration',
       'Economics',
       'Procurement & Supply Chain Management',
       'Marketing & Entrepreneurship',
     ],
-    'Faculty of Interdisciplinary Studies': [
+    'School of Interdisciplinary Studies': [
       'Planning & Governance',
       'Human Development & Relational Sciences',
       'Environment & Livelihood Support Systems',
