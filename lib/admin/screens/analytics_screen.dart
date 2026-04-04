@@ -226,7 +226,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           crossAxisCount: cardCount,
           mainAxisSpacing: 16,
           crossAxisSpacing: 16,
-          childAspectRatio: 1.5,
+          childAspectRatio: 1.8,
           children: [
             _buildMetricCard(
               'Total Reports',
@@ -316,7 +316,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             ),
             const SizedBox(height: 24),
             SizedBox(
-              height: 300,
+              height: 280,
               child: Row(
                 children: [
                   Expanded(
@@ -329,16 +329,16 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                             value: entry.value.toDouble(),
                             title: '${entry.value}',
                             color: _getChartColor(index),
-                            radius: 100,
+                            radius: 90,
                             titleStyle: const TextStyle(
-                              fontSize: 14,
+                              fontSize: 13,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
                           );
                         }).toList(),
                         sectionsSpace: 2,
-                        centerSpaceRadius: 40,
+                        centerSpaceRadius: 35,
                       ),
                     ),
                   ),
@@ -378,7 +378,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             ),
             const SizedBox(height: 24),
             SizedBox(
-              height: 300,
+              height: 280,
               child: BarChart(
                 BarChartData(
                   alignment: BarChartAlignment.spaceAround,
@@ -466,7 +466,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             ),
             const SizedBox(height: 24),
             SizedBox(
-              height: 300,
+              height: 280,
               child: LineChart(
                 LineChartData(
                   lineBarsData: [
