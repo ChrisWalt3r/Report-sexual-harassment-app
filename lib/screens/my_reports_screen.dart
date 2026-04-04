@@ -79,7 +79,12 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
           return _buildUserReportsView(context, user.uid);
         },
       ),
-      bottomNavigationBar: const BottomNavBar(currentIndex: 2),
+      bottomNavigationBar: BottomNavBar(
+        currentIndex: 2,
+        onTap: (index) {
+          // Navigation is handled by BottomNavBar internally
+        },
+      ),
       floatingActionButton: Container(
         decoration: BoxDecoration(
           gradient: const LinearGradient(
