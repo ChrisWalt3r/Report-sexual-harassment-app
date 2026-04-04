@@ -55,9 +55,9 @@ class BottomNavBar extends StatelessWidget {
               _buildNavItem(
                 context,
                 3,
-                Icons.settings_outlined,
-                Icons.settings,
-                'Settings',
+                Icons.chat_bubble_outline,
+                Icons.chat_bubble,
+                'Chat Support',
               ),
             ],
           ),
