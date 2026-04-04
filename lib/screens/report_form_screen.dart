@@ -635,6 +635,83 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
       }
       final String incidentTypeString = incidentTypes.join(', ');
 
+      // Confirmation dialog for location of incident
+      final locationText = _locationController.text.trim();
+      final bool confirmLocation = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.location_on, color: AppColors.primaryGreen),
+              const SizedBox(width: 8),
+              const Text('Confirm Location'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Please confirm the location of the incident:',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.place, color: AppColors.primaryGreen, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        locationText.isEmpty ? 'Not specified' : locationText,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: locationText.isEmpty ? Colors.grey[600] : Colors.black87,
+                          fontStyle: locationText.isEmpty ? FontStyle.italic : FontStyle.normal,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                locationText.isEmpty
+                    ? 'You have not specified a location. This is optional, but providing a location can help with the investigation.'
+                    : 'Is this location correct?',
+                style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Go Back'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryGreen,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Confirm & Submit'),
+            ),
+          ],
+        ),
+      ) ?? false;
+
+      if (!confirmLocation) {
+        return; // User cancelled
+      }
+
       // Check internet connectivity
       final connectivityResult = await Connectivity().checkConnectivity();
       if (connectivityResult.contains(ConnectivityResult.none)) {
@@ -1147,8 +1224,8 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
 
                         const SizedBox(height: 24),
 
-                        // Location Section
-                        _buildSectionTitle('Location', Icons.location_on),
+                        // Location of Incident Section
+                        _buildSectionTitle('Location of Incident (Optional)', Icons.location_on),
                         const SizedBox(height: 12),
                         Container(
                           decoration: BoxDecoration(
@@ -1179,11 +1256,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                               ),
                               contentPadding: const EdgeInsets.all(16),
                             ),
-                            validator:
-                                (value) =>
-                                    value?.isEmpty ?? true
-                                        ? 'Please enter location'
-                                        : null,
+                            // No validator - field is optional
                           ),
                         ),
 
