@@ -1305,10 +1305,10 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
               : Column(
                 children: [
                   SizedBox(
-                    height: 210,
+                    height: 190,
                     child: PieChart(
                       PieChartData(
-                        centerSpaceRadius: 40,
+                        centerSpaceRadius: 35,
                         sectionsSpace: 2,
                         sections:
                             metrics.map((metric) {
@@ -1317,10 +1317,10 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
                               return PieChartSectionData(
                                 color: metric.color,
                                 value: metric.value.toDouble(),
-                                radius: 58,
+                                radius: 52,
                                 title: '$percentage%',
                                 titleStyle: const TextStyle(
-                                  fontSize: 12,
+                                  fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
                                 ),
