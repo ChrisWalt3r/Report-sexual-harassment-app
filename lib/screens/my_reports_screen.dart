@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../constants/app_colors.dart';
 import '../services/auth_service.dart';
+import '../widgets/bottom_nav_bar.dart';
 import 'report_form_screen.dart';
 import 'login_screen.dart';
 import 'report_details_screen.dart';
@@ -78,6 +79,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
           return _buildUserReportsView(context, user.uid);
         },
       ),
+      bottomNavigationBar: const BottomNavBar(currentIndex: 2),
       floatingActionButton: Container(
         decoration: BoxDecoration(
           gradient: const LinearGradient(
