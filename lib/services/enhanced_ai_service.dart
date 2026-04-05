@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../config/ai_config.dart';
@@ -21,6 +22,39 @@ class EnhancedAIService extends ChangeNotifier {
   bool _isAgentTyping = false;
   String _currentScenario = 'initial_contact';
 
+  // Runtime chatbot controls (managed in admin via Firestore app_config/chatbot)
+  bool _chatEnabled = true;
+  bool _crisisProtocolEnabled = true;
+  bool _policyGroundingRequired = true;
+    bool _allowAnonymousChat = true;
+    bool _retainTranscripts = true;
+    bool _moderatorReviewForHighRisk = true;
+
+  int _maxMessagesPerSession = 40;
+    int _maxResponseTokens = 220;
+    int _maxMessagesPerMinute = 12;
+    int _sessionTimeoutMinutes = 45;
+    int _cooldownSeconds = 2;
+
+  String _modelProfile = 'Balanced';
+    String _responseTone = 'Supportive';
+  String _safetyMode = 'Strict';
+    String _systemPromptOverride =
+      'Use trauma-informed, policy-grounded, and non-judgmental language.';
+
+    List<String> _blockedTerms = [];
+    List<String> _escalationKeywords = [];
+
+  String _disabledMessage =
+      'AI support chat is temporarily unavailable. Please contact the counselor office directly.';
+
+  String? _sessionId;
+  bool _crisisDetectedInSession = false;
+    bool _isUserIdentified = true;
+    DateTime? _sessionStartedAt;
+    DateTime? _lastUserMessageAt;
+    final List<DateTime> _recentUserMessageTimes = <DateTime>[];
+
   // RAG: Policy Knowledge Service for retrieval-augmented generation
   final PolicyKnowledgeService _policyService = PolicyKnowledgeService();
   bool _policyServiceInitialized = false;
@@ -35,57 +69,225 @@ class EnhancedAIService extends ChangeNotifier {
   bool get isAgentTyping => _isAgentTyping;
   String get currentScenario => _currentScenario;
 
+  void setUserIdentified(bool identified) {
+    _isUserIdentified = identified;
+  }
+
+  Future<void> _loadChatbotConfig() async {
+    try {
+      final doc =
+          await FirebaseFirestore.instance
+              .collection('app_config')
+              .doc('chatbot')
+              .get();
+      final data = doc.data();
+      if (data == null) return;
+
+      _chatEnabled = data['enabled'] as bool? ?? true;
+      _crisisProtocolEnabled = data['crisisProtocolEnabled'] as bool? ?? true;
+      _policyGroundingRequired = data['policyGroundingRequired'] as bool? ?? true;
+        _allowAnonymousChat = data['allowAnonymousChat'] as bool? ?? true;
+        _retainTranscripts = data['retainTranscripts'] as bool? ?? true;
+        _moderatorReviewForHighRisk =
+          data['moderatorReviewForHighRisk'] as bool? ?? true;
+
+      _maxMessagesPerSession = data['maxMessagesPerSession'] as int? ?? 40;
+        _maxResponseTokens = data['maxResponseTokens'] as int? ?? 220;
+        _maxMessagesPerMinute = data['maxMessagesPerMinute'] as int? ?? 12;
+        _sessionTimeoutMinutes = data['sessionTimeoutMinutes'] as int? ?? 45;
+        _cooldownSeconds = data['cooldownSeconds'] as int? ?? 2;
+
+        _modelProfile = data['modelProfile'] as String? ?? 'Balanced';
+        _responseTone = data['responseTone'] as String? ?? 'Supportive';
+        _safetyMode = data['safetyMode'] as String? ?? 'Strict';
+        _systemPromptOverride =
+          data['systemPromptOverride'] as String? ??
+          'Use trauma-informed, policy-grounded, and non-judgmental language.';
+
+        _blockedTerms =
+          (data['blockedTerms'] as List<dynamic>? ?? const <dynamic>[])
+            .map((e) => e.toString().toLowerCase().trim())
+            .where((e) => e.isNotEmpty)
+            .toList();
+        _escalationKeywords =
+          (data['escalationKeywords'] as List<dynamic>? ?? const <dynamic>[])
+            .map((e) => e.toString().toLowerCase().trim())
+            .where((e) => e.isNotEmpty)
+            .toList();
+
+      _disabledMessage =
+          data['disabledMessage'] as String? ??
+          'AI support chat is temporarily unavailable. Please contact the counselor office directly.';
+    } catch (e) {
+      debugPrint('Failed to load chatbot runtime config: $e');
+    }
+  }
+
+  void _addSystemMessage(String text) {
+    final message = ChatMessage(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      text: text,
+      isFromUser: false,
+      timestamp: DateTime.now(),
+      senderName: 'AI Support Counselor',
+      messageType: ChatMessageType.system,
+    );
+    _addMessage(message);
+  }
+
+  bool _containsBlockedTerms(String text) {
+    final lower = text.toLowerCase();
+    return _blockedTerms.any((term) => term.isNotEmpty && lower.contains(term));
+  }
+
+  bool _containsEscalationKeyword(String text) {
+    final lower = text.toLowerCase();
+    return _escalationKeywords.any(
+      (term) => term.isNotEmpty && lower.contains(term),
+    );
+  }
+
+  bool _isSessionExpired() {
+    final started = _sessionStartedAt;
+    if (started == null) return false;
+    return DateTime.now().difference(started).inMinutes >= _sessionTimeoutMinutes;
+  }
+
+  bool _isCoolingDown() {
+    final last = _lastUserMessageAt;
+    if (last == null) return false;
+    return DateTime.now().difference(last).inSeconds < _cooldownSeconds;
+  }
+
+  bool _isRateLimited() {
+    final now = DateTime.now();
+    _recentUserMessageTimes.removeWhere(
+      (t) => now.difference(t).inSeconds > 60,
+    );
+    return _recentUserMessageTimes.length >= _maxMessagesPerMinute;
+  }
+
+  Future<void> _createHighRiskAlert(String userText) async {
+    try {
+      await FirebaseFirestore.instance.collection('chatbot_alerts').add({
+        'sessionId': _sessionId,
+        'triggerText': userText,
+        'triggerType': 'high_risk_chat',
+        'modelProfile': _modelProfile,
+        'safetyMode': _safetyMode,
+        'createdAt': FieldValue.serverTimestamp(),
+        'status': 'open',
+      });
+    } catch (e) {
+      debugPrint('Failed to create high-risk chatbot alert: $e');
+    }
+  }
+
+  Future<void> _startSessionTelemetry() async {
+    try {
+      final now = DateTime.now();
+      final ref = FirebaseFirestore.instance.collection('chatbot_sessions').doc();
+      _sessionId = ref.id;
+      _crisisDetectedInSession = false;
+
+      await ref.set({
+        'sessionId': _sessionId,
+        'status': 'active',
+        'startedAt': FieldValue.serverTimestamp(),
+        'lastActivityAt': FieldValue.serverTimestamp(),
+        'startedAtClient': now.toIso8601String(),
+        'userMessages': 0,
+        'agentMessages': 0,
+        'systemMessages': 0,
+        'totalMessages': 0,
+        'crisisTriggered': false,
+        'modelProfile': _modelProfile,
+        'safetyMode': _safetyMode,
+      });
+    } catch (e) {
+      debugPrint('Failed to start chatbot session telemetry: $e');
+    }
+  }
+
+  Future<void> _updateSessionTelemetry({
+    int userInc = 0,
+    int agentInc = 0,
+    int systemInc = 0,
+    bool? crisisTriggered,
+  }) async {
+    if (_sessionId == null) return;
+    try {
+      final update = <String, dynamic>{
+        'lastActivityAt': FieldValue.serverTimestamp(),
+      };
+      final totalInc = userInc + agentInc + systemInc;
+      if (userInc > 0) update['userMessages'] = FieldValue.increment(userInc);
+      if (agentInc > 0) update['agentMessages'] = FieldValue.increment(agentInc);
+      if (systemInc > 0) update['systemMessages'] = FieldValue.increment(systemInc);
+      if (totalInc > 0) update['totalMessages'] = FieldValue.increment(totalInc);
+      if (crisisTriggered != null) update['crisisTriggered'] = crisisTriggered;
+
+      await FirebaseFirestore.instance
+          .collection('chatbot_sessions')
+          .doc(_sessionId)
+          .set(update, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Failed to update chatbot session telemetry: $e');
+    }
+  }
+
+  Future<void> _closeSessionTelemetry() async {
+    if (_sessionId == null) return;
+    try {
+      await FirebaseFirestore.instance
+          .collection('chatbot_sessions')
+          .doc(_sessionId)
+          .set({
+            'status': 'ended',
+            'endedAt': FieldValue.serverTimestamp(),
+            'crisisTriggered': _crisisDetectedInSession,
+            'lastActivityAt': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Failed to close chatbot session telemetry: $e');
+    } finally {
+      _sessionId = null;
+    }
+  }
+
   Future<void> connectToChat() async {
     try {
       _isConnected = true;
       notifyListeners();
+
+      await _loadChatbotConfig();
+
+      if (!_chatEnabled) {
+        _addSystemMessage(_disabledMessage);
+        return;
+      }
+
+      if (!_allowAnonymousChat && !_isUserIdentified) {
+        _addSystemMessage(
+          'This chat currently requires user identification before messaging. Please sign in and try again.',
+        );
+        return;
+      }
+
+      _sessionStartedAt = DateTime.now();
+      _lastUserMessageAt = null;
+      _recentUserMessageTimes.clear();
+
+      await _startSessionTelemetry();
 
       // Initialize RAG policy knowledge service
       if (!_policyServiceInitialized) {
         await _policyService.initialize();
         _policyServiceInitialized = true;
       }
-
-      // Initial welcome message using scenario-specific prompt
-      final welcomeText = await _generateContextualWelcome();
-
-      final welcomeMessage = ChatMessage(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        text: welcomeText,
-        isFromUser: false,
-        timestamp: DateTime.now(),
-        senderName: "AI Support Counselor",
-        messageType: ChatMessageType.text,
-      );
-
-      _addMessage(welcomeMessage);
     } catch (e) {
       debugPrint('Error connecting to chat: $e');
     }
-  }
-
-  Future<String> _generateContextualWelcome() async {
-    final welcomePrompt = '''
-${AIConfig.scenarioPrompts['initial_contact']}
-
-${AIConfig.culturalContext}
-
-Generate a warm, professional welcome message for someone who has just connected to sexual harassment support chat at MUST. The message should be 1-2 sentences, establish safety and confidentiality, and invite them to share when ready.
-
-Welcome message:''';
-
-    try {
-      final response = await _callAIModel('primary', welcomePrompt);
-      if (response.isNotEmpty &&
-          ResponseAnalyzer.calculateQualityScore(response) > 0.5) {
-        return response;
-      }
-    } catch (e) {
-      debugPrint('Welcome generation failed: $e');
-    }
-
-    // Fallback welcome message
-    return "Hello, I'm here to provide confidential support regarding any sexual harassment concerns. This conversation is private and secure. Please feel free to share what's on your mind when you're ready.";
   }
 
   Future<void> sendMessage(
@@ -93,6 +295,57 @@ Welcome message:''';
     ChatMessageType type = ChatMessageType.text,
   }) async {
     if (text.trim().isEmpty) return;
+
+    if (!_chatEnabled) {
+      _addSystemMessage(_disabledMessage);
+      return;
+    }
+
+    if (!_allowAnonymousChat && !_isUserIdentified) {
+      _addSystemMessage(
+        'Please identify yourself to continue this chat session.',
+      );
+      return;
+    }
+
+    if (_isSessionExpired()) {
+      _addSystemMessage(
+        'This session has timed out. Please start a new chat session.',
+      );
+      _isConnected = false;
+      unawaited(_closeSessionTelemetry());
+      notifyListeners();
+      return;
+    }
+
+    if (_isCoolingDown()) {
+      _addSystemMessage(
+        'Please wait a moment before sending another message.',
+      );
+      return;
+    }
+
+    if (_isRateLimited()) {
+      _addSystemMessage(
+        'Rate limit reached. Please slow down and try again in a few seconds.',
+      );
+      return;
+    }
+
+    final userMessageCount = _messages.where((m) => m.isFromUser).length;
+    if (userMessageCount >= _maxMessagesPerSession) {
+      _addSystemMessage(
+        'This session has reached the configured message limit. Please start a new chat or contact support directly.',
+      );
+      return;
+    }
+
+    if (_containsBlockedTerms(text)) {
+      _addSystemMessage(
+        'This message contains restricted content and could not be processed.',
+      );
+      return;
+    }
 
     final message = ChatMessage(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -103,6 +356,11 @@ Welcome message:''';
     );
 
     _addMessage(message);
+    unawaited(_updateSessionTelemetry(userInc: 1));
+
+    _lastUserMessageAt = DateTime.now();
+    _recentUserMessageTimes.add(_lastUserMessageAt!);
+
     _conversationHistory.add("USER: ${text.trim()}");
 
     // Detect scenario and crisis situations
@@ -111,7 +369,13 @@ Welcome message:''';
       _conversationHistory,
     );
 
-    if (ResponseAnalyzer.isCrisisResponse(text)) {
+    final crisisDetected =
+        ResponseAnalyzer.isCrisisResponse(text) || _containsEscalationKeyword(text);
+
+    if (_crisisProtocolEnabled && crisisDetected) {
+      if (_moderatorReviewForHighRisk) {
+        unawaited(_createHighRiskAlert(text));
+      }
       await _handleCrisisResponse();
       return;
     }
@@ -136,6 +400,7 @@ Welcome message:''';
       );
 
       _addMessage(responseMessage);
+      unawaited(_updateSessionTelemetry(agentInc: 1));
       _conversationHistory.add("COUNSELOR: $aiResponse");
     } catch (e) {
       _isAgentTyping = false;
@@ -152,14 +417,63 @@ Welcome message:''';
       );
 
       _addMessage(responseMessage);
+      unawaited(_updateSessionTelemetry(agentInc: 1));
+    }
+  }
+
+  Future<void> regenerateLastResponse() async {
+    if (!_chatEnabled || !_isConnected || _isAgentTyping) return;
+
+    String? lastUserText;
+    for (final msg in _messages.reversed) {
+      if (msg.isFromUser && msg.messageType == ChatMessageType.text) {
+        lastUserText = msg.text.trim();
+        break;
+      }
+    }
+
+    if (lastUserText == null || lastUserText.isEmpty) {
+      _addSystemMessage('No previous user message found to regenerate from.');
+      return;
+    }
+
+    _isAgentTyping = true;
+    notifyListeners();
+
+    try {
+      final aiResponse = await _generateContextualResponse(lastUserText);
+
+      _isAgentTyping = false;
+      notifyListeners();
+
+      final responseMessage = ChatMessage(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        text: aiResponse,
+        isFromUser: false,
+        timestamp: DateTime.now(),
+        senderName: 'AI Support Counselor',
+        messageType: ChatMessageType.text,
+      );
+
+      _addMessage(responseMessage);
+      unawaited(_updateSessionTelemetry(agentInc: 1));
+      _conversationHistory.add('COUNSELOR: $aiResponse');
+    } catch (e) {
+      _isAgentTyping = false;
+      notifyListeners();
+
+      _addSystemMessage('Could not regenerate response right now. Please try again.');
+      debugPrint('Regenerate response failed: $e');
     }
   }
 
   Future<String> _generateContextualResponse(String userMessage) async {
     // Check if this is a policy-related question that RAG can answer
-    final policyResponse = await _tryRAGResponse(userMessage);
-    if (policyResponse != null) {
-      return policyResponse;
+    if (_policyGroundingRequired) {
+      final policyResponse = await _tryRAGResponse(userMessage);
+      if (policyResponse != null) {
+        return policyResponse;
+      }
     }
 
     // Use smart keyword-based responses for emotional support
@@ -191,6 +505,11 @@ Welcome message:''';
 
 If the user asks about unrelated topics, politely redirect them to harassment/safety support.
 
+  System behavior override:
+  $_systemPromptOverride
+
+  Response tone requirement: $_responseTone
+
 $scenarioPrompt
 
 Previous conversation:
@@ -201,7 +520,7 @@ User says: "$userMessage"
 Respond with empathy in 1-2 sentences. Be supportive and trauma-informed.''';
 
     // Try multiple models for best response
-    for (final modelKey in ['primary', 'empathetic', 'supportive']) {
+    for (final modelKey in AIConfig.modelFallbackOrder(_modelProfile, _safetyMode)) {
       try {
         final response = await _callAIModel(modelKey, fullPrompt);
         final cleanedResponse = _cleanInstructResponse(response, fullPrompt);
@@ -547,7 +866,12 @@ Answer:''';
   }
 
   Future<String> _callAIModel(String modelKey, String prompt) async {
-    final modelConfig = AIConfig.availableModels[modelKey]!;
+    final modelConfig = AIConfig.tunedModelConfig(
+      modelKey: modelKey,
+      profile: _modelProfile,
+      safetyMode: _safetyMode,
+    );
+    final effectiveMaxTokens = _maxResponseTokens.clamp(50, modelConfig.maxTokens);
 
     final response = await http
         .post(
@@ -561,12 +885,15 @@ Answer:''';
             'messages': [
               {
                 'role': 'system',
-                'content':
-                    'You are a professional sexual harassment support counselor at MUST University in Uganda. Provide empathetic, trauma-informed responses.',
+                'content': AIConfig.buildSystemInstruction(
+                  responseTone: _responseTone,
+                  safetyMode: _safetyMode,
+                  overridePrompt: _systemPromptOverride,
+                ),
               },
               {'role': 'user', 'content': prompt},
             ],
-            'max_tokens': modelConfig.maxTokens,
+            'max_tokens': effectiveMaxTokens,
             'temperature': modelConfig.temperature,
             'top_p': modelConfig.topP,
           }),
@@ -599,59 +926,10 @@ Answer:''';
     );
   }
 
-  String _postProcessResponse(String rawResponse, String userMessage) {
-    // Clean up response
-    String response = rawResponse.trim();
-
-    // Remove prompt echoes
-    final cleanupPatterns = [
-      'COUNSELOR RESPONSE:',
-      'COUNSELOR:',
-      'SUPPORT AGENT:',
-      'AI:',
-      userMessage, // Remove if AI echoed user message
-    ];
-
-    for (final pattern in cleanupPatterns) {
-      response = response.replaceAll(pattern, '').trim();
-    }
-
-    // Ensure appropriate length
-    if (response.length > 250) {
-      final sentences = response.split('. ');
-      response = sentences.take(2).join('. ');
-      if (!response.endsWith('.')) response += '.';
-    }
-
-    // Add supportive elements if missing
-    if (!_containsSupportiveLanguage(response)) {
-      response = _addSupportiveElement(response, userMessage);
-    }
-
-    return response;
-  }
-
-  bool _containsSupportiveLanguage(String response) {
-    final supportiveWords = AIConfig.qualityKeywords['supportive']!;
-    final lowerResponse = response.toLowerCase();
-
-    return supportiveWords.any((word) => lowerResponse.contains(word));
-  }
-
-  String _addSupportiveElement(String response, String userMessage) {
-    final lowerMessage = userMessage.toLowerCase();
-
-    if (lowerMessage.contains('scared') || lowerMessage.contains('afraid')) {
-      return "$response I want you to know that you're safe here and your feelings are completely valid.";
-    } else if (lowerMessage.contains('fault') ||
-        lowerMessage.contains('blame')) {
-      return "$response Please remember that this is not your fault.";
-    } else {
-      return "$response I'm here to support you through this.";
-    }
-  }
-
   Future<void> _handleCrisisResponse() async {
+    _crisisDetectedInSession = true;
+    unawaited(_updateSessionTelemetry(crisisTriggered: true));
+
     // Immediate crisis response
     final crisisMessage = ChatMessage(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -664,6 +942,7 @@ Answer:''';
     );
 
     _addMessage(crisisMessage);
+    unawaited(_updateSessionTelemetry(systemInc: 1));
 
     // Follow up with supportive message
     await Future.delayed(const Duration(seconds: 2));
@@ -679,6 +958,7 @@ Answer:''';
     );
 
     _addMessage(supportMessage);
+    unawaited(_updateSessionTelemetry(agentInc: 1));
   }
 
   String _getScenarioBasedFallback(String userMessage) {
@@ -788,6 +1068,7 @@ Answer:''';
     );
 
     _addMessage(response);
+    unawaited(_updateSessionTelemetry(agentInc: 1));
   }
 
   Future<void> escalateToEmergency() async {
@@ -802,6 +1083,7 @@ Answer:''';
     );
 
     _addMessage(message);
+    unawaited(_updateSessionTelemetry(systemInc: 1));
 
     await Future.delayed(const Duration(seconds: 3));
 
@@ -816,6 +1098,7 @@ Answer:''';
     );
 
     _addMessage(followUpMessage);
+    unawaited(_updateSessionTelemetry(agentInc: 1));
   }
 
   void _addMessage(ChatMessage message) {
@@ -856,9 +1139,15 @@ Closing message:''';
     );
 
     _addMessage(message);
+    unawaited(_updateSessionTelemetry(systemInc: 1));
 
     await Future.delayed(const Duration(seconds: 2));
     _isConnected = false;
+    await _closeSessionTelemetry();
+    if (!_retainTranscripts) {
+      _messages.clear();
+      _conversationHistory.clear();
+    }
     notifyListeners();
   }
 

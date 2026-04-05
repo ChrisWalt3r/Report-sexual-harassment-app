@@ -339,9 +339,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ),
           ),
           onPressed: () {
-            setState(() {
-              _currentNavIndex = 3;
-            });
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const SettingsScreen()),
+            );
           },
         ),
       ],

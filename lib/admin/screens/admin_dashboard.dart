@@ -13,6 +13,7 @@ import 'admin_management_screen.dart';
 import 'data_export_screen.dart';
 import 'contacts_management_screen.dart';
 import 'policy_management_screen.dart';
+import 'chatbot_management_screen.dart';
 import 'profile_management_screen.dart';
 import 'admin_settings_screen.dart';
 
@@ -47,6 +48,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
   final _adminAuthService = AdminAuthService();
   int _selectedIndex = 0;
   bool _sidebarCollapsed = false;
+  double _sidebarExpandedWidth = 180;
+
+  static const double _sidebarCollapsedWidth = 60;
+  static const double _sidebarMinWidth = 180;
+  static const double _sidebarMaxWidth = 360;
 
   late final List<_NavItem> _navItems;
 
@@ -115,6 +121,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
         activeIcon: Icons.settings,
         index: 9,
       ),
+      const _NavItem(
+        label: 'Chatbot Mgmt',
+        icon: Icons.smart_toy_outlined,
+        activeIcon: Icons.smart_toy,
+        index: 10,
+      ),
     ];
   }
 
@@ -148,6 +160,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
         return ProfileManagementScreen(admin: widget.admin, embedded: true);
       case 9:
         return AdminSettingsScreen(admin: widget.admin, embedded: true);
+      case 10:
+        return ChatbotManagementScreen(admin: widget.admin, embedded: true);
       default:
         return _DashboardOverview(admin: widget.admin);
     }
@@ -313,132 +327,183 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   // ── Desktop sidebar ──
   Widget _buildSidebar() {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      width: _sidebarCollapsed ? 60 : 180,
-      decoration: const BoxDecoration(color: AppColors.primaryGreen),
-      child: Column(
+    final sidebarWidth =
+        _sidebarCollapsed
+            ? _sidebarCollapsedWidth
+            : _sidebarExpandedWidth.clamp(_sidebarMinWidth, _sidebarMaxWidth)
+                .toDouble();
+
+    return SizedBox(
+      width: sidebarWidth + (_sidebarCollapsed ? 0 : 8),
+      child: Row(
         children: [
-          // Header with SHA Icon
-          Container(
-            height: 64,
-            padding: EdgeInsets.symmetric(
-              horizontal: _sidebarCollapsed ? 12 : 20,
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.primaryGreen, width: 2),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.asset(
-                      'assets/icon/app_icon_circle.jpeg',
-                      width: 32,
-                      height: 32,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Icon(
-                          Icons.shield,
-                          size: 20,
-                          color: AppColors.primaryGreen,
-                        );
-                      },
-                    ),
-                  ),
-                ),
-                if (!_sidebarCollapsed) ...[
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: Text(
-                      'MUST Admin',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          Divider(color: Colors.white.withOpacity(0.1), height: 1),
-          const SizedBox(height: 8),
-          // Nav items
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              children:
-                  _visibleNavItems
-                      .map((item) => _buildSidebarItem(item))
-                      .toList(),
-            ),
-          ),
-          // Footer
-          Divider(color: Colors.white.withOpacity(0.1), height: 1),
-          Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: _sidebarCollapsed ? 8 : 16,
-              vertical: 12,
-            ),
-            child:
-                _sidebarCollapsed
-                    ? const Icon(Icons.school, color: Colors.white38, size: 20)
-                    : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: sidebarWidth,
+            decoration: const BoxDecoration(color: AppColors.primaryGreen),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: SizedBox(
+                    width: sidebarWidth,
+                    height: constraints.maxHeight,
+                    child: Column(
                       children: [
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.school,
-                              color: AppColors.primaryGreen,
-                              size: 16,
+                    // Header with SHA Icon
+                    Container(
+                      height: 64,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: _sidebarCollapsed ? 12 : 20,
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: AppColors.primaryGreen,
+                                width: 2,
+                              ),
                             ),
-                            const SizedBox(width: 8),
-                            const Text(
-                              'MUST',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.asset(
+                                'assets/icon/app_icon_circle.jpeg',
+                                width: 32,
+                                height: 32,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Icon(
+                                    Icons.shield,
+                                    size: 20,
+                                    color: AppColors.primaryGreen,
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                          if (!_sidebarCollapsed) ...[
+                            const SizedBox(width: 12),
+                            const Expanded(
+                              child: Text(
+                                'MUST Admin',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
+                        ],
+                      ),
+                    ),
+                    Divider(color: Colors.white.withOpacity(0.1), height: 1),
+                    const SizedBox(height: 8),
+                    // Nav items
+                    Expanded(
+                      child: ListView(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        children:
+                            _visibleNavItems
+                                .map((item) => _buildSidebarItem(item))
+                                .toList(),
+                      ),
+                    ),
+                    // Footer
+                    Divider(color: Colors.white.withOpacity(0.1), height: 1),
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: _sidebarCollapsed ? 8 : 16,
+                        vertical: 12,
+                      ),
+                      child:
+                          _sidebarCollapsed
+                              ? const Icon(
+                                Icons.school,
+                                color: Colors.white38,
+                                size: 20,
+                              )
+                              : Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.school,
+                                        color: AppColors.primaryGreen,
+                                        size: 16,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      const Text(
+                                        'MUST',
+                                        style: TextStyle(
+                                          color: Colors.white70,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'v1.0.0 · © 2026',
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.4),
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                    ),
+                    // Collapse toggle
+                    Divider(color: Colors.white.withOpacity(0.1), height: 1),
+                    InkWell(
+                      onTap:
+                          () =>
+                              setState(() => _sidebarCollapsed = !_sidebarCollapsed),
+                      child: Container(
+                        height: 48,
+                        alignment: Alignment.center,
+                        child: Icon(
+                          _sidebarCollapsed
+                              ? Icons.keyboard_double_arrow_right
+                              : Icons.keyboard_double_arrow_left,
+                          color: Colors.white54,
+                          size: 20,
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'v1.0.0 · © 2026',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.4),
-                            fontSize: 10,
-                          ),
-                        ),
+                      ),
+                    ),
                       ],
                     ),
-          ),
-          // Collapse toggle
-          Divider(color: Colors.white.withOpacity(0.1), height: 1),
-          InkWell(
-            onTap: () => setState(() => _sidebarCollapsed = !_sidebarCollapsed),
-            child: Container(
-              height: 48,
-              alignment: Alignment.center,
-              child: Icon(
-                _sidebarCollapsed
-                    ? Icons.keyboard_double_arrow_right
-                    : Icons.keyboard_double_arrow_left,
-                color: Colors.white54,
-                size: 20,
-              ),
+                  ),
+                );
+              },
             ),
           ),
+          if (!_sidebarCollapsed)
+            MouseRegion(
+              cursor: SystemMouseCursors.resizeLeftRight,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onHorizontalDragUpdate: (details) {
+                  setState(() {
+                    _sidebarExpandedWidth = (_sidebarExpandedWidth + details.delta.dx)
+                        .clamp(_sidebarMinWidth, _sidebarMaxWidth)
+                        .toDouble();
+                  });
+                },
+                child: Container(
+                  width: 8,
+                  color: Colors.black.withOpacity(0.08),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -665,12 +730,19 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
   List<Map<String, dynamic>> _allReports = [];
   final Map<String, String> _userFacultyMap = {};
   final Map<String, String> _userDeptMap = {};
+  final Map<String, String> _userGenderMap = {};
+  final Map<String, String> _userRoleMap = {};
 
   // Filter state
   String _selectedFaculty = 'All Faculties';
   String _selectedDepartment = 'All Departments';
   String _selectedStatus = 'All Statuses';
   String _viewMode = 'reports'; // 'reports' or 'users'
+
+  // Advanced insights local filters (independent from main dashboard filters)
+  String _insightGender = 'All Genders';
+  String _insightRole = 'All Roles';
+  String _insightReportType = 'All Reports';
 
   bool _isLoading = true;
 
@@ -738,6 +810,86 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
     'dismissed',
   ];
 
+  String _cleanLabel(String value) {
+    return value
+        .toLowerCase()
+        .replaceAll('&', ' and ')
+        .replaceAll(RegExp(r'^[a-z]\.'), '')
+        .replaceAll(RegExp(r'^(school|faculty)\s+of\s+'), '')
+        .replaceAll(RegExp(r'[^a-z0-9\s]'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+  }
+
+  String _canonicalFaculty(String rawFaculty) {
+    final normalized = _cleanLabel(rawFaculty);
+    if (normalized.isEmpty) return '';
+
+    if (normalized.contains('computing') &&
+        normalized.contains('informatics')) {
+      return 'School of Computing and Informatics';
+    }
+    if (normalized.contains('health') && normalized.contains('science')) {
+      return 'School of Health Sciences';
+    }
+    if (normalized == 'science' || normalized.contains('school science')) {
+      return 'School of Science';
+    }
+    if (normalized.contains('applied') && normalized.contains('technology')) {
+      return 'School of Applied Sciences and Technology';
+    }
+    if (normalized.contains('business') && normalized.contains('management')) {
+      return 'School of Business and Management Sciences';
+    }
+    if (normalized.contains('interdisciplinary')) {
+      return 'School of Interdisciplinary Studies';
+    }
+
+    for (final faculty in _faculties) {
+      final full = _cleanLabel(faculty);
+      final short = _cleanLabel(_shortFaculty(faculty));
+      if (normalized == full || normalized == short) {
+        return faculty;
+      }
+    }
+
+    return rawFaculty.trim();
+  }
+
+  String _canonicalDepartment(String faculty, String rawDepartment) {
+    final dept = rawDepartment.trim();
+    if (dept.isEmpty) return '';
+
+    final departments = _facultyDepartments[faculty] ?? const <String>[];
+    final normalizedDept = _cleanLabel(dept);
+
+    for (final knownDept in departments) {
+      if (_cleanLabel(knownDept) == normalizedDept) {
+        return knownDept;
+      }
+    }
+
+    return dept;
+  }
+
+  String _normalizeGender(dynamic rawGender) {
+    final normalized = _cleanLabel((rawGender ?? '').toString());
+    if (normalized == 'male' || normalized == 'man') return 'Male';
+    if (normalized == 'female' || normalized == 'woman') return 'Female';
+    if (normalized.isEmpty) return 'Unspecified';
+    return 'Other';
+  }
+
+  String _normalizeRole(dynamic rawRole, dynamic rawOtherRole) {
+    final role = (rawRole ?? '').toString().trim();
+    final otherRole = (rawOtherRole ?? '').toString().trim();
+    if (role.isEmpty) return 'Unspecified';
+    if (role.toLowerCase() == 'other') {
+      return otherRole.isNotEmpty ? otherRole : 'Other';
+    }
+    return role;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -760,8 +912,24 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
       // Build faculty/dept mapping
       for (final user in _allUsers) {
         final id = user['id'] as String;
-        _userFacultyMap[id] = (user['department'] ?? '') as String;
-        _userDeptMap[id] = (user['facultyDepartment'] ?? '') as String;
+        final facultyRaw =
+            (user['department'] ?? user['faculty'] ?? '').toString();
+        final faculty = _canonicalFaculty(facultyRaw);
+        final deptRaw = (user['facultyDepartment'] ?? '').toString();
+        final dept = _canonicalDepartment(faculty, deptRaw);
+        final gender = _normalizeGender(user['gender']);
+        final role = _normalizeRole(user['role'], user['otherRole']);
+
+        _userFacultyMap[id] = faculty;
+        _userDeptMap[id] = dept;
+        _userGenderMap[id] = gender;
+        _userRoleMap[id] = role;
+
+        // Keep normalized values on user records for consistent filtering/stats.
+        user['department'] = faculty;
+        user['facultyDepartment'] = dept;
+        user['gender'] = gender;
+        user['role'] = role;
       }
 
       // Load reports
@@ -775,9 +943,13 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
             if (userId != null) {
               data['userFaculty'] = _userFacultyMap[userId] ?? '';
               data['userDept'] = _userDeptMap[userId] ?? '';
+              data['userGender'] = _userGenderMap[userId] ?? 'Unspecified';
+              data['userRole'] = _userRoleMap[userId] ?? 'Unspecified';
             } else {
               data['userFaculty'] = '';
               data['userDept'] = '';
+              data['userGender'] = 'Unspecified';
+              data['userRole'] = 'Unspecified';
             }
             return data;
           }).toList();
@@ -848,6 +1020,90 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
     };
   }
 
+  List<String> get _availableInsightRoles {
+    final roles =
+        _filteredUsers
+            .map((u) => _normalizeRole(u['role'], u['otherRole']))
+            .toSet()
+            .toList()
+          ..sort();
+    return roles;
+  }
+
+  List<Map<String, dynamic>> get _advancedFilteredUsers {
+    return _filteredUsers.where((u) {
+      final gender = _normalizeGender(u['gender']);
+      final role = _normalizeRole(u['role'], u['otherRole']);
+
+      if (_insightGender != 'All Genders' && gender != _insightGender) {
+        return false;
+      }
+      if (_insightRole != 'All Roles' && role != _insightRole) {
+        return false;
+      }
+      return true;
+    }).toList();
+  }
+
+  List<Map<String, dynamic>> get _advancedFilteredReports {
+    return _filteredReports.where((r) {
+      final gender = _normalizeGender(r['userGender']);
+      final role = _normalizeRole(r['userRole'], '');
+      final isAnonymous = r['isAnonymous'] == true;
+
+      if (_insightGender != 'All Genders' && gender != _insightGender) {
+        return false;
+      }
+      if (_insightRole != 'All Roles' && role != _insightRole) {
+        return false;
+      }
+      if (_insightReportType == 'Anonymous Only' && !isAnonymous) {
+        return false;
+      }
+      if (_insightReportType == 'Identified Only' && isAnonymous) {
+        return false;
+      }
+      return true;
+    }).toList();
+  }
+
+  Map<String, int> get _advancedUserGenderStats {
+    final stats = <String, int>{
+      'Male': 0,
+      'Female': 0,
+      'Other': 0,
+      'Unspecified': 0,
+    };
+    for (final user in _advancedFilteredUsers) {
+      final gender = _normalizeGender(user['gender']);
+      stats[gender] = (stats[gender] ?? 0) + 1;
+    }
+    return stats;
+  }
+
+  Map<String, int> get _advancedReportGenderStats {
+    final stats = <String, int>{
+      'Male': 0,
+      'Female': 0,
+      'Other': 0,
+      'Unspecified': 0,
+    };
+    for (final report in _advancedFilteredReports) {
+      final gender = _normalizeGender(report['userGender']);
+      stats[gender] = (stats[gender] ?? 0) + 1;
+    }
+    return stats;
+  }
+
+  Map<String, int> get _advancedRoleStats {
+    final stats = <String, int>{};
+    for (final user in _advancedFilteredUsers) {
+      final role = _normalizeRole(user['role'], user['otherRole']);
+      stats[role] = (stats[role] ?? 0) + 1;
+    }
+    return stats;
+  }
+
   void _resetFilters() {
     setState(() {
       _selectedFaculty = 'All Faculties';
@@ -885,6 +1141,8 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
                 : _buildUsersDataView(),
             const SizedBox(height: 24),
             _buildBreakdownSection(),
+            const SizedBox(height: 24),
+            _buildAdvancedInsightsSection(),
             const SizedBox(height: 24),
           ],
         ),
@@ -1982,6 +2240,453 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
               ],
             ),
       ],
+    );
+  }
+
+  Widget _buildAdvancedInsightsSection() {
+    final isWide = MediaQuery.of(context).size.width > 900;
+    final hasInsightFilter =
+        _insightGender != 'All Genders' ||
+        _insightRole != 'All Roles' ||
+        _insightReportType != 'All Reports';
+
+    final roleOptions = _availableInsightRoles;
+    final selectedRoleValue =
+        (_insightRole == 'All Roles' || roleOptions.contains(_insightRole))
+            ? _insightRole
+            : 'All Roles';
+
+    if (selectedRoleValue != _insightRole) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(() => _insightRole = selectedRoleValue);
+      });
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.secondaryOrange.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.insights,
+                color: AppColors.secondaryOrange,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'Advanced Insights',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primaryGreen,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color:
+                  hasInsightFilter
+                      ? AppColors.secondaryOrange
+                      : Colors.grey[200]!,
+            ),
+          ),
+          child: Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              _buildAdvancedDropdown(
+                label: 'Gender',
+                value: _insightGender,
+                items: const ['All Genders', 'Male', 'Female', 'Other', 'Unspecified'],
+                onChanged: (v) => setState(() => _insightGender = v),
+              ),
+              _buildAdvancedDropdown(
+                label: 'Role',
+                value: selectedRoleValue,
+                items: ['All Roles', ...roleOptions],
+                onChanged: (v) => setState(() => _insightRole = v),
+              ),
+              _buildAdvancedDropdown(
+                label: 'Report Type',
+                value: _insightReportType,
+                items: const ['All Reports', 'Anonymous Only', 'Identified Only'],
+                onChanged: (v) => setState(() => _insightReportType = v),
+              ),
+              if (hasInsightFilter)
+                TextButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _insightGender = 'All Genders';
+                      _insightRole = 'All Roles';
+                      _insightReportType = 'All Reports';
+                    });
+                  },
+                  icon: const Icon(Icons.clear_all, size: 16),
+                  label: const Text('Reset Insights'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.grey[700],
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        isWide
+            ? Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: _buildGenderDistributionCard()),
+                const SizedBox(width: 16),
+                Expanded(child: _buildProfessionalKpiCard()),
+              ],
+            )
+            : Column(
+              children: [
+                _buildGenderDistributionCard(),
+                const SizedBox(height: 16),
+                _buildProfessionalKpiCard(),
+              ],
+            ),
+      ],
+    );
+  }
+
+  Widget _buildAdvancedDropdown({
+    required String label,
+    required String value,
+    required List<String> items,
+    required ValueChanged<String> onChanged,
+  }) {
+    return Container(
+      constraints: const BoxConstraints(minWidth: 180, maxWidth: 240),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: value,
+          isExpanded: true,
+          icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey[600]),
+          items:
+              items
+                  .map(
+                    (item) => DropdownMenuItem<String>(
+                      value: item,
+                      child: Text(
+                        '$label: $item',
+                        style: const TextStyle(fontSize: 12),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  )
+                  .toList(),
+          onChanged: (v) {
+            if (v == null) return;
+            onChanged(v);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGenderDistributionCard() {
+    final userGender = _advancedUserGenderStats;
+    final reportGender = _advancedReportGenderStats;
+    final categories = ['Male', 'Female', 'Other', 'Unspecified'];
+
+    final maxValue = [
+      ...categories.map((g) => userGender[g] ?? 0),
+      ...categories.map((g) => reportGender[g] ?? 0),
+    ].fold<int>(0, (current, item) => math.max(current, item));
+
+    final maxY = ((maxValue == 0 ? 1 : maxValue) * 1.3).toDouble();
+
+    return _buildChartCardShell(
+      title: 'Gender Analytics',
+      subtitle: 'Users and reports by gender (filtered)',
+      child: Column(
+        children: [
+          SizedBox(
+            height: 260,
+            child: BarChart(
+              BarChartData(
+                maxY: maxY,
+                groupsSpace: 16,
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  horizontalInterval:
+                      maxValue <= 5 ? 1.0 : (maxValue / 5).ceilToDouble(),
+                  getDrawingHorizontalLine:
+                      (value) => FlLine(
+                        color: Colors.grey.withOpacity(0.15),
+                        strokeWidth: 1,
+                      ),
+                ),
+                borderData: FlBorderData(show: false),
+                titlesData: FlTitlesData(
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 28,
+                      getTitlesWidget:
+                          (value, meta) => Text(
+                            value.toInt().toString(),
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                    ),
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (value, meta) {
+                        final index = value.toInt();
+                        if (index < 0 || index >= categories.length) {
+                          return const SizedBox.shrink();
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Text(
+                            categories[index],
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.grey[700],
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                barGroups: List.generate(categories.length, (index) {
+                  final gender = categories[index];
+                  return BarChartGroupData(
+                    x: index,
+                    barsSpace: 6,
+                    barRods: [
+                      BarChartRodData(
+                        toY: (userGender[gender] ?? 0).toDouble(),
+                        width: 12,
+                        color: AppColors.primaryGreen,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      BarChartRodData(
+                        toY: (reportGender[gender] ?? 0).toDouble(),
+                        width: 12,
+                        color: AppColors.secondaryOrange,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ],
+                  );
+                }),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              _buildMetricLegend(
+                _ChartMetric('Users', _advancedFilteredUsers.length, AppColors.primaryGreen),
+              ),
+              _buildMetricLegend(
+                _ChartMetric(
+                  'Reports',
+                  _advancedFilteredReports.length,
+                  AppColors.secondaryOrange,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfessionalKpiCard() {
+    final reportsData = _advancedFilteredReports;
+    final usersData = _advancedFilteredUsers;
+    final reports = reportsData.length;
+    final resolved = reportsData.where((r) => r['status'] == 'resolved').length;
+    final underReview =
+        reportsData.where((r) => r['status'] == 'under_review').length;
+    final anonymous = reportsData.where((r) => r['isAnonymous'] == true).length;
+    final roles = _advancedRoleStats.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    final resolutionRate = reports == 0 ? 0 : ((resolved / reports) * 100).round();
+    final anonymousRate = reports == 0 ? 0 : ((anonymous / reports) * 100).round();
+    final reviewRate = reports == 0 ? 0 : ((underReview / reports) * 100).round();
+
+    return _buildChartCardShell(
+      title: 'Operational KPI Snapshot',
+      subtitle: 'Resolution, anonymity, workflow pressure, and user roles',
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: _buildKpiTile(
+                  'Resolution Rate',
+                  '$resolutionRate%',
+                  Icons.verified,
+                  AppColors.primaryGreen,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildKpiTile(
+                  'Anonymous Rate',
+                  '$anonymousRate%',
+                  Icons.visibility_off,
+                  Colors.grey[700]!,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: _buildKpiTile(
+                  'Under Review',
+                  '$reviewRate%',
+                  Icons.hourglass_top,
+                  AppColors.royalBlue,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildKpiTile(
+                  'Active Filters Users',
+                  '${usersData.length}',
+                  Icons.people,
+                  AppColors.secondaryOrange,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Top User Roles',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[700],
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (roles.isEmpty)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'No role data in current filter',
+                style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+              ),
+            )
+          else
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children:
+                  roles
+                      .take(6)
+                      .map(
+                        (entry) => Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryGreen.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            '${entry.key}: ${entry.value}',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildKpiTile(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(fontSize: 10, color: Colors.grey[700]),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

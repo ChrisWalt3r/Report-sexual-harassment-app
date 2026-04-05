@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import '../services/enhanced_ai_service.dart';
 import '../config/ai_config.dart';
@@ -33,6 +34,11 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
   }
 
   Future<void> _initializeChat() async {
+    // Inform service whether this session is identified or anonymous.
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final isIdentified = currentUser != null && !currentUser.isAnonymous;
+    _aiService.setUserIdentified(isIdentified);
+
     await _aiService.connectToChat();
     _scrollToBottom();
   }
@@ -81,13 +87,9 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
                         controller: _scrollController,
                         padding: const EdgeInsets.all(16),
                         itemCount: aiService.messages.length + 
-                                  (aiService.isAgentTyping ? 1 : 0) + 1,
+                                  (aiService.isAgentTyping ? 1 : 0),
                         itemBuilder: (context, index) {
-                          if (index == 0) {
-                            return _buildChatHeader();
-                          }
-                          
-                          final messageIndex = index - 1;
+                          final messageIndex = index;
                           
                           if (messageIndex < aiService.messages.length) {
                             return _buildMessageBubble(aiService.messages[messageIndex]);
@@ -288,174 +290,17 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
     );
   }
 
-  Widget _buildChatHeader() {
-    return Column(
-      children: [
-        Container(
-          margin: const EdgeInsets.only(bottom: 20),
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: AppColors.primaryGreen.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.primaryGreen.withOpacity(0.2)),
-          ),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryGreen,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.psychology, color: Colors.white, size: 20),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'SafeReport AI Assistant',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'I\'m here to provide confidential support and guidance. Your privacy is protected.',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.black87,
-                            height: 1.4,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.primaryGreen.withOpacity(0.3)),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.security, color: AppColors.primaryGreen, size: 16),
-                    const SizedBox(width: 8),
-                    const Expanded(
-                      child: Text(
-                        'End-to-end encrypted • Confidential • MUST Campus Support',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.black87,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        
-        _buildQuickActions(),
-        const SizedBox(height: 20),
-      ],
-    );
-  }
-
-  Widget _buildQuickActions() {
-    final quickActions = [
-      'I need immediate help',
-      'I want to report an incident',
-      'I have questions about reporting',
-      'I need emotional support',
-      'I want to remain anonymous',
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Quick Actions',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: quickActions.map((action) {
-            return InkWell(
-              onTap: () => _sendQuickAction(action),
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.primaryGreen.withOpacity(0.3)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      _getActionIcon(action),
-                      size: 14,
-                      color: AppColors.primaryGreen,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      action,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-
-  IconData _getActionIcon(String action) {
-    if (action.contains('immediate')) return Icons.emergency;
-    if (action.contains('report')) return Icons.report;
-    if (action.contains('questions')) return Icons.help;
-    if (action.contains('emotional')) return Icons.favorite;
-    if (action.contains('anonymous')) return Icons.visibility_off;
-    return Icons.chat;
-  }
-
   Widget _buildMessageBubble(ChatMessage message) {
     final isUser = message.isFromUser;
+    final isLatestAssistant = _isLatestAssistantTextMessage(message);
+    final isDesktop = MediaQuery.of(context).size.width > 900;
+    final maxBubbleWidth =
+        isDesktop
+            ? 680.0
+            : MediaQuery.of(context).size.width * (isUser ? 0.78 : 0.82);
     
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 12),
       child: Row(
         mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -470,7 +315,7 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
               children: [
                 Container(
                   constraints: BoxConstraints(
-                    maxWidth: MediaQuery.of(context).size.width * 0.75,
+                    maxWidth: maxBubbleWidth,
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
@@ -506,6 +351,38 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
                       if (!isUser && message.messageType == ChatMessageType.text) ...[
                         const SizedBox(width: 8),
                         _buildQualityIndicator(message.text),
+                      ],
+                      if (!isUser && isLatestAssistant && !_aiService.isAgentTyping) ...[
+                        const SizedBox(width: 8),
+                        InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: _regenerateLastResponse,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.refresh,
+                                  size: 12,
+                                  color: Colors.grey.shade700,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Regenerate',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey.shade700,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ],
                     ],
                   ),
@@ -596,11 +473,14 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
   Widget _buildMessageContent(ChatMessage message) {
     switch (message.messageType) {
       case ChatMessageType.text:
+        if (!message.isFromUser) {
+          return _buildAssistantText(message.text);
+        }
         return Text(
           message.text,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 14,
-            color: message.isFromUser ? Colors.white : Colors.black87,
+            color: Colors.white,
             height: 1.4,
           ),
         );
@@ -635,6 +515,100 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
           ),
         );
     }
+  }
+
+  Widget _buildAssistantText(String text) {
+    final lines = text.split('\n');
+    final widgets = <Widget>[];
+
+    for (final raw in lines) {
+      final line = raw.trimRight();
+      if (line.trim().isEmpty) {
+        widgets.add(const SizedBox(height: 6));
+        continue;
+      }
+
+      final trimmed = line.trimLeft();
+      final bullet =
+          trimmed.startsWith('- ') ||
+          trimmed.startsWith('* ') ||
+          RegExp(r'^\d+\.\s').hasMatch(trimmed);
+      final heading =
+          trimmed.endsWith(':') &&
+          trimmed.length < 60 &&
+          !bullet;
+
+      if (bullet) {
+        final content = trimmed
+            .replaceFirst(RegExp(r'^[-*]\s'), '')
+            .replaceFirst(RegExp(r'^\d+\.\s'), '');
+        widgets.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(top: 6),
+                  child: Icon(Icons.circle, size: 6, color: Colors.black54),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    content,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.black87,
+                      height: 1.45,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      } else {
+        widgets.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Text(
+              trimmed,
+              style: TextStyle(
+                fontSize: heading ? 14 : 14,
+                color: Colors.black87,
+                height: 1.45,
+                fontWeight: heading ? FontWeight.w700 : FontWeight.w400,
+              ),
+            ),
+          ),
+        );
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: widgets,
+    );
+  }
+
+  bool _isLatestAssistantTextMessage(ChatMessage message) {
+    if (message.isFromUser || message.messageType != ChatMessageType.text) {
+      return false;
+    }
+
+    final messages = _aiService.messages;
+    for (int i = messages.length - 1; i >= 0; i--) {
+      final m = messages[i];
+      if (!m.isFromUser && m.messageType == ChatMessageType.text) {
+        return identical(m, message);
+      }
+    }
+    return false;
+  }
+
+  Future<void> _regenerateLastResponse() async {
+    await _aiService.regenerateLastResponse();
+    _scrollToBottom();
   }
 
   Widget _buildAITypingIndicator() {
@@ -689,117 +663,93 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
   }
 
   Widget _buildMessageInput() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          top: BorderSide(color: Colors.grey.shade200),
-        ),
-      ),
-      child: SafeArea(
-        child: Column(
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
+    return Consumer<EnhancedAIService>(
+      builder: (context, aiService, child) {
+        final inputEnabled = aiService.isConnected;
+
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border(
+              top: BorderSide(color: Colors.grey.shade200),
+            ),
+          ),
+          child: SafeArea(
+            child: Column(
               children: [
-                IconButton(
-                  icon: Icon(Icons.add, color: Colors.grey.shade600),
-                  onPressed: _showAttachmentOptions,
-                ),
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _messageController,
-                            decoration: const InputDecoration(
-                              hintText: 'Share what\'s on your mind...',
-                              border: InputBorder.none,
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 12,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _messageController,
+                                enabled: inputEnabled,
+                                decoration: InputDecoration(
+                                  hintText:
+                                      inputEnabled
+                                          ? 'Share what\'s on your mind...'
+                                          : 'Chat is currently inactive',
+                                  border: InputBorder.none,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 12,
+                                  ),
+                                ),
+                                maxLines: null,
+                                textCapitalization: TextCapitalization.sentences,
+                                textInputAction: TextInputAction.send,
+                                onSubmitted: (_) {
+                                  if (_isTyping && inputEnabled) _sendMessage();
+                                },
+                                onChanged: (text) {
+                                  setState(() {
+                                    _isTyping = text.isNotEmpty;
+                                  });
+                                },
                               ),
                             ),
-                            maxLines: null,
-                            textCapitalization: TextCapitalization.sentences,
-                            onChanged: (text) {
-                              setState(() {
-                                _isTyping = text.isNotEmpty;
-                              });
-                            },
-                          ),
-                        ),
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          margin: const EdgeInsets.only(right: 4),
-                          child: IconButton(
-                            icon: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: _isTyping 
-                                    ? AppColors.secondaryOrange
-                                    : Colors.grey.shade400,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.send,
-                                color: Colors.white,
-                                size: 18,
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              margin: const EdgeInsets.only(right: 4),
+                              child: IconButton(
+                                icon: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: _isTyping && inputEnabled
+                                        ? AppColors.secondaryOrange
+                                        : Colors.grey.shade400,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.send,
+                                    color: Colors.white,
+                                    size: 18,
+                                  ),
+                                ),
+                                onPressed:
+                                    _isTyping && inputEnabled ? _sendMessage : null,
                               ),
                             ),
-                            onPressed: _isTyping ? _sendMessage : null,
-                          ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            _buildInputActions(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInputActions() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        // Simplified actions - just show attachment hint
-        Text(
-          'Tap + to attach files, photos, or voice notes',
-          style: TextStyle(
-            fontSize: 11,
-            color: Colors.grey.shade600,
           ),
-        ),
-        TextButton.icon(
-          onPressed: _showEndChatDialog,
-          icon: Icon(Icons.logout, size: 16, color: AppColors.error),
-          label: Text(
-            'End Chat',
-            style: TextStyle(
-              color: AppColors.error, 
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          style: TextButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-        ),
-      ],
+        );
+      },
     );
   }
 
@@ -816,11 +766,6 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
     } else {
       return '${message.timestamp.day}/${message.timestamp.month}';
     }
-  }
-
-  void _sendQuickAction(String action) {
-    _aiService.sendMessage(action);
-    _scrollToBottom();
   }
 
   void _callEmergency() {
@@ -901,11 +846,11 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Primary Model: microsoft/DialoGPT-large'),
-            Text('Specialized for: Sexual harassment support'),
-            Text('Training: Trauma-informed responses'),
-            Text('Safety: Content filtering enabled'),
-            Text('Privacy: End-to-end encrypted'),
+            Text('Runtime: Admin-managed chatbot configuration'),
+            Text('Model Profile: Controlled from Admin > Chatbot Mgmt'),
+            Text('Safety Mode: Strict/Moderate/Relaxed (admin-set)'),
+            Text('Guardrails: Crisis protocol, blocked terms, escalation alerts'),
+            Text('Privacy: Session handling and transcript retention are policy-driven'),
           ],
         ),
         actions: [
@@ -928,198 +873,6 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
   void _saveTranscript() {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Transcript saved securely')),
-    );
-  }
-
-  void _showAttachmentOptions() {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Icon(Icons.attach_file, color: AppColors.primaryGreen, size: 24),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Share Evidence Securely',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'All attachments are encrypted and confidential',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-              const SizedBox(height: 20),
-              
-              // Grid of options
-              GridView.count(
-                shrinkWrap: true,
-                crossAxisCount: 3,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 1.0,
-                children: [
-                  _buildAttachmentGridOption(
-                    Icons.photo_camera,
-                    'Camera',
-                    AppColors.primaryGreen,
-                    () {},
-                  ),
-                  _buildAttachmentGridOption(
-                    Icons.photo_library,
-                    'Gallery',
-                    AppColors.royalBlue,
-                    () {},
-                  ),
-                  _buildAttachmentGridOption(
-                    Icons.description,
-                    'Document',
-                    AppColors.secondaryOrange,
-                    () {},
-                  ),
-                  _buildAttachmentGridOption(
-                    Icons.mic,
-                    'Voice Note',
-                    AppColors.maroon,
-                    () {},
-                  ),
-                  _buildAttachmentGridOption(
-                    Icons.videocam,
-                    'Video',
-                    AppColors.primaryGreen,
-                    () {},
-                  ),
-                  _buildAttachmentGridOption(
-                    Icons.location_on,
-                    'Location',
-                    AppColors.royalBlue,
-                    () {},
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAttachmentGridOption(
-    IconData icon,
-    String title,
-    Color color,
-    VoidCallback onTap,
-  ) {
-    return InkWell(
-      onTap: () {
-        Navigator.pop(context);
-        onTap();
-      },
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.3)),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: Colors.white, size: 24),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: color,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAttachmentOption(
-    IconData icon,
-    String title,
-    String subtitle,
-    VoidCallback onTap,
-  ) {
-    return ListTile(
-      leading: Container(
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(
-          color: AppColors.primaryGreen.withOpacity(0.1),
-          shape: BoxShape.circle,
-        ),
-        child: Icon(icon, color: AppColors.primaryGreen),
-      ),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-      subtitle: Text(subtitle, style: TextStyle(color: Colors.grey.shade600)),
-      onTap: () {
-        Navigator.pop(context);
-        onTap();
-      },
-    );
-  }
-
-  void _showEndChatDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('End AI Chat Session'),
-        content: const Text(
-          'Are you sure you want to end this AI-powered chat session? The conversation will be saved securely.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _aiService.endChat();
-              Navigator.pop(context);
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('End Chat'),
-          ),
-        ],
-      ),
     );
   }
 

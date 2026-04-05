@@ -32,11 +32,13 @@ class _SupportHomeScreenState extends State<SupportHomeScreen> {
   Future<void> _loadPriorityContacts() async {
     try {
       final contacts = await _supportService.getPriorityEmergencyContacts();
+      if (!mounted) return;
       setState(() {
         _priorityContacts = contacts;
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
       });
