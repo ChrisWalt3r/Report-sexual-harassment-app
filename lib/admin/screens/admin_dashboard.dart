@@ -678,27 +678,27 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
       'Community Health',
       'Nursing/Midwifery',
     ],
-    'Faculty of Science': ['Biology', 'Chemistry', 'Physics', 'Mathematics'],
-    'Faculty of Computing and Informatics': [
+    'School of Science': ['Biology', 'Chemistry', 'Physics', 'Mathematics'],
+    'School of Computing and Informatics': [
       'Computer Science',
       'Information Technology',
       'Software Engineering',
     ],
-    'Faculty of Applied Sciences and Technology': [
+    'School of Applied Sciences and Technology': [
       'Biomedical Sciences & Engineering',
       'Civil Engineering',
       'Electrical & Electronics Engineering',
       'Mechanical Engineering',
       'Petroleum & Environmental Management',
     ],
-    'Faculty of Business and Management Sciences': [
+    'School of Business and Management Sciences': [
       'Accounting & Finance',
       'Business Administration',
       'Economics',
       'Procurement & Supply Chain Management',
       'Marketing & Entrepreneurship',
     ],
-    'Faculty of Interdisciplinary Studies': [
+    'School of Interdisciplinary Studies': [
       'Planning & Governance',
       'Human Development & Relational Sciences',
       'Environment & Livelihood Support Systems',
@@ -2249,7 +2249,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
         .join(' ');
   }
 
-  String _shortFaculty(String s) => s.replaceAll('Faculty of ', 'F. ');
+  String _shortFaculty(String s) => s.replaceAll('School of ', '');
 }
 
 class _ChartMetric {

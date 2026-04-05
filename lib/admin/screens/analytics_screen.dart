@@ -316,7 +316,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             ),
             const SizedBox(height: 24),
             SizedBox(
-              height: 280,
+              height: 320,
               child: Row(
                 children: [
                   Expanded(
@@ -378,7 +378,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             ),
             const SizedBox(height: 24),
             SizedBox(
-              height: 280,
+              height: 320,
               child: BarChart(
                 BarChartData(
                   alignment: BarChartAlignment.spaceAround,
@@ -466,7 +466,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             ),
             const SizedBox(height: 24),
             SizedBox(
-              height: 280,
+              height: 320,
               child: LineChart(
                 LineChartData(
                   lineBarsData: [

@@ -470,9 +470,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             crossAxisCount: 2,
-            crossAxisSpacing: 20,
-            mainAxisSpacing: 20,
-            childAspectRatio: 1.1,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 1.15,
             children: [
               _buildMyReportsCard(context),
               _buildServiceCard(
@@ -646,7 +646,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.all(12), // Reduced padding
+        padding: const EdgeInsets.all(14), // Slightly increased padding for better spacing
         decoration: BoxDecoration(
           color: isDark ? AppColors.darkSurface : Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -668,19 +668,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               children: [
                 // Icon without frame
                 Container(
-                  width: 40, // Reduced size
-                  height: 40,
+                  width: 42, // Slightly larger
+                  height: 42,
                   decoration: BoxDecoration(
                     color: color.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(icon, color: color, size: 20), // Reduced icon size
+                  child: Icon(icon, color: color, size: 22), // Slightly larger icon
                 ),
                 if (badge != null)
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
+                      horizontal: 7,
+                      vertical: 3,
                     ),
                     decoration: BoxDecoration(
                       color: badge == 'Live' ? AppColors.primaryGreen : AppColors.secondaryOrange,
@@ -697,7 +697,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   ),
               ],
             ),
-            const SizedBox(height: 8), // Reduced spacing
+            const SizedBox(height: 10), // Better spacing
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -706,21 +706,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: 13, // Reduced font size
+                      fontSize: 14, // Slightly larger for readability
                       fontWeight: FontWeight.bold,
                       color: isDark ? Colors.white : AppColors.textPrimary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 3),
                   Flexible(
                     child: Text(
                       subtitle,
                       style: TextStyle(
-                        fontSize: 11, // Reduced font size
+                        fontSize: 11.5, // Slightly larger
                         color: isDark ? Colors.white70 : AppColors.textSecondary,
-                        height: 1.2,
+                        height: 1.3,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,

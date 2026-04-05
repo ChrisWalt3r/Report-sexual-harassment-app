@@ -79,11 +79,42 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
           return _buildUserReportsView(context, user.uid);
         },
       ),
-      bottomNavigationBar: BottomNavBar(
-        currentIndex: 2,
-        onTap: (index) {
-          // Navigation is handled by BottomNavBar internally
-        },
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Three full-width colored lines stacked on top of each other
+          Container(
+            child: Column(
+              children: [
+                // Blue line - full width
+                Container(
+                  height: 2,
+                  width: double.infinity,
+                  color: AppColors.royalBlue,
+                ),
+                // Orange line - full width
+                Container(
+                  height: 2,
+                  width: double.infinity,
+                  color: AppColors.secondaryOrange,
+                ),
+                // Green line - full width
+                Container(
+                  height: 2,
+                  width: double.infinity,
+                  color: AppColors.primaryGreen,
+                ),
+              ],
+            ),
+          ),
+          // Bottom navigation bar
+          BottomNavBar(
+            currentIndex: 1,
+            onTap: (index) {
+              // Navigation is handled by BottomNavBar internally
+            },
+          ),
+        ],
       ),
       floatingActionButton: Container(
         decoration: BoxDecoration(
