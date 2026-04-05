@@ -238,7 +238,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               'Total Users',
               _totalUsers.toString(),
               Icons.people,
-              AppColors.mustGreen,
+              AppColors.primaryGreen,
             ),
             _buildMetricCard(
               'Active Users',
@@ -250,7 +250,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               'Avg Response Time',
               '${_avgResponseTime.toStringAsFixed(1)}h',
               Icons.timer,
-              AppColors.primaryDark,
+              AppColors.royalBlue,
             ),
           ],
         );
@@ -648,9 +648,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     final colors = [
       AppColors.primaryGreen,
       AppColors.secondaryOrange,
-      AppColors.mustGreen,
-      AppColors.primaryDark,
-      AppColors.mustGreenLight,
+      AppColors.primaryGreen,
+      AppColors.royalBlue,
+      AppColors.primaryGreen,
       AppColors.secondaryDark,
       Colors.pink,
       Colors.amber,
@@ -665,9 +665,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       case 'under_review':
         return AppColors.secondaryOrange;
       case 'investigating':
-        return AppColors.primaryDark;
+        return AppColors.royalBlue;
       case 'resolved':
-        return AppColors.mustGreen;
+        return AppColors.primaryGreen;
       case 'closed':
         return Colors.grey;
       default:

@@ -117,8 +117,8 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
     'pending': Colors.orange,
     'submitted': AppColors.primaryGreen,
     'under_review': AppColors.secondaryOrange,
-    'investigating': AppColors.primaryDark,
-    'resolved': AppColors.mustGreen,
+    'investigating': AppColors.royalBlue,
+    'resolved': AppColors.primaryGreen,
     'closed': Colors.grey,
   };
 
@@ -1142,7 +1142,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                               _buildDetailCard(
                                 'Incident Description',
                                 Icons.description_outlined,
-                                AppColors.primaryDark,
+                                AppColors.royalBlue,
                                 [
                                   Container(
                                     width: double.infinity,
@@ -1960,7 +1960,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                               _buildDetailCard(
                                 'Process Timeline',
                                 Icons.timeline,
-                                AppColors.primaryDark,
+                                AppColors.royalBlue,
                                 [
                                   StreamBuilder<QuerySnapshot>(
                                     stream: _firestore

@@ -610,7 +610,7 @@ class _DataExportScreenState extends State<DataExportScreen> {
               color:
                   _isExporting
                       ? AppColors.primaryGreen.withOpacity(0.08)
-                      : AppColors.mustGreen.withOpacity(0.08),
+                      : AppColors.primaryGreen.withOpacity(0.08),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Row(
@@ -625,7 +625,7 @@ class _DataExportScreenState extends State<DataExportScreen> {
                         ),
                       )
                     else
-                      Icon(Icons.check_circle, color: AppColors.mustGreen),
+                      Icon(Icons.check_circle, color: AppColors.primaryGreen),
                     const SizedBox(width: 16),
                     Expanded(child: Text(_exportStatus)),
                   ],
@@ -704,7 +704,7 @@ class _DataExportScreenState extends State<DataExportScreen> {
             title: 'Export Users',
             description: 'Download all user data as PDF, CSV, or JSON',
             icon: Icons.people,
-            color: AppColors.mustGreen,
+            color: AppColors.primaryGreen,
             onPressed:
                 _isExporting
                     ? null

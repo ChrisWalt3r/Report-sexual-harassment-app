@@ -398,7 +398,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                           children: [
                             const Icon(
                               Icons.school,
-                              color: AppColors.admingreen,
+                              color: AppColors.primaryGreen,
                               size: 16,
                             ),
                             const SizedBox(width: 8),
@@ -465,7 +465,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
               border:
                   isActive
                       ? Border.all(
-                        color: AppColors.admingreen.withOpacity(0.7),
+                        color: AppColors.primaryGreen.withOpacity(0.7),
                         width: 1.5,
                       )
                       : null,
@@ -474,7 +474,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
               children: [
                 Icon(
                   isActive ? item.activeIcon : item.icon,
-                  color: isActive ? AppColors.admingreen : Colors.white60,
+                  color: isActive ? AppColors.primaryGreen : Colors.white60,
                   size: 20,
                 ),
                 if (!_sidebarCollapsed) ...[
@@ -483,7 +483,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     child: Text(
                       item.label,
                       style: TextStyle(
-                        color: isActive ? AppColors.admingreen : Colors.white70,
+                        color: isActive ? AppColors.primaryGreen : Colors.white70,
                         fontSize: 14,
                         fontWeight:
                             isActive ? FontWeight.w600 : FontWeight.normal,
@@ -561,7 +561,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                             isActive ? item.activeIcon : item.icon,
                             color:
                                 isActive
-                                    ? AppColors.admingreen
+                                    ? AppColors.primaryGreen
                                     : Colors.white60,
                           ),
                           title: Text(
@@ -569,7 +569,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                             style: TextStyle(
                               color:
                                   isActive
-                                      ? AppColors.admingreen
+                                      ? AppColors.primaryGreen
                                       : Colors.white70,
                               fontWeight:
                                   isActive
@@ -578,7 +578,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                             ),
                           ),
                           selected: isActive,
-                          selectedTileColor: AppColors.admingreen.withOpacity(
+                          selectedTileColor: AppColors.primaryGreen.withOpacity(
                             0.1,
                           ),
                           shape: RoundedRectangleBorder(
@@ -901,7 +901,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
         border: Border.all(color: Color(0xFF228B22), width: 2),
         boxShadow: [
           BoxShadow(
-            color: AppColors.admingreen.withOpacity(0.10),
+            color: AppColors.primaryGreen.withOpacity(0.10),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -926,7 +926,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
                   'MUST Sexual Harassment Report System',
                   style: const TextStyle(
                     fontSize: 13,
-                    color: AppColors.admingreen,
+                    color: AppColors.primaryGreen,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -935,13 +935,13 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
                     _buildMiniStat(
                       'Total Reports',
                       _allReports.length.toString(),
-                      AppColors.admingreen,
+                      AppColors.primaryGreen,
                     ),
                     const SizedBox(width: 16),
                     _buildMiniStat(
                       'Total Users',
                       _allUsers.length.toString(),
-                      AppColors.admingreen,
+                      AppColors.primaryGreen,
                     ),
                   ],
                 ),
@@ -1332,9 +1332,9 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
           _ChartMetric(
             'Under Review',
             stats['under_review'] ?? 0,
-            AppColors.primaryDark,
+            AppColors.royalBlue,
           ),
-          _ChartMetric('Resolved', stats['resolved'] ?? 0, AppColors.mustGreen),
+          _ChartMetric('Resolved', stats['resolved'] ?? 0, AppColors.primaryGreen),
           _ChartMetric('Dismissed', stats['dismissed'] ?? 0, Colors.grey),
         ].where((item) => item.value > 0).toList();
     final total = metrics.fold<int>(0, (sum, item) => sum + item.value);
@@ -1388,7 +1388,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
       _ChartMetric('Users', _filteredUsers.length, AppColors.primaryGreen),
       _ChartMetric('Reports', stats['total'] ?? 0, AppColors.secondaryOrange),
       _ChartMetric('Pending', stats['pending'] ?? 0, Colors.orange),
-      _ChartMetric('Resolved', stats['resolved'] ?? 0, AppColors.mustGreen),
+      _ChartMetric('Resolved', stats['resolved'] ?? 0, AppColors.primaryGreen),
       _ChartMetric('Anonymous', stats['anonymous'] ?? 0, Colors.grey[700]!),
     ];
     final maxValue = metrics.fold<int>(
@@ -2273,9 +2273,9 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
       case 'submitted':
         return AppColors.primaryGreen;
       case 'under_review':
-        return AppColors.primaryDark;
+        return AppColors.royalBlue;
       case 'resolved':
-        return AppColors.mustGreen;
+        return AppColors.primaryGreen;
       case 'dismissed':
         return Colors.grey;
       default:

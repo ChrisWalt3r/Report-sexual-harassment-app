@@ -345,7 +345,7 @@ class _ContactsManagementScreenState extends State<ContactsManagementScreen> {
       case ContactCategory.counseling:
         return Colors.teal;
       case ContactCategory.medical:
-        return AppColors.mustGreen;
+        return AppColors.primaryGreen;
       case ContactCategory.security:
         return Colors.red;
       case ContactCategory.humanResources:
