@@ -316,7 +316,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       width: _sidebarCollapsed ? 60 : 180,
-      decoration: const BoxDecoration(color: AppColors.admingreen),
+      decoration: const BoxDecoration(color: AppColors.primaryGreen),
       child: Column(
         children: [
           // Header with SHA Icon
