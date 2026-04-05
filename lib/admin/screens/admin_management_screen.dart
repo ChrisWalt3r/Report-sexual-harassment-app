@@ -275,7 +275,7 @@ class _AdminManagementScreenState extends State<AdminManagementScreen>
                     controller: emailCtrl,
                     label: 'Institutional Email',
                     icon: Icons.email_outlined,
-                    hint: 'e.g. j.mukasa@university.ac.ug',
+                    hint: 'e.g. j.mukasa@must.ac.ug',
                     keyboardType: TextInputType.emailAddress,
                   ),
                   const SizedBox(height: 14),
