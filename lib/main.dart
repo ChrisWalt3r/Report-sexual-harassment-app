@@ -387,8 +387,8 @@ class _MaintenanceOverlayGate extends StatelessWidget {
   Widget build(BuildContext context) {
     return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance
-          .collection('system')
-          .doc('settings')
+          .collection('public_config')
+          .doc('app_status')
           .snapshots(),
       builder: (context, snapshot) {
         final data = snapshot.data?.data();

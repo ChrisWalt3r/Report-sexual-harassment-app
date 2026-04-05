@@ -3131,6 +3131,28 @@ class _SystemSettingsPanelState extends State<_SystemSettingsPanel> {
         },
         SetOptions(merge: true),
       );
+
+      if (key == 'maintenance_mode' || key == 'maintenance_reason') {
+        final nextMaintenanceMode =
+            key == 'maintenance_mode'
+                ? (value as bool? ?? false)
+                : ((_settings['maintenance_mode'] as bool?) ?? false);
+        final nextMaintenanceReason =
+            key == 'maintenance_reason'
+                ? (value as String? ?? '')
+                : ((_settings['maintenance_reason'] as String?) ?? '');
+
+        await FirebaseFirestore.instance
+            .collection('public_config')
+            .doc('app_status')
+            .set({
+              'maintenance_mode': nextMaintenanceMode,
+              'maintenance_reason': nextMaintenanceReason,
+              'updatedAt': Timestamp.now(),
+              'updatedBy': widget.admin?.email ?? 'Unknown',
+            }, SetOptions(merge: true));
+      }
+
       await FirebaseFirestore.instance.collection('audit_logs').add({
         'action':      'system_update',
         'performedBy': widget.admin?.email ?? 'Unknown',
@@ -3180,6 +3202,15 @@ class _SystemSettingsPanelState extends State<_SystemSettingsPanel> {
         'last_update':    Timestamp.now(),
         'last_update_by': widget.admin?.email ?? 'Unknown',
       });
+      await FirebaseFirestore.instance
+          .collection('public_config')
+          .doc('app_status')
+          .set({
+            'maintenance_mode': false,
+            'maintenance_reason': '',
+            'updatedAt': Timestamp.now(),
+            'updatedBy': widget.admin?.email ?? 'Unknown',
+          }, SetOptions(merge: true));
       await FirebaseFirestore.instance.collection('audit_logs').add({
         'action':      'system_update',
         'performedBy': widget.admin?.email ?? 'Unknown',
