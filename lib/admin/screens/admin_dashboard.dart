@@ -319,7 +319,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       decoration: const BoxDecoration(color: AppColors.admingreen),
       child: Column(
         children: [
-          // Header
+          // Header with SHA Icon
           Container(
             height: 64,
             padding: EdgeInsets.symmetric(
@@ -331,13 +331,25 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: AppColors.admingreen,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(
-                    Icons.shield,
-                    size: 20,
                     color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.primaryGreen, width: 2),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.asset(
+                      'assets/icon/app_icon_circle.jpeg',
+                      width: 32,
+                      height: 32,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(
+                          Icons.shield,
+                          size: 20,
+                          color: AppColors.primaryGreen,
+                        );
+                      },
+                    ),
                   ),
                 ),
                 if (!_sidebarCollapsed) ...[
@@ -504,13 +516,25 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: AppColors.secondaryOrange,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.shield,
-                        size: 24,
                         color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.primaryGreen, width: 2),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.asset(
+                          'assets/icon/app_icon_circle.jpeg',
+                          width: 40,
+                          height: 40,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(
+                              Icons.shield,
+                              size: 24,
+                              color: AppColors.primaryGreen,
+                            );
+                          },
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -925,15 +949,34 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
             ),
           ),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: AppColors.secondaryOrange.withOpacity(0.2),
+              color: Colors.white,
               shape: BoxShape.circle,
+              border: Border.all(color: AppColors.primaryGreen, width: 3),
             ),
-            child: const Icon(
-              Icons.shield,
-              size: 40,
-              color: AppColors.secondaryDark,
+            child: ClipOval(
+              child: Image.asset(
+                'assets/icon/app_icon_circle.jpeg',
+                width: 72,
+                height: 72,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      color: AppColors.secondaryOrange.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.shield,
+                      size: 40,
+                      color: AppColors.secondaryDark,
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         ],

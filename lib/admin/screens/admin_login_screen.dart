@@ -86,26 +86,37 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Logo/Icon
+                  // Logo/Icon - SHA Icon
                   Center(
                     child: Container(
-                      height: 80,
-                      width: 80,
+                      height: 100,
+                      width: 100,
                       decoration: BoxDecoration(
-                        color: AppColors.secondaryOrange,
+                        color: Colors.white,
                         shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.primaryGreen, width: 3),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.secondaryOrange.withOpacity(0.3),
+                            color: AppColors.primaryGreen.withOpacity(0.3),
                             blurRadius: 12,
                             offset: const Offset(0, 4),
                           ),
                         ],
                       ),
-                      child: const Icon(
-                        Icons.admin_panel_settings,
-                        size: 40,
-                        color: Colors.white,
+                      child: ClipOval(
+                        child: Image.asset(
+                          'assets/icon/app_icon_circle.jpeg',
+                          width: 94,
+                          height: 94,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(
+                              Icons.admin_panel_settings,
+                              size: 50,
+                              color: AppColors.primaryGreen,
+                            );
+                          },
+                        ),
                       ),
                     ),
                   ),
