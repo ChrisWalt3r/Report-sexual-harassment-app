@@ -7,7 +7,18 @@ import '../config/ai_config.dart';
 import '../constants/app_colors.dart';
 
 class AIPoweredChatScreen extends StatefulWidget {
-  const AIPoweredChatScreen({super.key});
+  /// If true, the screen is displayed from bottom nav and should not show app bar
+  /// If false, the screen was pushed as a new route and should show app bar with back button
+  final bool isFromBottomNav;
+  
+  /// Callback to switch tab when back is pressed from bottom nav
+  final VoidCallback? onBackFromBottomNav;
+
+  const AIPoweredChatScreen({
+    super.key,
+    this.isFromBottomNav = false,
+    this.onBackFromBottomNav,
+  });
 
   @override
   State<AIPoweredChatScreen> createState() => _AIPoweredChatScreenState();
@@ -72,7 +83,7 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
       value: _aiService,
       child: Scaffold(
         backgroundColor: isDark ? AppColors.darkBackground : Colors.white,
-        appBar: _buildAppBar(),
+        appBar: widget.isFromBottomNav ? _buildBottomNavAppBar() : _buildAppBar(),
         body: Column(
           children: [
             _buildEmergencyBanner(),
@@ -113,8 +124,6 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
   }
 
   PreferredSizeWidget _buildAppBar() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
     return AppBar(
       backgroundColor: AppColors.primaryGreen,
       foregroundColor: Colors.white,
@@ -122,8 +131,88 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
       toolbarHeight: 65,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, color: Colors.white),
-        onPressed: () => Navigator.pop(context),
+        onPressed: _handleBackPress,
       ),
+      title: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.psychology,
+              color: Colors.white,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'AI Support Assistant',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                Consumer<EnhancedAIService>(
+                  builder: (context, aiService, child) {
+                    return Text(
+                      aiService.isConnected 
+                          ? 'Online • Secure • Confidential'
+                          : 'Connecting...',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Colors.white70,
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        PopupMenuButton<String>(
+          icon: const Icon(Icons.more_vert, color: Colors.white),
+          onSelected: _handleMenuAction,
+          itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 'model_info',
+              child: ListTile(
+                leading: Icon(Icons.info, color: AppColors.primaryGreen),
+                title: Text('AI Information'),
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'transcript',
+              child: ListTile(
+                leading: Icon(Icons.description, color: AppColors.primaryGreen),
+                title: Text('Save Chat'),
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  PreferredSizeWidget _buildBottomNavAppBar() {
+    return AppBar(
+      backgroundColor: AppColors.primaryGreen,
+      foregroundColor: Colors.white,
+      elevation: 0,
+      toolbarHeight: 65,
+      automaticallyImplyLeading: false,
       title: Row(
         children: [
           Container(
@@ -834,6 +923,14 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
       case 'transcript':
         _saveTranscript();
         break;
+    }
+  }
+
+  void _handleBackPress() {
+    if (widget.isFromBottomNav && widget.onBackFromBottomNav != null) {
+      widget.onBackFromBottomNav!();
+    } else if (Navigator.canPop(context)) {
+      Navigator.pop(context);
     }
   }
 
