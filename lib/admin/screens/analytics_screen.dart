@@ -316,7 +316,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             ),
             const SizedBox(height: 24),
             SizedBox(
-              height: 320,
+              height: 380, // Increased from 320
               child: Row(
                 children: [
                   Expanded(
@@ -329,16 +329,16 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                             value: entry.value.toDouble(),
                             title: '${entry.value}',
                             color: _getChartColor(index),
-                            radius: 90,
+                            radius: 100, // Increased from 90
                             titleStyle: const TextStyle(
-                              fontSize: 13,
+                              fontSize: 14, // Increased from 13
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
                           );
                         }).toList(),
                         sectionsSpace: 2,
-                        centerSpaceRadius: 35,
+                        centerSpaceRadius: 40, // Increased from 35
                       ),
                     ),
                   ),
@@ -378,7 +378,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             ),
             const SizedBox(height: 24),
             SizedBox(
-              height: 320,
+              height: 380, // Increased from 320
               child: BarChart(
                 BarChartData(
                   alignment: BarChartAlignment.spaceAround,
@@ -396,7 +396,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                               padding: const EdgeInsets.only(top: 8),
                               child: Text(
                                 _formatStatus(statuses[value.toInt()]),
-                                style: const TextStyle(fontSize: 10),
+                                style: const TextStyle(fontSize: 11), // Increased from 10
                               ),
                             );
                           }
@@ -407,11 +407,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     leftTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
-                        reservedSize: 40,
+                        reservedSize: 45,
                         getTitlesWidget: (value, meta) {
                           return Text(
                             value.toInt().toString(),
-                            style: const TextStyle(fontSize: 10),
+                            style: const TextStyle(fontSize: 11),
                           );
                         },
                       ),
@@ -427,7 +427,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                         BarChartRodData(
                           toY: entry.value.value.toDouble(),
                           color: _getStatusColor(entry.value.key),
-                          width: 30,
+                          width: 35, // Increased from 30
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ],
@@ -466,7 +466,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             ),
             const SizedBox(height: 24),
             SizedBox(
-              height: 320,
+              height: 380, // Increased from 320
               child: LineChart(
                 LineChartData(
                   lineBarsData: [
@@ -476,7 +476,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       }).toList(),
                       isCurved: true,
                       color: AppColors.primaryGreen,
-                      barWidth: 3,
+                      barWidth: 4, // Increased from 3
                       dotData: const FlDotData(show: true),
                       belowBarData: BarAreaData(
                         show: true,
@@ -489,14 +489,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
-                        reservedSize: 30,
+                        reservedSize: 35, // Increased from 30
                         getTitlesWidget: (value, meta) {
                           if (value.toInt() >= 0 && value.toInt() < _reportsOverTime.length) {
                             return Padding(
                               padding: const EdgeInsets.only(top: 8),
                               child: Text(
                                 _reportsOverTime[value.toInt()].key,
-                                style: const TextStyle(fontSize: 9),
+                                style: const TextStyle(fontSize: 10), // Increased from 9
                               ),
                             );
                           }
@@ -507,11 +507,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     leftTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
-                        reservedSize: 40,
+                        reservedSize: 45, // Increased from 40
                         getTitlesWidget: (value, meta) {
                           return Text(
                             value.toInt().toString(),
-                            style: const TextStyle(fontSize: 10),
+                            style: const TextStyle(fontSize: 11), // Increased from 10
                           );
                         },
                       ),

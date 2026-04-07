@@ -41,8 +41,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final List<String> _genderOptions = [
     'Male',
     'Female',
-    'Non-binary',
-    'Prefer to self-describe',
     'Prefer not to answer',
   ];
   final List<String> _faculties = [
