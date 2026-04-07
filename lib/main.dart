@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'firebase_options.dart';
@@ -83,6 +84,11 @@ class ReportHarassmentApp extends StatelessWidget {
           return MaterialApp(
             title: 'SafeReport',
             debugShowCheckedModeBanner: false,
+            builder: (context, child) {
+              return _MaintenanceOverlayGate(
+                child: child ?? const SizedBox.shrink(),
+              );
+            },
             themeMode: themeService.themeMode,
             theme: ThemeData(
               colorScheme: ColorScheme.fromSeed(
@@ -367,6 +373,80 @@ class AuthWrapper extends StatelessWidget {
 
         // User is not logged in
         return const WelcomeScreen();
+      },
+    );
+  }
+}
+
+class _MaintenanceOverlayGate extends StatelessWidget {
+  final Widget child;
+
+  const _MaintenanceOverlayGate({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance
+          .collection('public_config')
+          .doc('app_status')
+          .snapshots(),
+      builder: (context, snapshot) {
+        final data = snapshot.data?.data();
+        final maintenanceOn = (data?['maintenance_mode'] as bool?) ?? false;
+        final reason = (data?['maintenance_reason'] as String?)?.trim() ?? '';
+
+        if (!maintenanceOn) {
+          return child;
+        }
+
+        return Stack(
+          children: [
+            child,
+            Positioned.fill(
+              child: AbsorbPointer(
+                absorbing: true,
+                child: Container(
+                  color: Colors.white.withOpacity(0.94),
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const CircularProgressIndicator(
+                            color: AppColors.primaryGreen,
+                          ),
+                          const SizedBox(height: 18),
+                          const Text(
+                            'System Maintenance in Progress',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textDark,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            reason.isNotEmpty
+                                ? reason
+                                : 'Please wait a bit while we complete updates.',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: AppColors.textSecondary,
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
       },
     );
   }

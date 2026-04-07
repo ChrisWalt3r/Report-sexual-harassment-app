@@ -3,9 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_styles.dart';
-import '../widgets/bottom_nav_bar.dart';
 import '../services/auth_service.dart';
-import 'home_screen.dart';
 import '../utils/user_role_utils.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -16,7 +14,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  int _currentNavIndex = 3;
   final AuthService _authService = AuthService();
 
   // User data
@@ -36,10 +33,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? _selectedStudyLevel;
   String? _selectedFaculty;
   String? _selectedDepartment;
+  String? _selectedGender;
 
   // Options matching register screen
   final List<String> _roles = UserRoleUtils.selectableRoles;
   final List<String> _studyLevels = ['Undergraduate', 'Postgraduate'];
+  final List<String> _genderOptions = [
+    'Male',
+    'Female',
+    'Non-binary',
+    'Prefer to self-describe',
+    'Prefer not to answer',
+  ];
   final List<String> _faculties = [
     'School of Health Sciences',
     'School of Science',
@@ -150,6 +155,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         !_studyLevels.contains(_selectedStudyLevel)) {
       _selectedStudyLevel = null;
     }
+    _selectedGender = _userData?['gender'];
+    if (_selectedGender != null && !_genderOptions.contains(_selectedGender)) {
+      _selectedGender = null;
+    }
     _selectedFaculty = _userData?['department'];
     if (_selectedFaculty != null && !_faculties.contains(_selectedFaculty)) {
       _selectedFaculty = null;
@@ -195,6 +204,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _selectedRole == UserRoleUtils.otherRoleValue
                 ? _otherRoleController.text.trim()
                 : '',
+        'gender': _selectedGender ?? '',
         'studyLevel': _selectedStudyLevel ?? '',
         'department': _selectedFaculty ?? '',
         'facultyDepartment': _selectedDepartment ?? '',
@@ -239,14 +249,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _emailController.dispose();
     _otherRoleController.dispose();
     super.dispose();
-  }
-
-  void _navigateToHome() {
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
-      (route) => false,
-    );
   }
 
   @override
@@ -342,20 +344,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ],
                 ),
               ),
-      bottomNavigationBar: BottomNavBar(
-        currentIndex: _currentNavIndex,
-        onTap: (index) {
-          if (index == 0) {
-            _navigateToHome();
-          } else if (index == 3) {
-            Navigator.pop(context);
-          } else {
-            setState(() {
-              _currentNavIndex = index;
-            });
-          }
-        },
-      ),
     );
   }
 
@@ -574,6 +562,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
               icon: Icons.edit_outlined,
             ),
           ],
+
+          const SizedBox(height: 20),
+
+          // Gender
+          _buildFieldLabel('Gender'),
+          const SizedBox(height: 8),
+          _isEditing
+              ? _buildDropdown<String>(
+                value: _selectedGender,
+                hint: 'Select your gender (optional)',
+                icon: Icons.person_outline,
+                items: _genderOptions,
+                onChanged: (value) => setState(() => _selectedGender = value),
+              )
+              : _buildReadOnlyField(
+                _userData?['gender'] ?? 'Not provided',
+              ),
 
           // Study Level (for Students)
           if (_isEditing &&
@@ -1563,11 +1568,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       await _authService.deleteAccount(result);
       if (!mounted) return;
-      Navigator.pop(context);
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-        (route) => false,
-      );
+      Navigator.popUntil(context, (route) => route.isFirst);
     } catch (e) {
       if (!mounted) return;
       Navigator.pop(context);

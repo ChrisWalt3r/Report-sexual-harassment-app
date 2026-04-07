@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../widgets/bottom_nav_bar.dart';
 import '../constants/app_colors.dart';
 import '../models/official_contact.dart';
 import '../services/official_contacts_service.dart';
@@ -13,7 +12,6 @@ class EmergencyScreen extends StatefulWidget {
 }
 
 class _EmergencyScreenState extends State<EmergencyScreen> {
-  final int _currentNavIndex = 2;
   bool _isLoading = false;
   bool _isContactsLoading = true;
   final OfficialContactsService _officialContactsService = OfficialContactsService();
@@ -271,8 +269,11 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F7),
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
+        backgroundColor: AppColors.primaryGreen,
+        centerTitle: true,
+        toolbarHeight: 65,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -293,129 +294,104 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
             onPressed: _showEmergencyInfo,
           ),
         ],
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [AppColors.mustBlue, AppColors.mustBlueMedium],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 560),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 22,
+                        vertical: 20,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: AppColors.error.withOpacity(0.15),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          const Icon(
+                            Icons.emergency_rounded,
+                            size: 44,
+                            color: AppColors.error,
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Need Immediate Help?',
+                            style: TextStyle(
+                              fontSize: 21,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textDark,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Use panic mode to quickly reach security and emergency services.',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey.shade700,
+                              height: 1.45,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 18),
+                          _buildPanicButton(),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+              _buildSectionHeader('Quick Dial'),
+              const SizedBox(height: 10),
+              _buildQuickDialGrid(),
+
+              const SizedBox(height: 22),
+              _buildSectionHeader('All Emergency Contacts'),
+              const SizedBox(height: 10),
+              _buildEmergencyContactsList(),
+
+              const SizedBox(height: 22),
+              _buildSafetyTips(),
+              const SizedBox(height: 18),
+            ],
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Emergency Banner
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [AppColors.mustBlue, Color(0xFF001A33)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              child: Column(
-                children: [
-                  const Icon(
-                    Icons.emergency,
-                    size: 60,
-                    color: Colors.white,
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Need Help?',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Tap any button below for immediate assistance',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white70,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 20),
-                  _buildPanicButton(),
-                ],
-              ),
-            ),
-            
-            const SizedBox(height: 20),
-            
-            // Quick Dial Section
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                'QUICK DIAL',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey,
-                  letterSpacing: 1.2,
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            
-            _buildQuickDialGrid(),
-            
-            const SizedBox(height: 24),
-            
-            // Emergency Contacts List
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                'ALL EMERGENCY CONTACTS',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey,
-                  letterSpacing: 1.2,
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            
-            _buildEmergencyContactsList(),
-            
-            const SizedBox(height: 24),
-            
-            // Safety Tips
-            _buildSafetyTips(),
-            
-            const SizedBox(height: 16),
-          ],
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: Colors.grey.shade600,
+          letterSpacing: 0.9,
         ),
-      ),
-      bottomNavigationBar: BottomNavBar(
-        currentIndex: _currentNavIndex,
-        onTap: (index) {
-          if (index != _currentNavIndex) {
-            switch (index) {
-              case 0:
-                Navigator.pushReplacementNamed(context, '/home');
-                break;
-              case 1:
-                // My Reports - handled in BottomNavBar
-                break;
-              case 2:
-                // Already on Emergency/Support screen
-                break;
-              case 3:
-                Navigator.pushNamed(context, '/settings');
-                break;
-            }
-          }
-        },
       ),
     );
   }
@@ -424,34 +400,39 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
     return GestureDetector(
       onTap: _activatePanicMode,
       child: Container(
-        width: 120,
-        height: 120,
+        width: 170,
+        height: 58,
         decoration: BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle,
+          gradient: const LinearGradient(
+            colors: [AppColors.error, Color(0xFFD32F2F)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.3),
-              blurRadius: 20,
-              spreadRadius: 5,
+              color: AppColors.error.withOpacity(0.35),
+              blurRadius: 12,
+              offset: const Offset(0, 5),
             ),
           ],
         ),
-        child: Column(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(
               Icons.crisis_alert,
-              size: 50,
-              color: Colors.red,
+              size: 24,
+              color: Colors.white,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(width: 8),
             const Text(
-              'PANIC',
+              'PANIC MODE',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: Colors.red,
+                color: Colors.white,
+                letterSpacing: 0.5,
               ),
             ),
           ],

@@ -1262,6 +1262,121 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
 
                         const SizedBox(height: 24),
 
+                        // Person(s) Involved Section
+                        _buildSectionTitle('Person(s) Involved', Icons.person_outline),
+                        const SizedBox(height: 12),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.1),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: TextFormField(
+                            controller: _perpetratorController,
+                            decoration: InputDecoration(
+                              hintText:
+                                  'Name, position, or identifying details (optional)',
+                              hintStyle: TextStyle(color: Colors.grey[400]),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              contentPadding: const EdgeInsets.all(16),
+                              prefixIcon: Icon(
+                                Icons.person_outline,
+                                color: Colors.grey[400],
+                              ),
+                            ),
+                            maxLines: 2,
+                          ),
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // Witnesses Section
+                        _buildSectionTitle('Witnesses', Icons.groups),
+                        const SizedBox(height: 12),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.1),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: TextFormField(
+                            controller: _witnessesController,
+                            decoration: InputDecoration(
+                              hintText: 'Witness names and contact info (optional)',
+                              hintStyle: TextStyle(color: Colors.grey[400]),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              contentPadding: const EdgeInsets.all(16),
+                              prefixIcon: Icon(
+                                Icons.groups,
+                                color: Colors.grey[400],
+                              ),
+                            ),
+                            maxLines: 2,
+                          ),
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // Your Response Section
+                        _buildSectionTitle('Your Response to Incident', Icons.reply),
+                        const SizedBox(height: 12),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.1),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: TextFormField(
+                            controller: _responseController,
+                            decoration: InputDecoration(
+                              hintText: 'How did you respond at the time? (optional)',
+                              hintStyle: TextStyle(color: Colors.grey[400]),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              contentPadding: const EdgeInsets.all(16),
+                              prefixIcon: Icon(
+                                Icons.reply,
+                                color: Colors.grey[400],
+                              ),
+                            ),
+                            maxLines: 3,
+                          ),
+                        ),
+
+                        const SizedBox(height: 24),
+
                         // Date Section
                         _buildSectionTitle(
                           'Date of Incident',

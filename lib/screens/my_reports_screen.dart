@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../constants/app_colors.dart';
 import '../services/auth_service.dart';
-import '../widgets/bottom_nav_bar.dart';
 import 'report_form_screen.dart';
 import 'login_screen.dart';
 import 'report_details_screen.dart';
@@ -78,43 +77,6 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
 
           return _buildUserReportsView(context, user.uid);
         },
-      ),
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Three full-width colored lines stacked on top of each other
-          Container(
-            child: Column(
-              children: [
-                // Blue line - full width
-                Container(
-                  height: 2,
-                  width: double.infinity,
-                  color: AppColors.royalBlue,
-                ),
-                // Orange line - full width
-                Container(
-                  height: 2,
-                  width: double.infinity,
-                  color: AppColors.secondaryOrange,
-                ),
-                // Green line - full width
-                Container(
-                  height: 2,
-                  width: double.infinity,
-                  color: AppColors.primaryGreen,
-                ),
-              ],
-            ),
-          ),
-          // Bottom navigation bar
-          BottomNavBar(
-            currentIndex: 1,
-            onTap: (index) {
-              // Navigation is handled by BottomNavBar internally
-            },
-          ),
-        ],
       ),
       floatingActionButton: Container(
         decoration: BoxDecoration(

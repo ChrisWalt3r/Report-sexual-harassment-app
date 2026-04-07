@@ -1,10 +1,36 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import '../models/admin_user.dart';
 
 class AdminAuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  Future<void> _recordAdminLoginEvent({
+    required String email,
+    required String status,
+    String? error,
+    String? uid,
+  }) async {
+    try {
+      final device = kIsWeb
+          ? 'Web'
+          : defaultTargetPlatform.name;
+
+      await _firestore.collection('admin_login_history').add({
+        'email': email,
+        'status': status,
+        'uid': uid,
+        'ip': 'Unknown',
+        'device': device,
+        'error': error,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    } catch (_) {
+      // Login flow should not fail because history logging failed.
+    }
+  }
 
   // Get current admin user
   User? get currentUser => _auth.currentUser;
@@ -17,10 +43,11 @@ class AdminAuthService {
 
   // Sign in admin
   Future<AdminUser?> signInAdmin(String email, String password) async {
+    final normalizedEmail = email.trim();
     try {
       // Sign in with Firebase Auth
       final credential = await _auth.signInWithEmailAndPassword(
-        email: email,
+        email: normalizedEmail,
         password: password,
       );
 
@@ -31,6 +58,12 @@ class AdminAuthService {
           .get();
 
       if (!adminDoc.exists) {
+        await _recordAdminLoginEvent(
+          email: normalizedEmail,
+          status: 'failed',
+          error: 'Unauthorized: not an admin account',
+          uid: credential.user?.uid,
+        );
         // Not an admin, sign out
         await _auth.signOut();
         throw Exception('Unauthorized: This account is not an admin.');
@@ -40,6 +73,12 @@ class AdminAuthService {
       final canAccess =
           adminData['isActive'] != false && adminData['active'] != false;
       if (!canAccess) {
+        await _recordAdminLoginEvent(
+          email: normalizedEmail,
+          status: 'locked',
+          error: 'Account deactivated',
+          uid: credential.user?.uid,
+        );
         await _auth.signOut();
         throw Exception('Account is deactivated. Contact super admin.');
       }
@@ -48,6 +87,12 @@ class AdminAuthService {
       final admin = AdminUser.fromFirestore(adminDoc);
 
       if (!admin.isActive) {
+        await _recordAdminLoginEvent(
+          email: normalizedEmail,
+          status: 'locked',
+          error: 'Account inactive',
+          uid: credential.user?.uid,
+        );
         await _auth.signOut();
         throw Exception('Account is deactivated. Contact super admin.');
       }
@@ -57,8 +102,19 @@ class AdminAuthService {
         'lastLoginAt': FieldValue.serverTimestamp(),
       });
 
+      await _recordAdminLoginEvent(
+        email: normalizedEmail,
+        status: 'success',
+        uid: credential.user?.uid,
+      );
+
       return admin;
     } on FirebaseAuthException catch (e) {
+      await _recordAdminLoginEvent(
+        email: normalizedEmail,
+        status: 'failed',
+        error: e.code,
+      );
       switch (e.code) {
         case 'user-not-found':
           throw Exception('No admin account found with this email.');
@@ -72,6 +128,11 @@ class AdminAuthService {
           throw Exception('Login failed: ${e.message}');
       }
     } catch (e) {
+      await _recordAdminLoginEvent(
+        email: normalizedEmail,
+        status: 'failed',
+        error: e.toString(),
+      );
       rethrow;
     }
   }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
-import '../screens/my_reports_screen.dart';
 
 class BottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -77,15 +76,7 @@ class BottomNavBar extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        if (index == 1) {
-          // My Reports - navigate to My Reports screen
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const MyReportsScreen()),
-          );
-        } else {
-          onTap(index);
-        }
+        onTap(index);
       },
       behavior: HitTestBehavior.opaque,
       child: Padding(

@@ -186,7 +186,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       case 2:
         return const SupportHomeScreen();
       case 3:
-        return const AIPoweredChatScreen(); // Chat Support instead of Settings
+        return AIPoweredChatScreen(
+          isFromBottomNav: true,
+          onBackFromBottomNav: () {
+            setState(() {
+              _currentNavIndex = 0;
+            });
+          },
+        ); // Chat Support instead of Settings
       default:
         return _buildDashboard();
     }
@@ -339,9 +346,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ),
           ),
           onPressed: () {
-            setState(() {
-              _currentNavIndex = 3;
-            });
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const SettingsScreen()),
+            );
           },
         ),
       ],

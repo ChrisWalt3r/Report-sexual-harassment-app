@@ -185,6 +185,93 @@ Cultural Context for MUST (Mbarara University of Science and Technology), Uganda
     'ongoing_support':
         "Support is available to you throughout this process and beyond. You don't have to go through this alone.",
   };
+
+  static String modelKeyForProfile(String profile, String safetyMode) {
+    final p = profile.trim().toLowerCase();
+    final s = safetyMode.trim().toLowerCase();
+
+    if (s == 'strict') return 'supportive';
+
+    switch (p) {
+      case 'fast':
+        return 'empathetic';
+      case 'safety-first':
+        return 'supportive';
+      case 'empathetic':
+        return 'empathetic';
+      default:
+        return 'primary';
+    }
+  }
+
+  static List<String> modelFallbackOrder(String profile, String safetyMode) {
+    final preferred = modelKeyForProfile(profile, safetyMode);
+    final all = ['primary', 'empathetic', 'supportive'];
+    return [preferred, ...all.where((k) => k != preferred)];
+  }
+
+  static ModelConfig tunedModelConfig({
+    required String modelKey,
+    required String profile,
+    required String safetyMode,
+  }) {
+    final base = availableModels[modelKey] ?? availableModels['primary']!;
+    final p = profile.trim().toLowerCase();
+    final s = safetyMode.trim().toLowerCase();
+
+    double temperature = base.temperature;
+    double topP = base.topP;
+
+    if (s == 'strict') {
+      temperature = temperature > 0.5 ? 0.5 : temperature;
+      topP = topP > 0.85 ? 0.85 : topP;
+    } else if (s == 'relaxed') {
+      temperature = (temperature + 0.1).clamp(0.2, 0.9);
+      topP = (topP + 0.05).clamp(0.6, 0.95);
+    }
+
+    if (p == 'fast') {
+      temperature = (temperature - 0.05).clamp(0.2, 0.8);
+    }
+
+    return base.copyWith(temperature: temperature, topP: topP);
+  }
+
+  static String toneInstruction(String responseTone) {
+    switch (responseTone.trim().toLowerCase()) {
+      case 'professional':
+        return 'Use concise, formal, and professional language while staying empathetic.';
+      case 'neutral':
+        return 'Use neutral and clear language, avoid overly emotional phrasing.';
+      default:
+        return 'Use warm, supportive, and trauma-informed language.';
+    }
+  }
+
+  static String safetyInstruction(String safetyMode) {
+    switch (safetyMode.trim().toLowerCase()) {
+      case 'strict':
+        return 'Apply strict safety rules: avoid speculative advice, prioritize verified guidance, and escalate risk quickly.';
+      case 'relaxed':
+        return 'Maintain safety while allowing slightly broader explanatory responses.';
+      default:
+        return 'Apply balanced safety safeguards with clear, practical guidance.';
+    }
+  }
+
+  static String buildSystemInstruction({
+    required String responseTone,
+    required String safetyMode,
+    required String overridePrompt,
+  }) {
+    return [
+      'You are a professional sexual harassment support counselor at MUST University in Uganda.',
+      'Provide empathetic and trauma-informed responses focused on safety and reporting support.',
+      toneInstruction(responseTone),
+      safetyInstruction(safetyMode),
+      'System override: $overridePrompt',
+    ].join(' ');
+  }
 }
 
 class ModelConfig {
@@ -208,6 +295,22 @@ class ModelConfig {
       'temperature': temperature,
       'top_p': topP,
     };
+  }
+
+  ModelConfig copyWith({
+    String? name,
+    String? description,
+    int? maxTokens,
+    double? temperature,
+    double? topP,
+  }) {
+    return ModelConfig(
+      name: name ?? this.name,
+      description: description ?? this.description,
+      maxTokens: maxTokens ?? this.maxTokens,
+      temperature: temperature ?? this.temperature,
+      topP: topP ?? this.topP,
+    );
   }
 }
 
