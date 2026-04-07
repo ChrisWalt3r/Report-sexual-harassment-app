@@ -480,7 +480,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             crossAxisCount: 2,
             crossAxisSpacing: 18,
             mainAxisSpacing: 18,
-            childAspectRatio: 1.2,
+            childAspectRatio: 0.95, // Further reduced to give more height
             children: [
               _buildMyReportsCard(context),
               _buildServiceCard(
@@ -654,7 +654,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.all(16), // Increased padding for better spacing
+        padding: const EdgeInsets.all(14), // Slightly reduced for more text space
         decoration: BoxDecoration(
           color: isDark ? AppColors.darkSurface : Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -709,12 +709,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: 15, // Larger for better readability
+                      fontSize: 14.5, // Slightly smaller to fit better
                       fontWeight: FontWeight.bold,
                       color: isDark ? Colors.white : AppColors.textPrimary,
                     ),
@@ -722,17 +722,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
-                  Flexible(
-                    child: Text(
-                      subtitle,
-                      style: TextStyle(
-                        fontSize: 12, // Larger
-                        color: isDark ? Colors.white70 : AppColors.textSecondary,
-                        height: 1.3,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 11.5, // Slightly smaller
+                      color: isDark ? Colors.white70 : AppColors.textSecondary,
+                      height: 1.3,
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
