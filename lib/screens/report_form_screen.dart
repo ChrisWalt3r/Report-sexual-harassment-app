@@ -1100,7 +1100,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                                 color: AppColors.royalBlue,
                               ),
                             ),
-                            value:
+                            initialValue:
                                 _selectedIncidentTypes.isEmpty
                                     ? null
                                     : _selectedIncidentTypes.first,

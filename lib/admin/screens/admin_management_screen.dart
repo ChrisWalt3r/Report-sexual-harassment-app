@@ -488,7 +488,7 @@ class _AdminManagementScreenState extends State<AdminManagementScreen>
                         fontWeight: FontWeight.w600, fontSize: 13)),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<SHCRole>(
-                  value: selectedRole,
+                  initialValue: selectedRole,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10)),
@@ -538,7 +538,7 @@ class _AdminManagementScreenState extends State<AdminManagementScreen>
                             style: TextStyle(fontWeight: FontWeight.w500))),
                     Switch(
                       value: isActive,
-                      activeColor: AppColors.primaryGreen,
+                      activeThumbColor: AppColors.primaryGreen,
                       onChanged: (v) => setS(() => isActive = v),
                     ),
                   ]),

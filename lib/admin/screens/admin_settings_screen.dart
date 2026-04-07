@@ -58,7 +58,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen>
     final newTabs = _tabsForRole(roleKey);
     _tabController.dispose();
     final newController = TabController(length: newTabs.length, vsync: this);
-    newController.index = oldIndex.clamp(0, newTabs.length - 1) as int;
+    newController.index = oldIndex.clamp(0, newTabs.length - 1);
     setState(() {
       _currentRoleKey = roleKey;
       _tabs = newTabs;
@@ -229,7 +229,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen>
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: recipient,
+                initialValue: recipient,
                 items: const [
                   DropdownMenuItem(value: 'all',         child: Text('All Users')),
                   DropdownMenuItem(value: 'admins',      child: Text('Admins Only')),
@@ -486,7 +486,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen>
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  value: selectedRole,
+                  initialValue: selectedRole,
                   items: const [
                     DropdownMenuItem(value: 'committeeMember', child: Text('Committee Member')),
                     DropdownMenuItem(value: 'chairperson', child: Text('Chairperson')),
@@ -911,7 +911,7 @@ class _CategoryAssignmentPanelState extends State<_CategoryAssignmentPanel> {
                             Expanded(
                               flex: 3,
                               child: DropdownButtonFormField<String>(
-                                value: currentAssignee?['uid'] as String?,
+                                initialValue: currentAssignee?['uid'] as String?,
                                 isExpanded: true,
                                 decoration: const InputDecoration(
                                   border: OutlineInputBorder(),
@@ -1565,7 +1565,7 @@ class _AdminListState extends State<_AdminList> {
         builder: (ctx, setDialogState) => AlertDialog(
           title: const Text('Change Admin Role'),
           content: DropdownButtonFormField<String>(
-            value: selectedRole,
+            initialValue: selectedRole,
             decoration: const InputDecoration(
                 labelText: 'New Role', border: OutlineInputBorder()),
             items: const [
@@ -1924,7 +1924,7 @@ class _SlaSettingsPanelState extends State<_SlaSettingsPanel> {
                         label: 'Escalate when a case is unactioned:',
                         trailing: Switch(
                           value: autoEscalate,
-                          activeColor: AppColors.primaryGreen,
+                          activeThumbColor: AppColors.primaryGreen,
                           onChanged: (v) => _updateSla('auto_escalate', v),
                         ),
                       ),
@@ -2227,7 +2227,7 @@ class _SecuritySettingsPanelState extends State<_SecuritySettingsPanel> {
                             'Lock account after too many failed login attempts:',
                         trailing: Switch(
                           value: lockoutEnabled,
-                          activeColor: AppColors.primaryGreen,
+                          activeThumbColor: AppColors.primaryGreen,
                           onChanged: (v) => _updateSec('lockout_enabled', v),
                         ),
                       ),
@@ -2280,7 +2280,7 @@ class _SecuritySettingsPanelState extends State<_SecuritySettingsPanel> {
                         label: 'Restrict admin logins to specific IP ranges:',
                         trailing: Switch(
                           value: ipEnabled,
-                          activeColor: AppColors.primaryGreen,
+                          activeThumbColor: AppColors.primaryGreen,
                           onChanged: (v) =>
                               _updateSec('ip_allowlist_enabled', v),
                         ),
@@ -2374,7 +2374,7 @@ class _SecuritySettingsPanelState extends State<_SecuritySettingsPanel> {
                             const SizedBox(width: 8),
                             Switch(
                               value: enabled,
-                              activeColor: AppColors.primaryGreen,
+                              activeThumbColor: AppColors.primaryGreen,
                               onChanged: (v) => _updateSec(r['key']!, v),
                             ),
                           ]),
@@ -3433,7 +3433,7 @@ class _SystemSettingsPanelState extends State<_SystemSettingsPanel> {
                       trailing: Switch(
                         value: (_settings['require_special_char'] as bool?) ??
                             true,
-                        activeColor: AppColors.primaryGreen,
+                        activeThumbColor: AppColors.primaryGreen,
                         onChanged: (v) =>
                             _updateSetting('require_special_char', v),
                       ),
@@ -3712,7 +3712,7 @@ class _FeatureToggleRow extends StatelessWidget {
         const SizedBox(width: 8),
         Switch(
           value: value,
-          activeColor: warningColor ?? AppColors.primaryGreen,
+          activeThumbColor: warningColor ?? AppColors.primaryGreen,
           onChanged: onChanged,
         ),
       ]),

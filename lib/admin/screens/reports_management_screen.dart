@@ -475,7 +475,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
             child: admins.isEmpty
                 ? const Text('No active admins available for assignment.')
                 : DropdownButtonFormField<String>(
-                    value: selectedUid,
+                    initialValue: selectedUid,
                     decoration: const InputDecoration(
                       labelText: 'Assign to',
                       border: OutlineInputBorder(),
@@ -1285,8 +1285,9 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                                                 progress,
                                                               ) {
                                                                 if (progress ==
-                                                                    null)
+                                                                    null) {
                                                                   return child;
+                                                                }
                                                                 return Container(
                                                                   width: 180,
                                                                   height: 200,
@@ -2915,8 +2916,9 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                     .orderBy('createdAt', descending: true)
                     .snapshots(),
             builder: (context, snapshot) {
-              if (snapshot.hasError)
+              if (snapshot.hasError) {
                 return Center(child: Text('Error: ${snapshot.error}'));
+              }
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(
                   child: CircularProgressIndicator(
@@ -2931,12 +2933,14 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
 
                     // Status filter
                     if (_selectedStatus != 'all' &&
-                        data['status'] != _selectedStatus)
+                        data['status'] != _selectedStatus) {
                       return false;
+                    }
 
                     // Anonymous filter
-                    if (_anonymousOnly && data['isAnonymous'] != true)
+                    if (_anonymousOnly && data['isAnonymous'] != true) {
                       return false;
+                    }
 
                     // Date range filter
                     if (_dateRange != null && data['createdAt'] != null) {
@@ -2945,8 +2949,9 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                       if (createdAt.isBefore(_dateRange!.start) ||
                           createdAt.isAfter(
                             _dateRange!.end.add(const Duration(days: 1)),
-                          ))
+                          )) {
                         return false;
+                      }
                     }
 
                     // User-based filters (faculty, department, role, study level)
@@ -2990,8 +2995,9 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                         // Study level filter
                         if (_selectedStudyLevel != 'all') {
                           final userStudyLevel = userData['studyLevel'] ?? '';
-                          if (userStudyLevel != _selectedStudyLevel)
+                          if (userStudyLevel != _selectedStudyLevel) {
                             return false;
+                          }
                         }
                       }
                     }

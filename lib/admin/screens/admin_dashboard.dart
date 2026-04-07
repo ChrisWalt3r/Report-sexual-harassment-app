@@ -132,8 +132,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   List<_NavItem> get _visibleNavItems {
     return _navItems.where((item) {
-      if (item.superAdminOnly && widget.admin.role != AdminRole.superAdmin)
+      if (item.superAdminOnly && widget.admin.role != AdminRole.superAdmin) {
         return false;
+      }
       return true;
     }).toList();
   }
@@ -976,13 +977,16 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
   List<Map<String, dynamic>> get _filteredReports {
     return _allReports.where((r) {
       if (_selectedFaculty != 'All Faculties' &&
-          r['userFaculty'] != _selectedFaculty)
+          r['userFaculty'] != _selectedFaculty) {
         return false;
+      }
       if (_selectedDepartment != 'All Departments' &&
-          r['userDept'] != _selectedDepartment)
+          r['userDept'] != _selectedDepartment) {
         return false;
-      if (_selectedStatus != 'All Statuses' && r['status'] != _selectedStatus)
+      }
+      if (_selectedStatus != 'All Statuses' && r['status'] != _selectedStatus) {
         return false;
+      }
       return true;
     }).toList();
   }
@@ -992,11 +996,13 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
     return _allUsers.where((u) {
       final faculty = u['department'] ?? '';
       final dept = u['facultyDepartment'] ?? '';
-      if (_selectedFaculty != 'All Faculties' && faculty != _selectedFaculty)
+      if (_selectedFaculty != 'All Faculties' && faculty != _selectedFaculty) {
         return false;
+      }
       if (_selectedDepartment != 'All Departments' &&
-          dept != _selectedDepartment)
+          dept != _selectedDepartment) {
         return false;
+      }
       return true;
     }).toList();
   }
@@ -1114,10 +1120,11 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading)
+    if (_isLoading) {
       return Center(
         child: CircularProgressIndicator(color: AppColors.secondaryOrange),
       );
+    }
 
     return RefreshIndicator(
       color: AppColors.secondaryOrange,
@@ -1698,8 +1705,9 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
                   showTitles: true,
                   getTitlesWidget: (value, meta) {
                     final index = value.toInt();
-                    if (index < 0 || index >= metrics.length)
+                    if (index < 0 || index >= metrics.length) {
                       return const SizedBox.shrink();
+                    }
                     return Padding(
                       padding: const EdgeInsets.only(top: 8),
                       child: Text(
@@ -2800,16 +2808,18 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
 
     for (final report in _allReports) {
       if (_selectedFaculty != 'All Faculties' &&
-          report['userFaculty'] != _selectedFaculty)
+          report['userFaculty'] != _selectedFaculty) {
         continue;
+      }
       final d = report['userDept'] ?? '';
       if (d.isNotEmpty) reportsByDept[d] = (reportsByDept[d] ?? 0) + 1;
     }
 
     for (final user in _allUsers) {
       if (_selectedFaculty != 'All Faculties' &&
-          user['department'] != _selectedFaculty)
+          user['department'] != _selectedFaculty) {
         continue;
+      }
       final d = user['facultyDepartment'] ?? '';
       if (d.isNotEmpty) usersByDept[d] = (usersByDept[d] ?? 0) + 1;
     }
