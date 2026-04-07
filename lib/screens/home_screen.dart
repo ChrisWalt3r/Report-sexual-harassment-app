@@ -470,9 +470,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             crossAxisCount: 2,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 1.15,
+            crossAxisSpacing: 18,
+            mainAxisSpacing: 18,
+            childAspectRatio: 1.2,
             children: [
               _buildMyReportsCard(context),
               _buildServiceCard(
@@ -646,7 +646,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.all(14), // Slightly increased padding for better spacing
+        padding: const EdgeInsets.all(16), // Increased padding for better spacing
         decoration: BoxDecoration(
           color: isDark ? AppColors.darkSurface : Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -668,13 +668,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               children: [
                 // Icon without frame
                 Container(
-                  width: 42, // Slightly larger
-                  height: 42,
+                  width: 46, // Larger icon container
+                  height: 46,
                   decoration: BoxDecoration(
                     color: color.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(icon, color: color, size: 22), // Slightly larger icon
+                  child: Icon(icon, color: color, size: 24), // Larger icon
                 ),
                 if (badge != null)
                   Container(
@@ -697,7 +697,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   ),
               ],
             ),
-            const SizedBox(height: 10), // Better spacing
+            const SizedBox(height: 12), // Better spacing
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -706,19 +706,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: 14, // Slightly larger for readability
+                      fontSize: 15, // Larger for better readability
                       fontWeight: FontWeight.bold,
                       color: isDark ? Colors.white : AppColors.textPrimary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 3),
+                  const SizedBox(height: 4),
                   Flexible(
                     child: Text(
                       subtitle,
                       style: TextStyle(
-                        fontSize: 11.5, // Slightly larger
+                        fontSize: 12, // Larger
                         color: isDark ? Colors.white70 : AppColors.textSecondary,
                         height: 1.3,
                       ),
