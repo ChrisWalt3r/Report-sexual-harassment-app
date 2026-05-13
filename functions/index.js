@@ -10,6 +10,7 @@ admin.initializeApp();
 const gmailEmail = defineString('GMAIL_EMAIL');
 const gmailPassword = defineSecret('GMAIL_PASSWORD');
 const configuredAshcEmail = defineString('ASHC_EMAIL');
+const groqApiKey = defineSecret('GROQ_API_KEY');
 
 // Helper function to create email transporter
 function createTransporter() {
@@ -27,6 +28,312 @@ function createTransporter() {
       pass: password, // Use app password, not your actual password
     },
   });
+}
+
+function _normalizeText(value) {
+  return (value || '').toString().trim();
+}
+
+function _toArray(value) {
+  if (Array.isArray(value)) {
+    return value.filter((x) => x !== null && x !== undefined).map((x) => x.toString().trim()).filter(Boolean);
+  }
+  const text = _normalizeText(value);
+  if (!text) return [];
+  return text.split(',').map((x) => x.trim()).filter(Boolean);
+}
+
+function _deriveCriticalityLevel(score) {
+  if (score >= 85) return 'critical';
+  if (score >= 65) return 'high';
+  if (score >= 40) return 'medium';
+  return 'low';
+}
+
+function _triageSlaHours(level) {
+  switch (level) {
+    case 'critical':
+      return 1;
+    case 'high':
+      return 6;
+    case 'medium':
+      return 24;
+    default:
+      return 72;
+  }
+}
+
+function _levelEmoji(level) {
+  switch (level) {
+    case 'critical':
+      return '🚨';
+    case 'high':
+      return '⚠️';
+    case 'medium':
+      return '🟡';
+    default:
+      return '🟢';
+  }
+}
+
+function _heuristicCriticalityAnalysis(reportData) {
+  const description = _normalizeText(reportData.description).toLowerCase();
+  const location = _normalizeText(reportData.location).toLowerCase();
+  const incidentTypes = _toArray(reportData.incidentTypes || reportData.incidentType).map((x) => x.toLowerCase());
+  const perpetratorInfo = _normalizeText(reportData.perpetratorInfo).toLowerCase();
+
+  const signals = [];
+  let score = 20;
+
+  const criticalKeywords = [
+    'immediate danger', 'danger', 'threat', 'threaten', 'weapon', 'assault', 'rape',
+    'forced', 'violence', 'beating', 'kill', 'suicide', 'cannot escape', 'happening now',
+  ];
+  const highKeywords = [
+    'stalking', 'blackmail', 'coercion', 'retaliation', 'forced touch', 'physical',
+    'drugged', 'abduction', 'unsafe', 'fear for my safety',
+  ];
+
+  if (criticalKeywords.some((k) => description.includes(k))) {
+    score += 40;
+    signals.push('critical danger language in description');
+  }
+
+  if (highKeywords.some((k) => description.includes(k))) {
+    score += 25;
+    signals.push('high-risk language in description');
+  }
+
+  const highRiskTypeKeywords = [
+    'sexual assault',
+    'quid pro quo',
+    'dating violence',
+    'stalking',
+    'hostile environment',
+    'sexual exploitation',
+  ];
+  if (incidentTypes.some((t) => highRiskTypeKeywords.some((kw) => t.includes(kw)))) {
+    score += 18;
+    signals.push('high-risk incident type');
+  }
+
+  if (reportData.audioUrls?.length || reportData.videoUrls?.length) {
+    score += 10;
+    signals.push('audio/video evidence attached');
+  } else if (reportData.imageUrls?.length) {
+    score += 6;
+    signals.push('image evidence attached');
+  }
+
+  if (perpetratorInfo.includes('lecturer') || perpetratorInfo.includes('staff') || perpetratorInfo.includes('supervisor')) {
+    score += 8;
+    signals.push('power-imbalance indicator (staff/supervisor)');
+  }
+
+  if (location.includes('hostel') || location.includes('night') || location.includes('off campus')) {
+    score += 6;
+    signals.push('potentially unsafe location context');
+  }
+
+  score = Math.max(0, Math.min(100, score));
+  const level = _deriveCriticalityLevel(score);
+  return {
+    score,
+    level,
+    signals,
+    rationale: `Heuristic triage detected ${signals.length} risk signal(s).`,
+  };
+}
+
+function _extractFirstJsonObject(text) {
+  const content = (text || '').trim();
+  const first = content.indexOf('{');
+  const last = content.lastIndexOf('}');
+  if (first < 0 || last <= first) return null;
+  return content.slice(first, last + 1);
+}
+
+async function _aiCriticalityAnalysis(reportData, overrideGroqKey = '') {
+  let key = overrideGroqKey || '';
+  if (!key) {
+    try {
+      key = groqApiKey.value() || '';
+    } catch (_) {
+      key = '';
+    }
+  }
+  if (!key) {
+    return null;
+  }
+
+  const evidenceCount = {
+    images: reportData.imageUrls?.length || 0,
+    videos: reportData.videoUrls?.length || 0,
+    audios: reportData.audioUrls?.length || 0,
+  };
+
+  const payload = {
+    description: _normalizeText(reportData.description),
+    incidentTypes: _toArray(reportData.incidentTypes || reportData.incidentType),
+    location: _normalizeText(reportData.location),
+    date: _normalizeText(reportData.date),
+    time: _normalizeText(reportData.time),
+    perpetratorInfo: _normalizeText(reportData.perpetratorInfo),
+    witnesses: _normalizeText(reportData.witnesses),
+    complainantResponse: _normalizeText(reportData.complainantResponse),
+    isAnonymous: !!reportData.isAnonymous,
+    evidenceCount,
+  };
+
+  const systemPrompt = [
+    'You are a triage classifier for sexual harassment reports in a university safety system.',
+    'Classify urgency as one of: low, medium, high, critical.',
+    'Return STRICT JSON only with keys: level, score, rationale, signals.',
+    'score must be an integer from 0-100.',
+    'signals must be a short array of concrete risk indicators.',
+    'Be conservative: immediate danger, violence, ongoing threat, or severe coercion should push to high/critical.',
+  ].join(' ');
+
+  const userPrompt = `Report payload:\n${JSON.stringify(payload, null, 2)}`;
+
+  try {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${key}`,
+      },
+      body: JSON.stringify({
+        model: 'llama-3.1-8b-instant',
+        temperature: 0.1,
+        max_tokens: 220,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      const errBody = await response.text();
+      throw new Error(`Groq request failed: ${response.status} ${errBody}`);
+    }
+
+    const data = await response.json();
+    const content = data?.choices?.[0]?.message?.content;
+    const parsedJsonText = _extractFirstJsonObject(content);
+    if (!parsedJsonText) {
+      throw new Error('AI response did not contain JSON object');
+    }
+
+    const parsed = JSON.parse(parsedJsonText);
+    const aiScore = Number.isFinite(parsed?.score) ? Math.round(parsed.score) : null;
+    const aiLevel = _normalizeText(parsed?.level).toLowerCase();
+    const allowedLevels = new Set(['low', 'medium', 'high', 'critical']);
+
+    if (aiScore === null || aiScore < 0 || aiScore > 100 || !allowedLevels.has(aiLevel)) {
+      throw new Error('AI response had invalid score/level');
+    }
+
+    return {
+      score: aiScore,
+      level: aiLevel,
+      rationale: _normalizeText(parsed?.rationale) || 'AI triage rationale unavailable.',
+      signals: _toArray(parsed?.signals).slice(0, 8),
+    };
+  } catch (error) {
+    console.warn('AI criticality analysis failed, falling back to heuristics:', error.message);
+    return null;
+  }
+}
+
+async function analyzeReportCriticality(reportData, overrideGroqKey = '') {
+  const heuristic = _heuristicCriticalityAnalysis(reportData);
+  const ai = await _aiCriticalityAnalysis(reportData, overrideGroqKey);
+
+  let finalScore = heuristic.score;
+  let source = 'heuristic';
+  let rationale = heuristic.rationale;
+  let signals = [...heuristic.signals];
+
+  if (ai) {
+    source = 'ai+heuristic';
+    finalScore = Math.round(heuristic.score * 0.35 + ai.score * 0.65);
+    finalScore = Math.max(0, Math.min(100, finalScore));
+    rationale = ai.rationale || heuristic.rationale;
+    signals = [...new Set([...heuristic.signals, ...(ai.signals || [])])].slice(0, 10);
+  }
+
+  const level = _deriveCriticalityLevel(finalScore);
+  const slaHours = _triageSlaHours(level);
+
+  return {
+    level,
+    score: finalScore,
+    source,
+    rationale,
+    signals,
+    slaHours,
+    requiresImmediateAttention: level === 'critical' || level === 'high',
+    analyzedAt: new Date().toISOString(),
+    model: ai ? 'llama-3.1-8b-instant' : null,
+  };
+}
+
+async function getUrgencyAdminEmails() {
+  const snapshot = await admin
+    .firestore()
+    .collection('admins')
+    .limit(200)
+    .get();
+
+  if (snapshot.empty) {
+    return [];
+  }
+
+  const escalationRoles = new Set([
+    'superAdmin',
+    'chairperson',
+    'committeeMember',
+    'reviewer',
+    'moderator',
+    'devTeam',
+  ]);
+
+  const all = snapshot.docs
+    .map((doc) => doc.data())
+    .filter((x) => x?.email)
+    .filter((x) => x?.isActive !== false && x?.active !== false)
+    .map((x) => ({
+      email: x.email.toString().trim(),
+      role: _normalizeText(x.shcRole || x.role),
+    }));
+
+  const prioritized = all.filter((x) => escalationRoles.has(x.role));
+  const selected = prioritized.length > 0 ? prioritized : all;
+  return [...new Set(selected.map((x) => x.email).filter(Boolean))];
+}
+
+async function getEmailConfig() {
+  try {
+    const doc = await admin.firestore().collection('app_config').doc('email_settings').get();
+    if (doc.exists) {
+      const data = doc.data();
+      return {
+        gmailEmail: _normalizeText(data?.gmailEmail) || gmailEmail.value(),
+        ashcChairpersonEmail: _normalizeText(data?.ashcChairpersonEmail) || configuredAshcEmail.value(),
+        groqApiKey: _normalizeText(data?.groqApiKey) || '',
+      };
+    }
+  } catch (error) {
+    console.warn('Failed to load email config from Firestore:', error.message);
+  }
+  // Fallback to environment variables
+  return {
+    gmailEmail: gmailEmail.value(),
+    ashcChairpersonEmail: configuredAshcEmail.value(),
+    groqApiKey: '',
+  };
 }
 
 async function getAshcChairpersonContact() {
@@ -85,7 +392,7 @@ async function getAshcChairpersonContact() {
  * Triggers on new document creation in 'reports' collection
  */
 exports.notifyASHCOnReportSubmission = functions
-  .runWith({ secrets: [gmailPassword] })
+  .runWith({ secrets: [gmailPassword, groqApiKey] })
   .region('europe-west1') // Use appropriate region for your app
   .firestore.document('reports/{reportId}')
   .onCreate(async (snap, context) => {
@@ -95,6 +402,9 @@ exports.notifyASHCOnReportSubmission = functions
 
       // Log for monitoring
       console.log(`New report submitted: ${reportId}`, reportData);
+
+      // Load email configuration from Firestore
+      const emailConfig = await getEmailConfig();
 
       // Create email transporter
       const transporter = createTransporter();
@@ -113,19 +423,44 @@ exports.notifyASHCOnReportSubmission = functions
         console.error('ASHC Chairperson contact not found in database');
         return null;
       }
-      const ashcEmail = ashcContact.email || configuredAshcEmail.value();
+      const ashcEmail = ashcContact.email || emailConfig.ashcChairpersonEmail;
 
       if (!ashcEmail) {
         console.error('ASHC Chairperson email not configured');
         return null;
       }
 
+      // Analyze urgency/criticality using AI (with heuristic fallback)
+      const criticality = await analyzeReportCriticality(reportData, emailConfig.groqApiKey);
+      await snap.ref.set(
+        {
+          criticalityLevel: criticality.level,
+          criticalityScore: criticality.score,
+          requiresImmediateAttention: criticality.requiresImmediateAttention,
+          triageSlaHours: criticality.slaHours,
+          triageLastAnalyzedAt: admin.firestore.FieldValue.serverTimestamp(),
+          aiCriticality: criticality,
+        },
+        { merge: true }
+      );
+
+      const recipientSet = new Set([ashcEmail]);
+      if (criticality.requiresImmediateAttention) {
+        const urgencyRecipients = await getUrgencyAdminEmails();
+        urgencyRecipients.forEach((email) => recipientSet.add(email));
+      }
+      const recipients = [...recipientSet].filter(Boolean);
+      const primaryRecipient = recipients[0];
+      const bccRecipients = recipients.slice(1);
+
       // Prepare email content
       const incidentTypes = reportData.incidentTypes || reportData.incidentType || 'Not specified';
       const location = reportData.location || 'Not specified';
       const timestamp = reportData.timestamp ? new Date(reportData.timestamp.toDate()).toLocaleString('en-US') : 'Just now';
 
-      const emailSubject = `🚨 NEW REPORT SUBMITTED - Tracking ID: ${reportId.substring(0, 8).toUpperCase()}`;
+      const criticalityLabel = criticality.level.toUpperCase();
+      const levelEmoji = _levelEmoji(criticality.level);
+      const emailSubject = `${levelEmoji} [${criticalityLabel}] NEW REPORT - Tracking ID: ${reportId.substring(0, 8).toUpperCase()}`;
 
       const emailHtml = `
         <html>
@@ -155,6 +490,30 @@ exports.notifyASHCOnReportSubmission = functions
                 <p>Dear <strong>${ashcContact.name}</strong>,</p>
                 
                 <p style="color: #c41e3a; font-weight: bold;">A new sexual harassment report has been submitted and requires your attention.</p>
+
+                <div class="section">
+                  <div class="section-title">🚦 AI Criticality Triage</div>
+                  <div class="field">
+                    <span class="label">Urgency Level:</span>
+                    <span class="value"><strong>${criticalityLabel}</strong></span>
+                  </div>
+                  <div class="field">
+                    <span class="label">Risk Score:</span>
+                    <span class="value"><strong>${criticality.score}/100</strong></span>
+                  </div>
+                  <div class="field">
+                    <span class="label">Target SLA:</span>
+                    <span class="value">Review within <strong>${criticality.slaHours} hour(s)</strong></span>
+                  </div>
+                  <div class="field">
+                    <span class="label">Signals:</span>
+                    <span class="value">${criticality.signals?.length ? criticality.signals.join(', ') : 'No strong signals detected'}</span>
+                  </div>
+                  <div class="field">
+                    <span class="label">Rationale:</span>
+                    <span class="value">${criticality.rationale}</span>
+                  </div>
+                </div>
 
                 <div class="section">
                   <div class="section-title">📋 Report Details</div>
@@ -226,16 +585,17 @@ exports.notifyASHCOnReportSubmission = functions
 
       // Send email
       const mailOptions = {
-        from: gmailEmail,
-        to: ashcEmail,
+        from: emailConfig.gmailEmail,
+        to: primaryRecipient,
+        bcc: bccRecipients.length ? bccRecipients.join(',') : undefined,
         cc: '', // Can add more recipients here if needed
         subject: emailSubject,
         html: emailHtml,
-        replyTo: gmailEmail,
+        replyTo: emailConfig.gmailEmail,
       };
 
       const result = await transporter.sendMail(mailOptions);
-      console.log(`Email sent successfully to ${ashcEmail}. Message ID: ${result.messageId}`);
+      console.log(`Email sent successfully to ${recipients.length} recipient(s). Message ID: ${result.messageId}`);
 
       // Log the notification in Firestore for auditing
       await admin.firestore()
@@ -243,8 +603,12 @@ exports.notifyASHCOnReportSubmission = functions
         .add({
           type: 'ashc_report_submitted',
           reportId: reportId,
-          recipientEmail: ashcEmail,
+          recipientEmail: primaryRecipient,
+          recipientCount: recipients.length,
           recipientName: ashcContact.name,
+          criticalityLevel: criticality.level,
+          criticalityScore: criticality.score,
+          triageSlaHours: criticality.slaHours,
           sentAt: admin.firestore.FieldValue.serverTimestamp(),
           status: 'sent',
           messageId: result.messageId,

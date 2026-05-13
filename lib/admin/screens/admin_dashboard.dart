@@ -15,6 +15,7 @@ import 'policy_management_screen.dart';
 import 'chatbot_management_screen.dart';
 import 'profile_management_screen.dart';
 import 'admin_settings_screen.dart';
+import 'email_settings_screen.dart';
 
 // ─── Sidebar navigation item model ───
 class _NavItem {
@@ -120,6 +121,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
         activeIcon: Icons.smart_toy,
         index: 9,
       ),
+      const _NavItem(
+        label: 'Email Settings',
+        icon: Icons.email_outlined,
+        activeIcon: Icons.email,
+        index: 10,
+      ),
     ];
   }
 
@@ -154,6 +161,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
         return AdminSettingsScreen(admin: widget.admin, embedded: true);
       case 9:
         return ChatbotManagementScreen(admin: widget.admin, embedded: true);
+      case 10:
+        return EmailSettingsScreen(admin: widget.admin, embedded: true);
       default:
         return _DashboardOverview(admin: widget.admin);
     }
