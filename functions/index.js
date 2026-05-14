@@ -13,8 +13,8 @@ const configuredAshcEmail = defineString('ASHC_EMAIL');
 const groqApiKey = defineSecret('GROQ_API_KEY');
 
 // Helper function to create email transporter
-function createTransporter() {
-  const email = gmailEmail.value();
+function createTransporter(senderEmailOverride = '') {
+  const email = _normalizeText(senderEmailOverride) || gmailEmail.value();
   const password = gmailPassword.value();
   
   if (!email || !password) {
@@ -407,7 +407,7 @@ exports.notifyASHCOnReportSubmission = functions
       const emailConfig = await getEmailConfig();
 
       // Create email transporter
-      const transporter = createTransporter();
+      const transporter = createTransporter(emailConfig.gmailEmail);
       
       // Check if email is configured
       if (!transporter) {
@@ -418,16 +418,16 @@ exports.notifyASHCOnReportSubmission = functions
 
       // Get ASHC Chairperson contact
       const ashcContact = await getAshcChairpersonContact();
-
-      if (!ashcContact) {
-        console.error('ASHC Chairperson contact not found in database');
-        return null;
-      }
-      const ashcEmail = ashcContact.email || emailConfig.ashcChairpersonEmail;
+      const ashcEmail = ashcContact?.email || emailConfig.ashcChairpersonEmail;
+      const ashcName = ashcContact?.name || 'ASHC Chairperson';
 
       if (!ashcEmail) {
         console.error('ASHC Chairperson email not configured');
         return null;
+      }
+
+      if (!ashcContact) {
+        console.warn('ASHC Chairperson contact not found in database. Falling back to configured ASHC email.');
       }
 
       // Analyze urgency/criticality using AI (with heuristic fallback)
@@ -487,7 +487,7 @@ exports.notifyASHCOnReportSubmission = functions
                 <h1>⚠️ SEXUAL HARASSMENT REPORT NOTIFICATION</h1>
               </div>
               <div class="content">
-                <p>Dear <strong>${ashcContact.name}</strong>,</p>
+                <p>Dear <strong>${ashcName}</strong>,</p>
                 
                 <p style="color: #c41e3a; font-weight: bold;">A new sexual harassment report has been submitted and requires your attention.</p>
 
@@ -605,7 +605,7 @@ exports.notifyASHCOnReportSubmission = functions
           reportId: reportId,
           recipientEmail: primaryRecipient,
           recipientCount: recipients.length,
-          recipientName: ashcContact.name,
+          recipientName: ashcName,
           criticalityLevel: criticality.level,
           criticalityScore: criticality.score,
           triageSlaHours: criticality.slaHours,
@@ -657,8 +657,10 @@ exports.notifyOnReportStatusChange = functions
 
       console.log(`Report ${reportId} status changed from ${before.status} to ${after.status}`);
 
+      const emailConfig = await getEmailConfig();
+
       // Create email transporter
-      const transporter = createTransporter();
+      const transporter = createTransporter(emailConfig.gmailEmail);
       
       if (!transporter) {
         console.warn('Email service not configured. Skipping status change notification.');
@@ -667,12 +669,10 @@ exports.notifyOnReportStatusChange = functions
 
       // Notify ASHC of status change
       const ashcContact = await getAshcChairpersonContact();
-      if (ashcContact) {
-        const ashcEmail = ashcContact.email || configuredAshcEmail.value();
-        if (!ashcEmail) {
-          console.error('ASHC Chairperson email not configured for status notification');
-          return { success: false, error: 'ASHC email missing' };
-        }
+      const ashcEmail =
+        ashcContact?.email || emailConfig.ashcChairpersonEmail || configuredAshcEmail.value();
+      const ashcName = ashcContact?.name || 'ASHC Chairperson';
+      if (ashcEmail) {
 
         const statusMessages = {
           'pending': 'Pending - Awaiting investigation',
@@ -687,7 +687,7 @@ exports.notifyOnReportStatusChange = functions
             <body style="font-family: Arial, sans-serif;">
               <div style="max-width: 600px; margin: 0 auto; padding: 20px; background: #f9f9f9;">
                 <h2 style="color: #003d82;">Report Status Update</h2>
-                <p>Dear ${ashcContact.name},</p>
+                <p>Dear ${ashcName},</p>
                 <p>The status of report <strong>${reportId}</strong> has been updated.</p>
                 <div style="background: white; padding: 15px; border-left: 4px solid #003d82; margin: 15px 0;">
                   <p><strong>Previous Status:</strong> ${before.status}</p>
@@ -701,7 +701,7 @@ exports.notifyOnReportStatusChange = functions
         `;
 
         const mailOptions = {
-          from: gmailEmail,
+          from: emailConfig.gmailEmail || gmailEmail.value(),
           to: ashcEmail,
           subject: `📋 Report Status Update: ${reportId.substring(0, 8).toUpperCase()} - ${after.status}`,
           html: emailHtml,
@@ -709,6 +709,9 @@ exports.notifyOnReportStatusChange = functions
 
         await transporter.sendMail(mailOptions);
         console.log(`Status change notification sent to ${ashcEmail}`);
+      } else {
+        console.error('ASHC Chairperson email not configured for status notification');
+        return { success: false, error: 'ASHC email missing' };
       }
 
       return { success: true };
