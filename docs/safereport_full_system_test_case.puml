@@ -1,0 +1,166 @@
+@startuml
+title SafeReport - Full System Test Case with Anonymous Reporting and Admin Review
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam ArrowColor #1F4E79
+skinparam DefaultFontName Arial
+skinparam DefaultFontSize 12
+
+skinparam activity {
+  BackgroundColor #F7FBFF
+  BorderColor #1F4E79
+  FontColor #16324F
+  StartColor #2E7D32
+  EndColor #2E7D32
+  DiamondBackgroundColor #FFF4D6
+  DiamondBorderColor #C58A00
+  BarColor #1F4E79
+}
+
+skinparam swimlane {
+  BorderColor #9BB3C9
+  TitleBackgroundColor #FCFEFF
+  TitleFontColor #16324F
+}
+
+|Admin|
+start
+
+:Log in to MUST Admin Portal;
+:Upload or update official contacts;
+:Upload or update policy knowledge base;
+:Open dashboard and reports queue;
+
+|Reporter|
+:Open SafeReport welcome screen;
+:Choose Continue with Account\nor Continue Anonymously;
+
+|System|
+if (Continue with Account?) then (Yes)
+  :Show login and registration flow;
+  |Reporter|
+  :Register account or log in\nby email or phone;
+  |System|
+  :Create or validate Firebase Auth account;
+  :Initialize notification service;
+  :Load user home dashboard;
+else (No)
+  :Show anonymous quick info form;
+  |Reporter|
+  :Provide role, gender,\nand optional faculty/department;
+  |System|
+  :Store anonymous session context;
+  :Load anonymous home dashboard;
+endif
+
+|Reporter|
+:Open AI Support Assistant\nor Support Services;
+:Request guidance, contacts,\nor emergency help;
+
+|System|
+:Load chatbot runtime config;
+:Load policy knowledge and official contacts;
+:Start secure support session;
+note right
+  If crisis or high-risk language is detected,
+  the chatbot can raise an alert and direct
+  the reporter to emergency support options.
+end note
+
+|Support Services|
+:Provide counseling, legal,\nmedical, and emergency resources;
+:Allow phone call or SMS launch\nfor urgent assistance;
+
+|Reporter|
+:Open Report Incident form;
+:Select incident type(s);
+:Enter description, date, time,\nlocation, perpetrator, witnesses,\nand complainant response;
+:Attach photo, video,\nor audio evidence;
+:Confirm incident location;
+:Tap Submit Report;
+
+|System|
+:Validate form and internet connectivity;
+if (Anonymous submission?) then (Yes)
+  :Check anonymous device submission limit;
+  :Generate tracking token;
+  note right
+    Anonymous submissions are limited per device.
+    The current build allows up to 2 anonymous
+    reports before requiring account sign-in.
+  end note
+endif
+:Upload images to ImgBB;
+:Upload videos and audio to Cloudinary;
+if (Some evidence uploads fail?) then (Yes)
+  |Reporter|
+  :Choose Cancel or Submit Anyway;
+  |System|
+endif
+:Create reports record in Firestore;
+:Set report status = pending;
+:Store evidence URLs, timestamps,\nanonymity flag, and report metadata;
+
+if (Anonymous report?) then (Yes)
+  :Display tracking token dialog;
+else (No)
+  :Show success message;
+  :Enable My Reports and Notifications access;
+endif
+
+|Reporter|
+if (Anonymous reporter?) then (Yes)
+  :Open Track Anonymous Report;
+  :Enter saved tracking token;
+  |System|
+  :Look up report by tracking token;
+  :Show anonymous report status summary;
+else (No)
+  :Open My Reports;
+  :Search, filter, and open report details;
+  :Optionally edit report\nor add more evidence;
+endif
+
+|Admin|
+:Open Reports Management;
+:Filter by status, faculty,\ndepartment, role, date, or anonymity;
+:Open report details;
+:Assign case to reviewer,\ncommittee member, or admin;
+
+|System|
+:Save assignment metadata;
+:Create process timeline entry;
+
+|Admin|
+:Review incident details,\nreporter profile, attachments,\nand AI insights;
+:Move case through workflow\n<i>pending -> under_review -> investigating</i>;
+note right
+  Report workflow changes are role-based
+  in the admin portal and are logged in the
+  report process timeline.
+end note
+:Enter resolution message;
+:Resolve or close report;
+
+|System|
+:Update status, stage,\naudit fields, and resolution details;
+:Append process log entry;
+if (Authenticated reporter?) then (Yes)
+  :Create in-app notification record;
+  :Refresh notifications and report details;
+else (No)
+  :Keep latest case status available\nthrough tracking token lookup;
+endif
+
+|Reporter|
+if (Authenticated reporter?) then (Yes)
+  :Open Notifications or My Reports;
+  :Read status update and resolution message;
+else (No)
+  :Track case later using saved token;
+endif
+:Continue accessing support services if needed;
+
+stop
+@enduml
