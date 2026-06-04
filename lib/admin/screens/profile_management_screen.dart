@@ -351,7 +351,7 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.secondaryOrange.withOpacity(0.1),
+                    color: AppColors.secondaryOrange.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(Icons.lock_outline, color: AppColors.secondaryOrange),
@@ -461,7 +461,7 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: AppColors.primaryGreen.withOpacity(0.1),
+          color: AppColors.primaryGreen.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon, color: AppColors.primaryGreen),

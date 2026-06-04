@@ -495,7 +495,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.primaryGreen.withOpacity(0.10),
+                      color: AppColors.primaryGreen.withValues(alpha: 0.10),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -567,7 +567,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: AppColors.royalBlue.withOpacity(0.08),
+                          color: AppColors.royalBlue.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
@@ -615,10 +615,10 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: AppColors.primaryGreen.withOpacity(0.08),
+                            color: AppColors.primaryGreen.withValues(alpha: 0.08),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: AppColors.primaryGreen.withOpacity(0.3),
+                              color: AppColors.primaryGreen.withValues(alpha: 0.3),
                             ),
                           ),
                           child: Column(
@@ -667,7 +667,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                                 color:
                                     copied
                                         ? Colors.green
-                                        : AppColors.primaryGreen.withOpacity(0.4),
+                                        : AppColors.primaryGreen.withValues(alpha: 0.4),
                               ),
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(
@@ -756,7 +756,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.royalBlue,
                           side: BorderSide(
-                            color: AppColors.royalBlue.withOpacity(0.35),
+                            color: AppColors.royalBlue.withValues(alpha: 0.35),
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
@@ -827,8 +827,8 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
           decoration: BoxDecoration(
             color:
                 highlight
-                    ? AppColors.primaryGreen.withOpacity(0.10)
-                    : Colors.grey.withOpacity(0.08),
+                    ? AppColors.primaryGreen.withValues(alpha: 0.10)
+                    : Colors.grey.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(
@@ -1352,7 +1352,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primaryGreen.withOpacity(0.2),
+                        color: AppColors.primaryGreen.withValues(alpha: 0.2),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -1418,7 +1418,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.grey.withOpacity(0.1),
+                                color: Colors.grey.withValues(alpha: 0.1),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -1496,7 +1496,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                               borderRadius: BorderRadius.circular(12),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.grey.withOpacity(0.1),
+                                  color: Colors.grey.withValues(alpha: 0.1),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
@@ -1534,7 +1534,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.grey.withOpacity(0.1),
+                                color: Colors.grey.withValues(alpha: 0.1),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -1573,7 +1573,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.grey.withOpacity(0.1),
+                                color: Colors.grey.withValues(alpha: 0.1),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -1611,7 +1611,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.grey.withOpacity(0.1),
+                                color: Colors.grey.withValues(alpha: 0.1),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -1650,7 +1650,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.grey.withOpacity(0.1),
+                                color: Colors.grey.withValues(alpha: 0.1),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -1688,7 +1688,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.grey.withOpacity(0.1),
+                                color: Colors.grey.withValues(alpha: 0.1),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -1734,7 +1734,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                               borderRadius: BorderRadius.circular(12),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.grey.withOpacity(0.1),
+                                  color: Colors.grey.withValues(alpha: 0.1),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
@@ -1745,7 +1745,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                                 Container(
                                   padding: const EdgeInsets.all(10),
                                   decoration: BoxDecoration(
-                                    color: AppColors.royalBlue.withOpacity(0.1),
+                                    color: AppColors.royalBlue.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Icon(
@@ -1793,7 +1793,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.grey.withOpacity(0.1),
+                                color: Colors.grey.withValues(alpha: 0.1),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -1887,10 +1887,10 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                                 Container(
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: Colors.red.withOpacity(0.1),
+                                    color: Colors.red.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
-                                      color: Colors.red.withOpacity(0.3),
+                                      color: Colors.red.withValues(alpha: 0.3),
                                     ),
                                   ),
                                   child: Row(
@@ -2003,13 +2003,13 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                                           padding: const EdgeInsets.all(12),
                                           decoration: BoxDecoration(
                                             color: AppColors.royalBlue
-                                                .withOpacity(0.1),
+                                                .withValues(alpha: 0.1),
                                             borderRadius: BorderRadius.circular(
                                               8,
                                             ),
                                             border: Border.all(
                                               color: AppColors.royalBlue
-                                                  .withOpacity(0.3),
+                                                  .withValues(alpha: 0.3),
                                             ),
                                           ),
                                           child: Row(
@@ -2080,13 +2080,13 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                                           padding: const EdgeInsets.all(12),
                                           decoration: BoxDecoration(
                                             color: AppColors.secondaryOrange
-                                                .withOpacity(0.1),
+                                                .withValues(alpha: 0.1),
                                             borderRadius: BorderRadius.circular(
                                               8,
                                             ),
                                             border: Border.all(
                                               color: AppColors.secondaryOrange
-                                                  .withOpacity(0.3),
+                                                  .withValues(alpha: 0.3),
                                             ),
                                           ),
                                           child: Row(
@@ -2175,8 +2175,8 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.secondaryOrange.withOpacity(
-                                  0.4,
+                                color: AppColors.secondaryOrange.withValues(
+                                  alpha: 0.4,
                                 ),
                                 blurRadius: 12,
                                 offset: const Offset(0, 4),

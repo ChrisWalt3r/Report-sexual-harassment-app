@@ -346,7 +346,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     labelStyle: TextStyle(color: AppColors.textSecondary),
                     hintText: 'Select your role',
                     hintStyle: TextStyle(
-                      color: AppColors.textSecondary.withOpacity(0.6),
+                      color: AppColors.textSecondary.withValues(alpha: 0.6),
                     ),
                     prefixIcon: Icon(
                       Icons.people_outline,
@@ -450,7 +450,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     labelStyle: TextStyle(color: AppColors.textSecondary),
                     hintText: 'Select your gender',
                     hintStyle: TextStyle(
-                      color: AppColors.textSecondary.withOpacity(0.6),
+                      color: AppColors.textSecondary.withValues(alpha: 0.6),
                     ),
                     prefixIcon: Icon(
                       Icons.wc_outlined,
@@ -524,7 +524,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       labelStyle: TextStyle(color: AppColors.textSecondary),
                       hintText: 'Select your study level',
                       hintStyle: TextStyle(
-                        color: AppColors.textSecondary.withOpacity(0.6),
+                        color: AppColors.textSecondary.withValues(alpha: 0.6),
                       ),
                       prefixIcon: Icon(
                         Icons.menu_book_outlined,
@@ -703,7 +703,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       labelStyle: TextStyle(color: AppColors.textSecondary),
                       hintText: 'Select your faculty',
                       hintStyle: TextStyle(
-                        color: AppColors.textSecondary.withOpacity(0.6),
+                        color: AppColors.textSecondary.withValues(alpha: 0.6),
                       ),
                       prefixIcon: Icon(
                         Icons.school_outlined,
@@ -786,7 +786,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         labelStyle: TextStyle(color: AppColors.textSecondary),
                         hintText: 'Select your department',
                         hintStyle: TextStyle(
-                          color: AppColors.textSecondary.withOpacity(0.6),
+                          color: AppColors.textSecondary.withValues(alpha: 0.6),
                         ),
                         prefixIcon: Icon(
                           Icons.apartment_outlined,

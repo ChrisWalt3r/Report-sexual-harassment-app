@@ -561,7 +561,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.1),
+                    color: Colors.green.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
@@ -705,7 +705,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.15),
+                        color: Colors.black.withValues(alpha: 0.15),
                         blurRadius: 30,
                         offset: const Offset(0, 10),
                       ),
@@ -729,7 +729,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.15),
+                                color: Colors.white.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Icon(
@@ -756,7 +756,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                     'ID: ${reportDoc.id.substring(0, 8)}...',
                                     style: TextStyle(
                                       fontSize: 13,
-                                      color: Colors.white.withOpacity(0.8),
+                                      color: Colors.white.withValues(alpha: 0.8),
                                       fontFamily: 'monospace',
                                     ),
                                   ),
@@ -769,10 +769,10 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                 vertical: 8,
                               ),
                               decoration: BoxDecoration(
-                                color: statusColor.withOpacity(0.2),
+                                color: statusColor.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(0.3),
+                                  color: Colors.white.withValues(alpha: 0.3),
                                 ),
                               ),
                               child: Row(
@@ -803,7 +803,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                               icon: Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.15),
+                                  color: Colors.white.withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: const Icon(
@@ -1573,14 +1573,14 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                                         ),
                                                     decoration: BoxDecoration(
                                                       color: Colors.deepPurple
-                                                          .withOpacity(0.05),
+                                                          .withValues(alpha: 0.05),
                                                       borderRadius:
                                                           BorderRadius.circular(
                                                             10,
                                                           ),
                                                       border: Border.all(
                                                         color: Colors.deepPurple
-                                                            .withOpacity(0.2),
+                                                            .withValues(alpha: 0.2),
                                                       ),
                                                     ),
                                                     child: Row(
@@ -1593,8 +1593,8 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                                           decoration: BoxDecoration(
                                                             color: Colors
                                                                 .deepPurple
-                                                                .withOpacity(
-                                                                  0.1,
+                                                                .withValues(
+                                                                  alpha: 0.1,
                                                                 ),
                                                             borderRadius:
                                                                 BorderRadius.circular(
@@ -1647,7 +1647,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                                           Icons.open_in_new,
                                                           color: Colors
                                                               .deepPurple
-                                                              .withOpacity(0.6),
+                                                              .withValues(alpha: 0.6),
                                                           size: 20,
                                                         ),
                                                       ],
@@ -1687,7 +1687,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                       width: double.infinity,
                                       padding: const EdgeInsets.all(14),
                                       decoration: BoxDecoration(
-                                        color: Colors.deepOrange.withOpacity(0.07),
+                                        color: Colors.deepOrange.withValues(alpha: 0.07),
                                         borderRadius: BorderRadius.circular(10),
                                       ),
                                       child: Column(
@@ -1789,7 +1789,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                             padding: const EdgeInsets.all(8),
                                             decoration: BoxDecoration(
                                               color: AppColors.primaryGreen
-                                                  .withOpacity(0.1),
+                                                  .withValues(alpha: 0.1),
                                               borderRadius:
                                                   BorderRadius.circular(8),
                                             ),
@@ -2071,7 +2071,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
         border: Border.all(color: Colors.grey[200]!),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -2085,7 +2085,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(icon, color: color, size: 20),
@@ -2159,10 +2159,10 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: AppColors.secondaryOrange.withOpacity(0.1),
+                color: AppColors.secondaryOrange.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: AppColors.secondaryOrange.withOpacity(0.3),
+                  color: AppColors.secondaryOrange.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(
@@ -2393,7 +2393,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
             color: AppColors.background,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: Colors.black.withValues(alpha: 0.04),
                 blurRadius: 4,
                 offset: const Offset(0, 2),
               ),
@@ -2453,7 +2453,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                       decoration: BoxDecoration(
                         color:
                             _selectedStatus != 'all'
-                                ? AppColors.secondaryOrange.withOpacity(0.1)
+                                ? AppColors.secondaryOrange.withValues(alpha: 0.1)
                                 : Colors.grey[100],
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
@@ -2503,7 +2503,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                       decoration: BoxDecoration(
                         color:
                             _selectedFaculty != 'all'
-                                ? AppColors.secondaryOrange.withOpacity(0.1)
+                                ? AppColors.secondaryOrange.withValues(alpha: 0.1)
                                 : Colors.grey[100],
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
@@ -2559,7 +2559,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                       decoration: BoxDecoration(
                         color:
                             _selectedDepartment != 'all'
-                                ? AppColors.secondaryOrange.withOpacity(0.1)
+                                ? AppColors.secondaryOrange.withValues(alpha: 0.1)
                                 : Colors.grey[100],
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
@@ -2616,7 +2616,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                       decoration: BoxDecoration(
                         color:
                             _selectedRole != 'all'
-                                ? AppColors.secondaryOrange.withOpacity(0.1)
+                                ? AppColors.secondaryOrange.withValues(alpha: 0.1)
                                 : Colors.grey[100],
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
@@ -2665,7 +2665,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                       decoration: BoxDecoration(
                         color:
                             _selectedStudyLevel != 'all'
-                                ? AppColors.secondaryOrange.withOpacity(0.1)
+                                ? AppColors.secondaryOrange.withValues(alpha: 0.1)
                                 : Colors.grey[100],
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
@@ -2729,7 +2729,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                         decoration: BoxDecoration(
                           color:
                               _dateRange != null
-                                  ? AppColors.secondaryOrange.withOpacity(0.1)
+                                  ? AppColors.secondaryOrange.withValues(alpha: 0.1)
                                   : Colors.grey[100],
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
@@ -2786,7 +2786,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                         decoration: BoxDecoration(
                           color:
                               _anonymousOnly
-                                  ? AppColors.secondaryOrange.withOpacity(0.1)
+                                  ? AppColors.secondaryOrange.withValues(alpha: 0.1)
                                   : Colors.grey[100],
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
@@ -2837,10 +2837,10 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.primaryGreen.withOpacity(0.05),
+                          color: AppColors.primaryGreen.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                            color: AppColors.primaryGreen.withOpacity(0.3),
+                            color: AppColors.primaryGreen.withValues(alpha: 0.3),
                           ),
                         ),
                         child: Row(
@@ -3063,7 +3063,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                       side: BorderSide(
-                        color: statusColor.withOpacity(0.25),
+                        color: statusColor.withValues(alpha: 0.25),
                         width: 1.5,
                       ),
                     ),
@@ -3073,7 +3073,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                         width: 50,
                         height: 50,
                         decoration: BoxDecoration(
-                          color: statusColor.withOpacity(0.1),
+                          color: statusColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Icon(Icons.report, color: statusColor),
@@ -3141,10 +3141,10 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: statusColor.withOpacity(0.1),
+                              color: statusColor.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: statusColor.withOpacity(0.5),
+                                color: statusColor.withValues(alpha: 0.5),
                               ),
                             ),
                             child: Text(

@@ -146,7 +146,7 @@ class WelcomeScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryGreen.withOpacity(0.15), // Light lime green background
+                  color: AppColors.primaryGreen.withValues(alpha: 0.15), // Light lime green background
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: AppColors.primaryGreen, // Lime green border

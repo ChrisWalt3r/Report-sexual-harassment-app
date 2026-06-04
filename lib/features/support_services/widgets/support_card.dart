@@ -48,7 +48,7 @@ class SupportCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: (iconColor ?? theme.primaryColor).withOpacity(0.1),
+                      color: (iconColor ?? theme.primaryColor).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
@@ -157,9 +157,9 @@ class ServiceTag extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: tagColor.withOpacity(0.1),
+        color: tagColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: tagColor.withOpacity(0.3)),
+        border: Border.all(color: tagColor.withValues(alpha: 0.3)),
       ),
       child: Text(
         label,

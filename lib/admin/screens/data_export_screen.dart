@@ -609,8 +609,8 @@ class _DataExportScreenState extends State<DataExportScreen> {
               ),
               color:
                   _isExporting
-                      ? AppColors.primaryGreen.withOpacity(0.08)
-                      : AppColors.primaryGreen.withOpacity(0.08),
+                      ? AppColors.primaryGreen.withValues(alpha: 0.08)
+                      : AppColors.primaryGreen.withValues(alpha: 0.08),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Row(
@@ -770,7 +770,7 @@ class _DataExportScreenState extends State<DataExportScreen> {
               borderRadius: BorderRadius.circular(12),
               side: const BorderSide(color: AppColors.borderLight),
             ),
-            color: AppColors.secondaryOrange.withOpacity(0.08),
+            color: AppColors.secondaryOrange.withValues(alpha: 0.08),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -854,7 +854,7 @@ class _DataExportScreenState extends State<DataExportScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(icon, color: color, size: 32),

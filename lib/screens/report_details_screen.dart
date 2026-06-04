@@ -182,7 +182,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
           ),
           if (_isDeleting)
             Container(
-              color: Colors.black.withOpacity(0.5),
+              color: Colors.black.withValues(alpha: 0.5),
               child: Center(
                 child: Container(
                   padding: const EdgeInsets.all(32),
@@ -191,7 +191,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
+                        color: Colors.black.withValues(alpha: 0.2),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -268,21 +268,21 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            statusColor.withOpacity(0.1),
-            statusColor.withOpacity(0.05)
+            statusColor.withValues(alpha: 0.1),
+            statusColor.withValues(alpha: 0.05)
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: statusColor.withOpacity(0.3)),
+        border: Border.all(color: statusColor.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.15),
+              color: statusColor.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(statusIcon, color: statusColor, size: 28),
@@ -337,10 +337,10 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.mustGreen.withOpacity(0.3)),
+        border: Border.all(color: AppColors.mustGreen.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.mustGreen.withOpacity(0.08),
+            color: AppColors.mustGreen.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -352,7 +352,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.mustGreen.withOpacity(0.08),
+              color: AppColors.mustGreen.withValues(alpha: 0.08),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
@@ -363,7 +363,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.mustGreen.withOpacity(0.15),
+                    color: AppColors.mustGreen.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
@@ -426,7 +426,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -438,7 +438,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.primaryGreen.withOpacity(0.05),
+              color: AppColors.primaryGreen.withValues(alpha: 0.05),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
@@ -449,7 +449,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryGreen.withOpacity(0.1),
+                    color: AppColors.primaryGreen.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
@@ -533,7 +533,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryGreen.withOpacity(0.1),
+                  color: AppColors.primaryGreen.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Icon(Icons.photo, size: 16, color: AppColors.primaryGreen),
@@ -568,7 +568,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
+                              color: Colors.black.withValues(alpha: 0.1),
                               blurRadius: 8,
                               offset: const Offset(0, 4),
                             ),
@@ -617,7 +617,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryGreen.withOpacity(0.1),
+                  color: AppColors.primaryGreen.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child:
@@ -645,12 +645,12 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
               margin: const EdgeInsets.only(bottom: 10),
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: AppColors.primaryGreen.withOpacity(0.05),
+                color: AppColors.primaryGreen.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: isPending
-                      ? AppColors.primaryGreen.withOpacity(0.3)
-                      : AppColors.primaryGreen.withOpacity(0.2),
+                      ? AppColors.primaryGreen.withValues(alpha: 0.3)
+                      : AppColors.primaryGreen.withValues(alpha: 0.2),
                 ),
               ),
               child: Row(
@@ -658,7 +658,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: AppColors.primaryGreen.withOpacity(0.1),
+                      color: AppColors.primaryGreen.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
@@ -712,7 +712,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
-                        color: AppColors.primaryGreen.withOpacity(0.1),
+                        color: AppColors.primaryGreen.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
@@ -737,7 +737,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: Colors.deepPurple.withOpacity(0.1),
+                  color: Colors.deepPurple.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: const Icon(Icons.audiotrack,
@@ -760,10 +760,10 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
               margin: const EdgeInsets.only(bottom: 10),
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: Colors.deepPurple.withOpacity(0.05),
+                color: Colors.deepPurple.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: Colors.deepPurple.withOpacity(0.2),
+                  color: Colors.deepPurple.withValues(alpha: 0.2),
                 ),
               ),
               child: Row(
@@ -771,7 +771,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: Colors.deepPurple.withOpacity(0.1),
+                      color: Colors.deepPurple.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(
@@ -842,7 +842,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primaryGreen.withOpacity(0.4),
+                  color: AppColors.primaryGreen.withValues(alpha: 0.4),
                   blurRadius: 12,
                   offset: const Offset(0, 6),
                 ),
@@ -883,7 +883,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.deepOrange.withOpacity(0.3),
+                  color: Colors.deepOrange.withValues(alpha: 0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 6),
                 ),

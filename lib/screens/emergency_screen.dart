@@ -315,11 +315,11 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: AppColors.error.withOpacity(0.15),
+                          color: AppColors.error.withValues(alpha: 0.15),
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             blurRadius: 10,
                             offset: const Offset(0, 3),
                           ),
@@ -411,7 +411,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: AppColors.error.withOpacity(0.35),
+              color: AppColors.error.withValues(alpha: 0.35),
               blurRadius: 12,
               offset: const Offset(0, 5),
             ),
@@ -655,9 +655,9 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.mustBlue.withOpacity(0.06),
+        color: AppColors.mustBlue.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.mustBlue.withOpacity(0.15)),
+        border: Border.all(color: AppColors.mustBlue.withValues(alpha: 0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

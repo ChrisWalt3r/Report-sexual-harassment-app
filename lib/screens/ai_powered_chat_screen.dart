@@ -139,7 +139,7 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -219,7 +219,7 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -291,9 +291,9 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.error.withOpacity(0.1),
+        color: AppColors.error.withValues(alpha: 0.1),
         border: Border(
-          bottom: BorderSide(color: AppColors.error.withOpacity(0.3), width: 1),
+          bottom: BorderSide(color: AppColors.error.withValues(alpha: 0.3), width: 1),
         ),
       ),
       child: Row(
@@ -344,9 +344,9 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: AppColors.primaryGreen.withOpacity(0.1),
+            color: AppColors.primaryGreen.withValues(alpha: 0.1),
             border: Border(
-              bottom: BorderSide(color: AppColors.primaryGreen.withOpacity(0.2), width: 1),
+              bottom: BorderSide(color: AppColors.primaryGreen.withValues(alpha: 0.2), width: 1),
             ),
           ),
           child: Row(
@@ -415,7 +415,7 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.08),
+                        color: Colors.black.withValues(alpha: 0.08),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -506,18 +506,18 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
 
     if (isUser) {
       icon = Icons.person;
-      backgroundColor = AppColors.primaryGreen.withOpacity(0.15);
+      backgroundColor = AppColors.primaryGreen.withValues(alpha: 0.15);
       iconColor = AppColors.primaryGreen;
     } else {
       switch (messageType) {
         case ChatMessageType.system:
           icon = Icons.info;
-          backgroundColor = AppColors.secondaryOrange.withOpacity(0.15);
+          backgroundColor = AppColors.secondaryOrange.withValues(alpha: 0.15);
           iconColor = AppColors.secondaryOrange;
           break;
         default:
           icon = Icons.psychology;
-          backgroundColor = AppColors.royalBlue.withOpacity(0.15);
+          backgroundColor = AppColors.royalBlue.withValues(alpha: 0.15);
           iconColor = AppColors.royalBlue;
       }
     }
@@ -709,7 +709,7 @@ class _AIPoweredChatScreenState extends State<AIPoweredChatScreen>
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: AppColors.mustBlue.withOpacity(0.15),
+              color: AppColors.mustBlue.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             child: Icon(Icons.psychology, color: AppColors.mustBlue, size: 18),

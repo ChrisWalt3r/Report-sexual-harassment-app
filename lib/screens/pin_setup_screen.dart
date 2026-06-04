@@ -125,7 +125,7 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.primaryGreen.withOpacity(0.1),
+                  color: AppColors.primaryGreen.withValues(alpha: 0.1),
                   border: Border.all(color: AppColors.secondaryOrange, width: 3),
                 ),
                 child: Icon(
@@ -188,13 +188,13 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(
-                      color: isDark ? AppColors.textSecondary.withOpacity(0.3) : AppColors.borderLight,
+                      color: isDark ? AppColors.textSecondary.withValues(alpha: 0.3) : AppColors.borderLight,
                     ),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(
-                      color: isDark ? AppColors.textSecondary.withOpacity(0.3) : AppColors.borderLight,
+                      color: isDark ? AppColors.textSecondary.withValues(alpha: 0.3) : AppColors.borderLight,
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
@@ -235,13 +235,13 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                    color: isDark ? AppColors.textSecondary.withOpacity(0.3) : AppColors.borderLight,
+                    color: isDark ? AppColors.textSecondary.withValues(alpha: 0.3) : AppColors.borderLight,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                    color: isDark ? AppColors.textSecondary.withOpacity(0.3) : AppColors.borderLight,
+                    color: isDark ? AppColors.textSecondary.withValues(alpha: 0.3) : AppColors.borderLight,
                   ),
                 ),
                 focusedBorder: OutlineInputBorder(
@@ -281,13 +281,13 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                    color: isDark ? AppColors.textSecondary.withOpacity(0.3) : AppColors.borderLight,
+                    color: isDark ? AppColors.textSecondary.withValues(alpha: 0.3) : AppColors.borderLight,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                    color: isDark ? AppColors.textSecondary.withOpacity(0.3) : AppColors.borderLight,
+                    color: isDark ? AppColors.textSecondary.withValues(alpha: 0.3) : AppColors.borderLight,
                   ),
                 ),
                 focusedBorder: OutlineInputBorder(
@@ -336,11 +336,11 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: isDark 
-                    ? AppColors.primaryGreen.withOpacity(0.1) 
-                    : AppColors.primaryGreen.withOpacity(0.05),
+                    ? AppColors.primaryGreen.withValues(alpha: 0.1) 
+                    : AppColors.primaryGreen.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: AppColors.primaryGreen.withOpacity(0.3),
+                  color: AppColors.primaryGreen.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(

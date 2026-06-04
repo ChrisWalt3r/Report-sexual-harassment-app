@@ -153,7 +153,7 @@ class _LegalGuidanceScreenState extends State<LegalGuidanceScreen> {
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: AppColors.secondaryOrange.withOpacity(0.1),
+            color: AppColors.secondaryOrange.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(icon, color: AppColors.secondaryOrange, size: 22),
@@ -177,10 +177,10 @@ class _LegalGuidanceScreenState extends State<LegalGuidanceScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.secondaryOrange.withOpacity(0.2)),
+        border: Border.all(color: AppColors.secondaryOrange.withValues(alpha: 0.2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -273,7 +273,7 @@ class _LegalGuidanceScreenState extends State<LegalGuidanceScreen> {
                       label: Text('Learn More', style: TextStyle(color: AppColors.royalBlue)),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 10),
-                        side: BorderSide(color: AppColors.royalBlue.withOpacity(0.3)),
+                        side: BorderSide(color: AppColors.royalBlue.withValues(alpha: 0.3)),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -292,7 +292,7 @@ class _LegalGuidanceScreenState extends State<LegalGuidanceScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
@@ -312,15 +312,15 @@ class _LegalGuidanceScreenState extends State<LegalGuidanceScreen> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.royalBlue.withOpacity(0.06), 
-            AppColors.secondaryOrange.withOpacity(0.03),
+            AppColors.royalBlue.withValues(alpha: 0.06), 
+            AppColors.secondaryOrange.withValues(alpha: 0.03),
             Colors.white
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.royalBlue.withOpacity(0.2)),
+        border: Border.all(color: AppColors.royalBlue.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [

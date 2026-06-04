@@ -250,7 +250,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -279,7 +279,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.primaryGreen.withOpacity(0.08),
+              color: AppColors.primaryGreen.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
@@ -406,7 +406,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                           ),
                         ),
                         Divider(
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white.withValues(alpha: 0.1),
                           height: 1,
                         ),
                         const SizedBox(height: 8),
@@ -422,7 +422,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                         ),
                         // Footer
                         Divider(
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white.withValues(alpha: 0.1),
                           height: 1,
                         ),
                         Padding(
@@ -463,7 +463,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                       Text(
                                         'v1.0.0 · © 2026',
                                         style: TextStyle(
-                                          color: Colors.white.withOpacity(0.4),
+                                          color: Colors.white.withValues(alpha: 0.4),
                                           fontSize: 10,
                                         ),
                                       ),
@@ -472,7 +472,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                         ),
                         // Collapse toggle
                         Divider(
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white.withValues(alpha: 0.1),
                           height: 1,
                         ),
                         InkWell(
@@ -514,7 +514,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 },
                 child: Container(
                   width: 8,
-                  color: Colors.black.withOpacity(0.08),
+                  color: Colors.black.withValues(alpha: 0.08),
                 ),
               ),
             ),
@@ -544,7 +544,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
               border:
                   isActive
                       ? Border.all(
-                        color: AppColors.primaryGreen.withOpacity(0.7),
+                        color: AppColors.primaryGreen.withValues(alpha: 0.7),
                         width: 1.5,
                       )
                       : null,
@@ -632,7 +632,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   ],
                 ),
               ),
-              Divider(color: Colors.white.withOpacity(0.1)),
+              Divider(color: Colors.white.withValues(alpha: 0.1)),
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -661,8 +661,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
                             ),
                           ),
                           selected: isActive,
-                          selectedTileColor: AppColors.primaryGreen.withOpacity(
-                            0.1,
+                          selectedTileColor: AppColors.primaryGreen.withValues(
+                            alpha: 0.1,
                           ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -675,7 +675,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       }).toList(),
                 ),
               ),
-              Divider(color: Colors.white.withOpacity(0.1)),
+              Divider(color: Colors.white.withValues(alpha: 0.1)),
               // Footer
               Padding(
                 padding: const EdgeInsets.symmetric(
@@ -702,14 +702,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     Text(
                       'v1.0.0 · © 2026',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.4),
+                        color: Colors.white.withValues(alpha: 0.4),
                         fontSize: 10,
                       ),
                     ),
                   ],
                 ),
               ),
-              Divider(color: Colors.white.withOpacity(0.1)),
+              Divider(color: Colors.white.withValues(alpha: 0.1)),
               ListTile(
                 leading: const Icon(Icons.logout, color: Colors.white60),
                 title: const Text(
@@ -1314,7 +1314,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
         border: Border.all(color: Color(0xFF228B22), width: 2),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryGreen.withOpacity(0.10),
+            color: AppColors.primaryGreen.withValues(alpha: 0.10),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -1379,7 +1379,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
                     width: 72,
                     height: 72,
                     decoration: BoxDecoration(
-                      color: AppColors.secondaryOrange.withOpacity(0.2),
+                      color: AppColors.secondaryOrange.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -1432,7 +1432,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -1446,7 +1446,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.secondaryOrange.withOpacity(0.15),
+                  color: AppColors.secondaryOrange.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
@@ -1709,7 +1709,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.secondaryOrange.withOpacity(0.1),
+                color: AppColors.secondaryOrange.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
@@ -1836,7 +1836,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
                   maxValue <= 5 ? 1.0 : (maxValue / 5).ceilToDouble(),
               getDrawingHorizontalLine:
                   (value) => FlLine(
-                    color: Colors.grey.withOpacity(0.15),
+                    color: Colors.grey.withValues(alpha: 0.15),
                     strokeWidth: 1,
                   ),
             ),
@@ -1912,10 +1912,10 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -1948,7 +1948,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: metric.color.withOpacity(0.08),
+        color: metric.color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
@@ -1990,7 +1990,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: AppColors.secondaryOrange.withOpacity(0.15),
+            color: AppColors.secondaryOrange.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(8),
           ),
           child: const Icon(
@@ -2076,7 +2076,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -2144,7 +2144,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: _getStatusColor(status).withOpacity(0.1),
+              color: _getStatusColor(status).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
@@ -2209,7 +2209,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -2271,7 +2271,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
         children: [
           CircleAvatar(
             radius: 20,
-            backgroundColor: AppColors.primaryGreen.withOpacity(0.1),
+            backgroundColor: AppColors.primaryGreen.withValues(alpha: 0.1),
             child: Text(
               name.isNotEmpty ? name[0].toUpperCase() : '?',
               style: const TextStyle(
@@ -2332,7 +2332,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -2369,7 +2369,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.secondaryOrange.withOpacity(0.15),
+                color: AppColors.secondaryOrange.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
@@ -2450,7 +2450,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.secondaryOrange.withOpacity(0.15),
+                color: AppColors.secondaryOrange.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
@@ -2646,7 +2646,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
                       maxValue <= 5 ? 1.0 : (maxValue / 5).ceilToDouble(),
                   getDrawingHorizontalLine:
                       (value) => FlLine(
-                        color: Colors.grey.withOpacity(0.15),
+                        color: Colors.grey.withValues(alpha: 0.15),
                         strokeWidth: 1,
                       ),
                 ),
@@ -2794,7 +2794,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
                                   : (maxValue / 5).ceilToDouble(),
                           getDrawingHorizontalLine:
                               (value) => FlLine(
-                                color: Colors.grey.withOpacity(0.15),
+                                color: Colors.grey.withValues(alpha: 0.15),
                                 strokeWidth: 1,
                               ),
                         ),
@@ -3206,7 +3206,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.primaryGreen.withOpacity(0.08),
+                            color: AppColors.primaryGreen.withValues(alpha: 0.08),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
@@ -3229,7 +3229,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
@@ -3283,7 +3283,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -3323,7 +3323,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
                 decoration: BoxDecoration(
                   color:
                       isSelected
-                          ? AppColors.secondaryOrange.withOpacity(0.1)
+                          ? AppColors.secondaryOrange.withValues(alpha: 0.1)
                           : Colors.grey[50],
                   borderRadius: BorderRadius.circular(8),
                   border:
@@ -3397,7 +3397,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -3458,7 +3458,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
                   decoration: BoxDecoration(
                     color:
                         isSelected
-                            ? AppColors.secondaryOrange.withOpacity(0.1)
+                            ? AppColors.secondaryOrange.withValues(alpha: 0.1)
                             : Colors.grey[50],
                     borderRadius: BorderRadius.circular(8),
                     border:
@@ -3550,7 +3550,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: _getStatusColor(status).withOpacity(0.1),
+        color: _getStatusColor(status).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(

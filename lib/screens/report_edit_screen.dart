@@ -188,10 +188,10 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
                     padding: const EdgeInsets.all(12),
                     margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
-                      color: AppColors.mustBlue.withOpacity(0.05),
+                      color: AppColors.mustBlue.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                          color: AppColors.mustBlue.withOpacity(0.2)),
+                          color: AppColors.mustBlue.withValues(alpha: 0.2)),
                     ),
                     child: Row(
                       children: [
@@ -280,7 +280,7 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
           // Loading overlay
           if (_isSaving)
             Container(
-              color: Colors.black.withOpacity(0.5),
+              color: Colors.black.withValues(alpha: 0.5),
               child: Center(
                 child: Container(
                   padding: const EdgeInsets.all(32),
@@ -289,7 +289,7 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
+                        color: Colors.black.withValues(alpha: 0.2),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -343,7 +343,7 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -355,7 +355,7 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.mustBlue.withOpacity(0.05),
+              color: AppColors.mustBlue.withValues(alpha: 0.05),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
@@ -366,7 +366,7 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.mustBlue.withOpacity(0.1),
+                    color: AppColors.mustBlue.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(icon, color: AppColors.mustBlue, size: 20),
@@ -471,7 +471,7 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: statusColor.withOpacity(0.1),
+            color: statusColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(statusIcon, color: statusColor, size: 20),
@@ -494,10 +494,10 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
+                  color: statusColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                   border:
-                      Border.all(color: statusColor.withOpacity(0.3)),
+                      Border.all(color: statusColor.withValues(alpha: 0.3)),
                 ),
                 child: Text(
                   status.toUpperCase(),
@@ -623,7 +623,7 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.mustGold.withOpacity(0.4),
+                  color: AppColors.mustGold.withValues(alpha: 0.4),
                   blurRadius: 12,
                   offset: const Offset(0, 6),
                 ),
@@ -1226,16 +1226,16 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.05),
+        color: color.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: color),
@@ -1265,7 +1265,7 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
         Container(
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(6),
           ),
           child: Icon(icon, size: 16, color: color),
@@ -1297,12 +1297,12 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
             const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         decoration: BoxDecoration(
           color: hasItems
-              ? AppColors.mustBlue.withOpacity(0.05)
+              ? AppColors.mustBlue.withValues(alpha: 0.05)
               : Colors.grey[50],
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: hasItems
-                ? AppColors.mustBlue.withOpacity(0.3)
+                ? AppColors.mustBlue.withValues(alpha: 0.3)
                 : Colors.grey.shade200,
             width: hasItems ? 2 : 1,
           ),
@@ -1316,8 +1316,8 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: hasItems
-                        ? AppColors.mustBlue.withOpacity(0.1)
-                        : Colors.grey.withOpacity(0.1),
+                        ? AppColors.mustBlue.withValues(alpha: 0.1)
+                        : Colors.grey.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -1338,13 +1338,13 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
                         gradient: LinearGradient(
                           colors: [
                             AppColors.mustBlue,
-                            AppColors.mustBlue.withOpacity(0.8)
+                            AppColors.mustBlue.withValues(alpha: 0.8)
                           ],
                         ),
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.mustBlue.withOpacity(0.4),
+                            color: AppColors.mustBlue.withValues(alpha: 0.4),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -1393,14 +1393,14 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
           color: _isRecording
               ? Colors.red.shade50
               : totalAudios > 0
-                  ? Colors.deepPurple.withOpacity(0.05)
+                  ? Colors.deepPurple.withValues(alpha: 0.05)
                   : Colors.grey[50],
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: _isRecording
                 ? Colors.red
                 : totalAudios > 0
-                    ? Colors.deepPurple.withOpacity(0.3)
+                    ? Colors.deepPurple.withValues(alpha: 0.3)
                     : Colors.grey.shade200,
             width: _isRecording || totalAudios > 0 ? 2 : 1,
           ),
@@ -1414,10 +1414,10 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: _isRecording
-                        ? Colors.red.withOpacity(0.15)
+                        ? Colors.red.withValues(alpha: 0.15)
                         : totalAudios > 0
-                            ? Colors.deepPurple.withOpacity(0.1)
-                            : Colors.grey.withOpacity(0.1),
+                            ? Colors.deepPurple.withValues(alpha: 0.1)
+                            : Colors.grey.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -1442,13 +1442,13 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
                         gradient: LinearGradient(
                           colors: [
                             Colors.deepPurple,
-                            Colors.deepPurple.withOpacity(0.8)
+                            Colors.deepPurple.withValues(alpha: 0.8)
                           ],
                         ),
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.deepPurple.withOpacity(0.4),
+                            color: Colors.deepPurple.withValues(alpha: 0.4),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -1505,7 +1505,7 @@ class _ReportEditScreenState extends State<ReportEditScreen> {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.red.withOpacity(0.5),
+                      color: Colors.red.withValues(alpha: 0.5),
                       blurRadius: 6,
                       spreadRadius: 2,
                     ),

@@ -95,7 +95,7 @@ class EmergencyButton extends StatelessWidget {
         color: bgColor,
         borderRadius: BorderRadius.circular(16),
         elevation: 4,
-        shadowColor: bgColor.withOpacity(0.4),
+        shadowColor: bgColor.withValues(alpha: 0.4),
         child: InkWell(
           onTap: () => _makePhoneCall(context),
           borderRadius: BorderRadius.circular(16),
@@ -107,7 +107,7 @@ class EmergencyButton extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(icon, color: Colors.white, size: 24),
@@ -131,7 +131,7 @@ class EmergencyButton extends StatelessWidget {
                       Text(
                         phoneNumber,
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                           fontSize: 12,
                         ),
                       ),
@@ -140,7 +140,7 @@ class EmergencyButton extends StatelessWidget {
                 ),
                 Icon(
                   Icons.arrow_forward_ios,
-                  color: Colors.white.withOpacity(0.7),
+                  color: Colors.white.withValues(alpha: 0.7),
                   size: 16,
                 ),
               ],
