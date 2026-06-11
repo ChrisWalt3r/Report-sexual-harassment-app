@@ -8,7 +8,6 @@ import '../../services/admin_auth_service.dart';
 import 'users_management_screen.dart';
 import 'reports_management_screen.dart';
 import 'admin_login_screen.dart';
-import 'analytics_screen.dart';
 import 'admin_management_screen.dart';
 import 'data_export_screen.dart';
 import 'contacts_management_screen.dart';
@@ -16,6 +15,7 @@ import 'policy_management_screen.dart';
 import 'chatbot_management_screen.dart';
 import 'profile_management_screen.dart';
 import 'admin_settings_screen.dart';
+import 'email_settings_screen.dart';
 
 // ─── Sidebar navigation item model ───
 class _NavItem {
@@ -79,52 +79,52 @@ class _AdminDashboardState extends State<AdminDashboard> {
         index: 2,
       ),
       const _NavItem(
-        label: 'Analytics',
-        icon: Icons.analytics_outlined,
-        activeIcon: Icons.analytics,
-        index: 3,
-      ),
-      const _NavItem(
         label: 'Contacts',
         icon: Icons.contact_phone_outlined,
         activeIcon: Icons.contact_phone,
-        index: 4,
+        index: 3,
       ),
       const _NavItem(
         label: 'Knowledge Base',
         icon: Icons.policy_outlined,
         activeIcon: Icons.policy,
-        index: 5,
+        index: 4,
       ),
       const _NavItem(
         label: 'Admins',
         icon: Icons.admin_panel_settings_outlined,
         activeIcon: Icons.admin_panel_settings,
-        index: 6,
+        index: 5,
         superAdminOnly: true,
       ),
       const _NavItem(
         label: 'Export',
         icon: Icons.download_outlined,
         activeIcon: Icons.download,
-        index: 7,
+        index: 6,
       ),
       const _NavItem(
         label: 'Profile',
         icon: Icons.account_circle_outlined,
         activeIcon: Icons.account_circle,
-        index: 8,
+        index: 7,
       ),
       const _NavItem(
         label: 'Settings & Logs',
         icon: Icons.settings,
         activeIcon: Icons.settings,
-        index: 9,
+        index: 8,
       ),
       const _NavItem(
         label: 'Chatbot Mgmt',
         icon: Icons.smart_toy_outlined,
         activeIcon: Icons.smart_toy,
+        index: 9,
+      ),
+      const _NavItem(
+        label: 'Email Settings',
+        icon: Icons.email_outlined,
+        activeIcon: Icons.email,
         index: 10,
       ),
     ];
@@ -132,8 +132,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   List<_NavItem> get _visibleNavItems {
     return _navItems.where((item) {
-      if (item.superAdminOnly && widget.admin.role != AdminRole.superAdmin)
+      if (item.superAdminOnly && widget.admin.role != AdminRole.superAdmin) {
         return false;
+      }
       return true;
     }).toList();
   }
@@ -147,21 +148,21 @@ class _AdminDashboardState extends State<AdminDashboard> {
       case 2:
         return UsersManagementScreen(admin: widget.admin, embedded: true);
       case 3:
-        return const AnalyticsScreen(embedded: true);
-      case 4:
         return const ContactsManagementScreen();
-      case 5:
+      case 4:
         return const PolicyManagementScreen(embedded: true);
-      case 6:
+      case 5:
         return const AdminManagementScreen(embedded: true);
-      case 7:
+      case 6:
         return const DataExportScreen(embedded: true);
-      case 8:
+      case 7:
         return ProfileManagementScreen(admin: widget.admin, embedded: true);
-      case 9:
+      case 8:
         return AdminSettingsScreen(admin: widget.admin, embedded: true);
-      case 10:
+      case 9:
         return ChatbotManagementScreen(admin: widget.admin, embedded: true);
+      case 10:
+        return EmailSettingsScreen(admin: widget.admin, embedded: true);
       default:
         return _DashboardOverview(admin: widget.admin);
     }
@@ -249,7 +250,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -278,7 +279,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.primaryGreen.withOpacity(0.08),
+              color: AppColors.primaryGreen.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
@@ -330,7 +331,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
     final sidebarWidth =
         _sidebarCollapsed
             ? _sidebarCollapsedWidth
-            : _sidebarExpandedWidth.clamp(_sidebarMinWidth, _sidebarMaxWidth)
+            : _sidebarExpandedWidth
+                .clamp(_sidebarMinWidth, _sidebarMaxWidth)
                 .toDouble();
 
     return SizedBox(
@@ -350,135 +352,146 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     height: constraints.maxHeight,
                     child: Column(
                       children: [
-                    // Header with SHA Icon
-                    Container(
-                      height: 64,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: _sidebarCollapsed ? 12 : 20,
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 36,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: AppColors.primaryGreen,
-                                width: 2,
-                              ),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.asset(
-                                'assets/icon/app_icon_circle.jpeg',
-                                width: 32,
-                                height: 32,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return const Icon(
-                                    Icons.shield,
-                                    size: 20,
-                                    color: AppColors.primaryGreen,
-                                  );
-                                },
-                              ),
-                            ),
+                        // Header with SHA Icon
+                        Container(
+                          height: 64,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: _sidebarCollapsed ? 12 : 20,
                           ),
-                          if (!_sidebarCollapsed) ...[
-                            const SizedBox(width: 12),
-                            const Expanded(
-                              child: Text(
-                                'MUST Admin',
-                                style: TextStyle(
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 36,
+                                height: 36,
+                                decoration: BoxDecoration(
                                   color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: AppColors.primaryGreen,
+                                    width: 2,
+                                  ),
                                 ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    Divider(color: Colors.white.withOpacity(0.1), height: 1),
-                    const SizedBox(height: 8),
-                    // Nav items
-                    Expanded(
-                      child: ListView(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        children:
-                            _visibleNavItems
-                                .map((item) => _buildSidebarItem(item))
-                                .toList(),
-                      ),
-                    ),
-                    // Footer
-                    Divider(color: Colors.white.withOpacity(0.1), height: 1),
-                    Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: _sidebarCollapsed ? 8 : 16,
-                        vertical: 12,
-                      ),
-                      child:
-                          _sidebarCollapsed
-                              ? const Icon(
-                                Icons.school,
-                                color: Colors.white38,
-                                size: 20,
-                              )
-                              : Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.school,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.asset(
+                                    'assets/icon/app_icon_circle.jpeg',
+                                    width: 32,
+                                    height: 32,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return const Icon(
+                                        Icons.shield,
+                                        size: 20,
                                         color: AppColors.primaryGreen,
-                                        size: 16,
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                              if (!_sidebarCollapsed) ...[
+                                const SizedBox(width: 12),
+                                const Expanded(
+                                  child: Text(
+                                    'MUST Admin',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        Divider(
+                          color: Colors.white.withValues(alpha: 0.1),
+                          height: 1,
+                        ),
+                        const SizedBox(height: 8),
+                        // Nav items
+                        Expanded(
+                          child: ListView(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            children:
+                                _visibleNavItems
+                                    .map((item) => _buildSidebarItem(item))
+                                    .toList(),
+                          ),
+                        ),
+                        // Footer
+                        Divider(
+                          color: Colors.white.withValues(alpha: 0.1),
+                          height: 1,
+                        ),
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: _sidebarCollapsed ? 8 : 16,
+                            vertical: 12,
+                          ),
+                          child:
+                              _sidebarCollapsed
+                                  ? const Icon(
+                                    Icons.school,
+                                    color: Colors.white38,
+                                    size: 20,
+                                  )
+                                  : Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.school,
+                                            color: AppColors.primaryGreen,
+                                            size: 16,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          const Text(
+                                            'MUST',
+                                            style: TextStyle(
+                                              color: Colors.white70,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                      const SizedBox(width: 8),
-                                      const Text(
-                                        'MUST',
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'v1.0.0 · © 2026',
                                         style: TextStyle(
-                                          color: Colors.white70,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white.withValues(alpha: 0.4),
+                                          fontSize: 10,
                                         ),
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'v1.0.0 · © 2026',
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.4),
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                    ),
-                    // Collapse toggle
-                    Divider(color: Colors.white.withOpacity(0.1), height: 1),
-                    InkWell(
-                      onTap:
-                          () =>
-                              setState(() => _sidebarCollapsed = !_sidebarCollapsed),
-                      child: Container(
-                        height: 48,
-                        alignment: Alignment.center,
-                        child: Icon(
-                          _sidebarCollapsed
-                              ? Icons.keyboard_double_arrow_right
-                              : Icons.keyboard_double_arrow_left,
-                          color: Colors.white54,
-                          size: 20,
                         ),
-                      ),
-                    ),
+                        // Collapse toggle
+                        Divider(
+                          color: Colors.white.withValues(alpha: 0.1),
+                          height: 1,
+                        ),
+                        InkWell(
+                          onTap:
+                              () => setState(
+                                () => _sidebarCollapsed = !_sidebarCollapsed,
+                              ),
+                          child: Container(
+                            height: 48,
+                            alignment: Alignment.center,
+                            child: Icon(
+                              _sidebarCollapsed
+                                  ? Icons.keyboard_double_arrow_right
+                                  : Icons.keyboard_double_arrow_left,
+                              color: Colors.white54,
+                              size: 20,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -493,14 +506,15 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 behavior: HitTestBehavior.opaque,
                 onHorizontalDragUpdate: (details) {
                   setState(() {
-                    _sidebarExpandedWidth = (_sidebarExpandedWidth + details.delta.dx)
-                        .clamp(_sidebarMinWidth, _sidebarMaxWidth)
-                        .toDouble();
+                    _sidebarExpandedWidth =
+                        (_sidebarExpandedWidth + details.delta.dx)
+                            .clamp(_sidebarMinWidth, _sidebarMaxWidth)
+                            .toDouble();
                   });
                 },
                 child: Container(
                   width: 8,
-                  color: Colors.black.withOpacity(0.08),
+                  color: Colors.black.withValues(alpha: 0.08),
                 ),
               ),
             ),
@@ -530,7 +544,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
               border:
                   isActive
                       ? Border.all(
-                        color: AppColors.primaryGreen.withOpacity(0.7),
+                        color: AppColors.primaryGreen.withValues(alpha: 0.7),
                         width: 1.5,
                       )
                       : null,
@@ -548,7 +562,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     child: Text(
                       item.label,
                       style: TextStyle(
-                        color: isActive ? AppColors.primaryGreen : Colors.white70,
+                        color:
+                            isActive ? AppColors.primaryGreen : Colors.white70,
                         fontSize: 14,
                         fontWeight:
                             isActive ? FontWeight.w600 : FontWeight.normal,
@@ -583,7 +598,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.primaryGreen, width: 2),
+                        border: Border.all(
+                          color: AppColors.primaryGreen,
+                          width: 2,
+                        ),
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(10),
@@ -614,7 +632,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   ],
                 ),
               ),
-              Divider(color: Colors.white.withOpacity(0.1)),
+              Divider(color: Colors.white.withValues(alpha: 0.1)),
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -643,8 +661,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
                             ),
                           ),
                           selected: isActive,
-                          selectedTileColor: AppColors.primaryGreen.withOpacity(
-                            0.1,
+                          selectedTileColor: AppColors.primaryGreen.withValues(
+                            alpha: 0.1,
                           ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -657,7 +675,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       }).toList(),
                 ),
               ),
-              Divider(color: Colors.white.withOpacity(0.1)),
+              Divider(color: Colors.white.withValues(alpha: 0.1)),
               // Footer
               Padding(
                 padding: const EdgeInsets.symmetric(
@@ -684,14 +702,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     Text(
                       'v1.0.0 · © 2026',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.4),
+                        color: Colors.white.withValues(alpha: 0.4),
                         fontSize: 10,
                       ),
                     ),
                   ],
                 ),
               ),
-              Divider(color: Colors.white.withOpacity(0.1)),
+              Divider(color: Colors.white.withValues(alpha: 0.1)),
               ListTile(
                 leading: const Icon(Icons.logout, color: Colors.white60),
                 title: const Text(
@@ -732,6 +750,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
   final Map<String, String> _userDeptMap = {};
   final Map<String, String> _userGenderMap = {};
   final Map<String, String> _userRoleMap = {};
+  final Map<String, String> _userStudyLevelMap = {};
 
   // Filter state
   String _selectedFaculty = 'All Faculties';
@@ -742,6 +761,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
   // Advanced insights local filters (independent from main dashboard filters)
   String _insightGender = 'All Genders';
   String _insightRole = 'All Roles';
+  String _insightStudyLevel = 'All Levels';
   String _insightReportType = 'All Reports';
 
   bool _isLoading = true;
@@ -876,6 +896,9 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
     final normalized = _cleanLabel((rawGender ?? '').toString());
     if (normalized == 'male' || normalized == 'man') return 'Male';
     if (normalized == 'female' || normalized == 'woman') return 'Female';
+    if (normalized == 'prefer not to say' || normalized == 'not specified') {
+      return 'Unspecified';
+    }
     if (normalized.isEmpty) return 'Unspecified';
     return 'Other';
   }
@@ -888,6 +911,26 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
       return otherRole.isNotEmpty ? otherRole : 'Other';
     }
     return role;
+  }
+
+  String _normalizeStudyLevel(dynamic rawStudyLevel) {
+    final raw = (rawStudyLevel ?? '').toString().trim();
+    final normalized = _cleanLabel(raw);
+    if (normalized.isEmpty || normalized == 'prefer not to say') {
+      return 'Unspecified';
+    }
+    if (normalized.contains('undergraduate') || normalized == 'undergrad') {
+      return 'Undergraduate';
+    }
+    if (normalized.contains('postgraduate') ||
+        normalized.contains('masters') ||
+        normalized.contains('graduate')) {
+      return 'Postgraduate';
+    }
+    if (normalized.contains('phd') || normalized.contains('doctoral')) {
+      return 'Doctoral';
+    }
+    return raw;
   }
 
   @override
@@ -910,6 +953,11 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
           }).toList();
 
       // Build faculty/dept mapping
+      _userFacultyMap.clear();
+      _userDeptMap.clear();
+      _userGenderMap.clear();
+      _userRoleMap.clear();
+      _userStudyLevelMap.clear();
       for (final user in _allUsers) {
         final id = user['id'] as String;
         final facultyRaw =
@@ -919,17 +967,20 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
         final dept = _canonicalDepartment(faculty, deptRaw);
         final gender = _normalizeGender(user['gender']);
         final role = _normalizeRole(user['role'], user['otherRole']);
+        final studyLevel = _normalizeStudyLevel(user['studyLevel']);
 
         _userFacultyMap[id] = faculty;
         _userDeptMap[id] = dept;
         _userGenderMap[id] = gender;
         _userRoleMap[id] = role;
+        _userStudyLevelMap[id] = studyLevel;
 
         // Keep normalized values on user records for consistent filtering/stats.
         user['department'] = faculty;
         user['facultyDepartment'] = dept;
         user['gender'] = gender;
         user['role'] = role;
+        user['studyLevel'] = studyLevel;
       }
 
       // Load reports
@@ -938,19 +989,57 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
           reportsSnapshot.docs.map((doc) {
             final data = doc.data();
             data['id'] = doc.id;
-            // Attach user's faculty/dept to report
+
             final userId = data['userId'] as String?;
-            if (userId != null) {
-              data['userFaculty'] = _userFacultyMap[userId] ?? '';
-              data['userDept'] = _userDeptMap[userId] ?? '';
-              data['userGender'] = _userGenderMap[userId] ?? 'Unspecified';
-              data['userRole'] = _userRoleMap[userId] ?? 'Unspecified';
-            } else {
-              data['userFaculty'] = '';
-              data['userDept'] = '';
-              data['userGender'] = 'Unspecified';
-              data['userRole'] = 'Unspecified';
-            }
+
+            final mappedFaculty =
+                userId != null && (_userFacultyMap[userId]?.isNotEmpty ?? false)
+                    ? _userFacultyMap[userId]!
+                    : _canonicalFaculty(
+                      (data['userFaculty'] ??
+                              data['faculty'] ??
+                              data['department'] ??
+                              '')
+                          .toString(),
+                    );
+
+            final mappedDept =
+                userId != null && (_userDeptMap[userId]?.isNotEmpty ?? false)
+                    ? _userDeptMap[userId]!
+                    : _canonicalDepartment(
+                      mappedFaculty,
+                      (data['userDept'] ?? data['facultyDepartment'] ?? '')
+                          .toString(),
+                    );
+
+            final mappedGender =
+                userId != null && (_userGenderMap[userId]?.isNotEmpty ?? false)
+                    ? _userGenderMap[userId]!
+                    : _normalizeGender(data['userGender'] ?? data['gender']);
+
+            final mappedRole =
+                userId != null && (_userRoleMap[userId]?.isNotEmpty ?? false)
+                    ? _userRoleMap[userId]!
+                    : _normalizeRole(
+                      data['userRole'] ?? data['role'] ?? data['displayRole'],
+                      data['otherRole'],
+                    );
+
+            final mappedStudyLevel =
+                userId != null &&
+                        (_userStudyLevelMap[userId]?.isNotEmpty ?? false)
+                    ? _userStudyLevelMap[userId]!
+                    : _normalizeStudyLevel(
+                      data['userStudyLevel'] ?? data['studyLevel'],
+                    );
+
+            data['userFaculty'] = mappedFaculty;
+            data['userDept'] = mappedDept;
+            data['userGender'] = mappedGender;
+            data['userRole'] = mappedRole;
+            data['userStudyLevel'] = mappedStudyLevel;
+            data['reportingWay'] =
+                data['isAnonymous'] == true ? 'Anonymous' : 'Account Linked';
             return data;
           }).toList();
 
@@ -976,13 +1065,16 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
   List<Map<String, dynamic>> get _filteredReports {
     return _allReports.where((r) {
       if (_selectedFaculty != 'All Faculties' &&
-          r['userFaculty'] != _selectedFaculty)
+          r['userFaculty'] != _selectedFaculty) {
         return false;
+      }
       if (_selectedDepartment != 'All Departments' &&
-          r['userDept'] != _selectedDepartment)
+          r['userDept'] != _selectedDepartment) {
         return false;
-      if (_selectedStatus != 'All Statuses' && r['status'] != _selectedStatus)
+      }
+      if (_selectedStatus != 'All Statuses' && r['status'] != _selectedStatus) {
         return false;
+      }
       return true;
     }).toList();
   }
@@ -992,11 +1084,13 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
     return _allUsers.where((u) {
       final faculty = u['department'] ?? '';
       final dept = u['facultyDepartment'] ?? '';
-      if (_selectedFaculty != 'All Faculties' && faculty != _selectedFaculty)
+      if (_selectedFaculty != 'All Faculties' && faculty != _selectedFaculty) {
         return false;
+      }
       if (_selectedDepartment != 'All Departments' &&
-          dept != _selectedDepartment)
+          dept != _selectedDepartment) {
         return false;
+      }
       return true;
     }).toList();
   }
@@ -1022,23 +1116,42 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
 
   List<String> get _availableInsightRoles {
     final roles =
-        _filteredUsers
-            .map((u) => _normalizeRole(u['role'], u['otherRole']))
-            .toSet()
-            .toList()
+        <String>{
+            ..._filteredUsers.map(
+              (u) => _normalizeRole(u['role'], u['otherRole']),
+            ),
+            ..._filteredReports.map((r) => _normalizeRole(r['userRole'], '')),
+          }.toList()
           ..sort();
     return roles;
+  }
+
+  List<String> get _availableInsightStudyLevels {
+    final levels =
+        <String>{
+            ..._filteredUsers.map((u) => _normalizeStudyLevel(u['studyLevel'])),
+            ..._filteredReports.map(
+              (r) => _normalizeStudyLevel(r['userStudyLevel']),
+            ),
+          }.toList()
+          ..sort();
+    return levels;
   }
 
   List<Map<String, dynamic>> get _advancedFilteredUsers {
     return _filteredUsers.where((u) {
       final gender = _normalizeGender(u['gender']);
       final role = _normalizeRole(u['role'], u['otherRole']);
+      final studyLevel = _normalizeStudyLevel(u['studyLevel']);
 
       if (_insightGender != 'All Genders' && gender != _insightGender) {
         return false;
       }
       if (_insightRole != 'All Roles' && role != _insightRole) {
+        return false;
+      }
+      if (_insightStudyLevel != 'All Levels' &&
+          studyLevel != _insightStudyLevel) {
         return false;
       }
       return true;
@@ -1049,12 +1162,17 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
     return _filteredReports.where((r) {
       final gender = _normalizeGender(r['userGender']);
       final role = _normalizeRole(r['userRole'], '');
+      final studyLevel = _normalizeStudyLevel(r['userStudyLevel']);
       final isAnonymous = r['isAnonymous'] == true;
 
       if (_insightGender != 'All Genders' && gender != _insightGender) {
         return false;
       }
       if (_insightRole != 'All Roles' && role != _insightRole) {
+        return false;
+      }
+      if (_insightStudyLevel != 'All Levels' &&
+          studyLevel != _insightStudyLevel) {
         return false;
       }
       if (_insightReportType == 'Anonymous Only' && !isAnonymous) {
@@ -1095,11 +1213,47 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
     return stats;
   }
 
-  Map<String, int> get _advancedRoleStats {
+  Map<String, int> get _advancedRoleReportStats {
     final stats = <String, int>{};
-    for (final user in _advancedFilteredUsers) {
-      final role = _normalizeRole(user['role'], user['otherRole']);
+    for (final report in _advancedFilteredReports) {
+      final role = _normalizeRole(report['userRole'], report['otherRole']);
       stats[role] = (stats[role] ?? 0) + 1;
+    }
+    return stats;
+  }
+
+  Map<String, int> get _advancedStudyLevelReportStats {
+    final stats = <String, int>{
+      'Undergraduate': 0,
+      'Postgraduate': 0,
+      'Doctoral': 0,
+      'Unspecified': 0,
+    };
+    for (final report in _advancedFilteredReports) {
+      final level = _normalizeStudyLevel(report['userStudyLevel']);
+      stats[level] = (stats[level] ?? 0) + 1;
+    }
+    return stats;
+  }
+
+  Map<String, int> get _advancedFacultyReportStats {
+    final stats = <String, int>{};
+    for (final report in _advancedFilteredReports) {
+      final faculty = (report['userFaculty'] ?? '').toString().trim();
+      final key = faculty.isEmpty ? 'Unspecified' : faculty;
+      stats[key] = (stats[key] ?? 0) + 1;
+    }
+    return stats;
+  }
+
+  Map<String, int> get _advancedReportingWayStats {
+    final stats = <String, int>{'Anonymous': 0, 'Account Linked': 0};
+    for (final report in _advancedFilteredReports) {
+      if (report['isAnonymous'] == true) {
+        stats['Anonymous'] = (stats['Anonymous'] ?? 0) + 1;
+      } else {
+        stats['Account Linked'] = (stats['Account Linked'] ?? 0) + 1;
+      }
     }
     return stats;
   }
@@ -1114,10 +1268,11 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading)
+    if (_isLoading) {
       return Center(
         child: CircularProgressIndicator(color: AppColors.secondaryOrange),
       );
+    }
 
     return RefreshIndicator(
       color: AppColors.secondaryOrange,
@@ -1159,7 +1314,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
         border: Border.all(color: Color(0xFF228B22), width: 2),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryGreen.withOpacity(0.10),
+            color: AppColors.primaryGreen.withValues(alpha: 0.10),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -1224,7 +1379,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
                     width: 72,
                     height: 72,
                     decoration: BoxDecoration(
-                      color: AppColors.secondaryOrange.withOpacity(0.2),
+                      color: AppColors.secondaryOrange.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -1277,7 +1432,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -1291,7 +1446,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.secondaryOrange.withOpacity(0.15),
+                  color: AppColors.secondaryOrange.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
@@ -1554,7 +1709,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.secondaryOrange.withOpacity(0.1),
+                color: AppColors.secondaryOrange.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
@@ -1592,10 +1747,17 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
             stats['under_review'] ?? 0,
             AppColors.royalBlue,
           ),
-          _ChartMetric('Resolved', stats['resolved'] ?? 0, AppColors.primaryGreen),
+          _ChartMetric(
+            'Resolved',
+            stats['resolved'] ?? 0,
+            AppColors.primaryGreen,
+          ),
           _ChartMetric('Dismissed', stats['dismissed'] ?? 0, Colors.grey),
         ].where((item) => item.value > 0).toList();
-    final total = metrics.fold<int>(0, (sum, item) => sum + item.value);
+    final total = metrics.fold<int>(
+      0,
+      (accumulator, item) => accumulator + item.value,
+    );
 
     return _buildChartCardShell(
       title: 'Status Distribution',
@@ -1642,12 +1804,16 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
   }
 
   Widget _buildVolumeBarChart(Map<String, int> stats) {
+    final totalReports = stats['total'] ?? 0;
+    final anonymousReports = stats['anonymous'] ?? 0;
+    final identifiedReports = math.max(0, totalReports - anonymousReports);
     final metrics = [
-      _ChartMetric('Users', _filteredUsers.length, AppColors.primaryGreen),
-      _ChartMetric('Reports', stats['total'] ?? 0, AppColors.secondaryOrange),
+      _ChartMetric('Reports', totalReports, AppColors.secondaryOrange),
+      _ChartMetric('Account', identifiedReports, AppColors.primaryGreen),
+      _ChartMetric('Anonymous', anonymousReports, Colors.grey[700]!),
       _ChartMetric('Pending', stats['pending'] ?? 0, Colors.orange),
       _ChartMetric('Resolved', stats['resolved'] ?? 0, AppColors.primaryGreen),
-      _ChartMetric('Anonymous', stats['anonymous'] ?? 0, Colors.grey[700]!),
+      _ChartMetric('Users', _filteredUsers.length, AppColors.royalBlue),
     ];
     final maxValue = metrics.fold<int>(
       0,
@@ -1657,7 +1823,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
 
     return _buildChartCardShell(
       title: 'Key Volumes',
-      subtitle: 'Users and report totals',
+      subtitle: 'Report load, reporting way, and progress',
       child: SizedBox(
         height: 270,
         child: BarChart(
@@ -1670,7 +1836,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
                   maxValue <= 5 ? 1.0 : (maxValue / 5).ceilToDouble(),
               getDrawingHorizontalLine:
                   (value) => FlLine(
-                    color: Colors.grey.withOpacity(0.15),
+                    color: Colors.grey.withValues(alpha: 0.15),
                     strokeWidth: 1,
                   ),
             ),
@@ -1698,8 +1864,9 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
                   showTitles: true,
                   getTitlesWidget: (value, meta) {
                     final index = value.toInt();
-                    if (index < 0 || index >= metrics.length)
+                    if (index < 0 || index >= metrics.length) {
                       return const SizedBox.shrink();
+                    }
                     return Padding(
                       padding: const EdgeInsets.only(top: 8),
                       child: Text(
@@ -1745,10 +1912,10 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -1781,7 +1948,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: metric.color.withOpacity(0.08),
+        color: metric.color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
@@ -1823,7 +1990,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: AppColors.secondaryOrange.withOpacity(0.15),
+            color: AppColors.secondaryOrange.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(8),
           ),
           child: const Icon(
@@ -1909,7 +2076,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -1977,7 +2144,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: _getStatusColor(status).withOpacity(0.1),
+              color: _getStatusColor(status).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
@@ -2042,7 +2209,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -2104,7 +2271,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
         children: [
           CircleAvatar(
             radius: 20,
-            backgroundColor: AppColors.primaryGreen.withOpacity(0.1),
+            backgroundColor: AppColors.primaryGreen.withValues(alpha: 0.1),
             child: Text(
               name.isNotEmpty ? name[0].toUpperCase() : '?',
               style: const TextStyle(
@@ -2165,7 +2332,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -2202,7 +2369,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.secondaryOrange.withOpacity(0.15),
+                color: AppColors.secondaryOrange.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
@@ -2244,22 +2411,34 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
   }
 
   Widget _buildAdvancedInsightsSection() {
-    final isWide = MediaQuery.of(context).size.width > 900;
     final hasInsightFilter =
         _insightGender != 'All Genders' ||
         _insightRole != 'All Roles' ||
+        _insightStudyLevel != 'All Levels' ||
         _insightReportType != 'All Reports';
 
     final roleOptions = _availableInsightRoles;
+    final studyLevelOptions = _availableInsightStudyLevels;
     final selectedRoleValue =
         (_insightRole == 'All Roles' || roleOptions.contains(_insightRole))
             ? _insightRole
             : 'All Roles';
+    final selectedStudyLevelValue =
+        (_insightStudyLevel == 'All Levels' ||
+                studyLevelOptions.contains(_insightStudyLevel))
+            ? _insightStudyLevel
+            : 'All Levels';
 
     if (selectedRoleValue != _insightRole) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         setState(() => _insightRole = selectedRoleValue);
+      });
+    }
+    if (selectedStudyLevelValue != _insightStudyLevel) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(() => _insightStudyLevel = selectedStudyLevelValue);
       });
     }
 
@@ -2271,7 +2450,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.secondaryOrange.withOpacity(0.15),
+                color: AppColors.secondaryOrange.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
@@ -2312,7 +2491,13 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
               _buildAdvancedDropdown(
                 label: 'Gender',
                 value: _insightGender,
-                items: const ['All Genders', 'Male', 'Female', 'Other', 'Unspecified'],
+                items: const [
+                  'All Genders',
+                  'Male',
+                  'Female',
+                  'Other',
+                  'Unspecified',
+                ],
                 onChanged: (v) => setState(() => _insightGender = v),
               ),
               _buildAdvancedDropdown(
@@ -2322,9 +2507,19 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
                 onChanged: (v) => setState(() => _insightRole = v),
               ),
               _buildAdvancedDropdown(
+                label: 'Study Level',
+                value: selectedStudyLevelValue,
+                items: ['All Levels', ...studyLevelOptions],
+                onChanged: (v) => setState(() => _insightStudyLevel = v),
+              ),
+              _buildAdvancedDropdown(
                 label: 'Report Type',
                 value: _insightReportType,
-                items: const ['All Reports', 'Anonymous Only', 'Identified Only'],
+                items: const [
+                  'All Reports',
+                  'Anonymous Only',
+                  'Identified Only',
+                ],
                 onChanged: (v) => setState(() => _insightReportType = v),
               ),
               if (hasInsightFilter)
@@ -2333,6 +2528,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
                     setState(() {
                       _insightGender = 'All Genders';
                       _insightRole = 'All Roles';
+                      _insightStudyLevel = 'All Levels';
                       _insightReportType = 'All Reports';
                     });
                   },
@@ -2346,22 +2542,35 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
           ),
         ),
         const SizedBox(height: 16),
-        isWide
-            ? Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(child: _buildGenderDistributionCard()),
-                const SizedBox(width: 16),
-                Expanded(child: _buildProfessionalKpiCard()),
-              ],
-            )
-            : Column(
-              children: [
-                _buildGenderDistributionCard(),
-                const SizedBox(height: 16),
-                _buildProfessionalKpiCard(),
-              ],
-            ),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            const spacing = 16.0;
+            final columns =
+                constraints.maxWidth > 1300
+                    ? 3
+                    : (constraints.maxWidth > 860 ? 2 : 1);
+            final cardWidth =
+                (constraints.maxWidth - ((columns - 1) * spacing)) / columns;
+
+            final cards = <Widget>[
+              _buildGenderDistributionCard(),
+              _buildRoleDistributionCard(),
+              _buildStudyLevelDistributionCard(),
+              _buildFacultyDistributionCard(),
+              _buildReportingWayCard(),
+              _buildProfessionalKpiCard(),
+            ];
+
+            return Wrap(
+              spacing: spacing,
+              runSpacing: spacing,
+              children:
+                  cards
+                      .map((card) => SizedBox(width: cardWidth, child: card))
+                      .toList(),
+            );
+          },
+        ),
       ],
     );
   }
@@ -2437,7 +2646,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
                       maxValue <= 5 ? 1.0 : (maxValue / 5).ceilToDouble(),
                   getDrawingHorizontalLine:
                       (value) => FlLine(
-                        color: Colors.grey.withOpacity(0.15),
+                        color: Colors.grey.withValues(alpha: 0.15),
                         strokeWidth: 1,
                       ),
                 ),
@@ -2516,7 +2725,11 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
             runSpacing: 10,
             children: [
               _buildMetricLegend(
-                _ChartMetric('Users', _advancedFilteredUsers.length, AppColors.primaryGreen),
+                _ChartMetric(
+                  'Users',
+                  _advancedFilteredUsers.length,
+                  AppColors.primaryGreen,
+                ),
               ),
               _buildMetricLegend(
                 _ChartMetric(
@@ -2532,24 +2745,387 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
     );
   }
 
+  Widget _buildRoleDistributionCard() {
+    final sorted =
+        _advancedRoleReportStats.entries
+            .where((entry) => entry.value > 0)
+            .toList()
+          ..sort((a, b) => b.value.compareTo(a.value));
+
+    if (sorted.length > 6) {
+      final topFive = sorted.take(5).toList();
+      final others = sorted
+          .skip(5)
+          .fold<int>(0, (accumulator, entry) => accumulator + entry.value);
+      if (others > 0) {
+        topFive.add(MapEntry('Others', others));
+      }
+      sorted
+        ..clear()
+        ..addAll(topFive);
+    }
+
+    final maxValue = sorted.fold<int>(
+      0,
+      (current, entry) => math.max(current, entry.value),
+    );
+    final maxY = ((maxValue == 0 ? 1 : maxValue) * 1.3).toDouble();
+
+    return _buildChartCardShell(
+      title: 'Reporter Role Distribution',
+      subtitle: 'Reports grouped by reporter role',
+      child:
+          sorted.isEmpty
+              ? _buildEmptyChartState('No role data in current filter')
+              : Column(
+                children: [
+                  SizedBox(
+                    height: 250,
+                    child: BarChart(
+                      BarChartData(
+                        maxY: maxY,
+                        groupsSpace: 14,
+                        gridData: FlGridData(
+                          show: true,
+                          drawVerticalLine: false,
+                          horizontalInterval:
+                              maxValue <= 5
+                                  ? 1.0
+                                  : (maxValue / 5).ceilToDouble(),
+                          getDrawingHorizontalLine:
+                              (value) => FlLine(
+                                color: Colors.grey.withValues(alpha: 0.15),
+                                strokeWidth: 1,
+                              ),
+                        ),
+                        borderData: FlBorderData(show: false),
+                        titlesData: FlTitlesData(
+                          topTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
+                          rightTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
+                          leftTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: 28,
+                              getTitlesWidget:
+                                  (value, meta) => Text(
+                                    value.toInt().toString(),
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                            ),
+                          ),
+                          bottomTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              getTitlesWidget: (value, meta) {
+                                final index = value.toInt();
+                                if (index < 0 || index >= sorted.length) {
+                                  return const SizedBox.shrink();
+                                }
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: Text(
+                                    _compactLabel(sorted[index].key, max: 12),
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.grey[700],
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                        barGroups: List.generate(sorted.length, (index) {
+                          final entry = sorted[index];
+                          return BarChartGroupData(
+                            x: index,
+                            barRods: [
+                              BarChartRodData(
+                                toY: entry.value.toDouble(),
+                                width: 16,
+                                color: _paletteColor(index),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ],
+                          );
+                        }),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children:
+                        sorted
+                            .asMap()
+                            .entries
+                            .map(
+                              (entry) => _buildMetricLegend(
+                                _ChartMetric(
+                                  entry.value.key,
+                                  entry.value.value,
+                                  _paletteColor(entry.key),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                  ),
+                ],
+              ),
+    );
+  }
+
+  Widget _buildStudyLevelDistributionCard() {
+    final stats = _advancedStudyLevelReportStats;
+    final orderedEntries =
+        <MapEntry<String, int>>[
+          MapEntry('Undergraduate', stats['Undergraduate'] ?? 0),
+          MapEntry('Postgraduate', stats['Postgraduate'] ?? 0),
+          MapEntry('Doctoral', stats['Doctoral'] ?? 0),
+          MapEntry('Unspecified', stats['Unspecified'] ?? 0),
+          ...stats.entries.where(
+            (entry) =>
+                ![
+                  'Undergraduate',
+                  'Postgraduate',
+                  'Doctoral',
+                  'Unspecified',
+                ].contains(entry.key),
+          ),
+        ].where((entry) => entry.value > 0).toList();
+
+    final total = orderedEntries.fold<int>(
+      0,
+      (accumulator, entry) => accumulator + entry.value,
+    );
+
+    return _buildChartCardShell(
+      title: 'Study Level Distribution',
+      subtitle: 'Reports by undergraduate/postgraduate level',
+      child:
+          total == 0
+              ? _buildEmptyChartState('No study level data in current filter')
+              : Column(
+                children: [
+                  SizedBox(
+                    height: 220,
+                    child: PieChart(
+                      PieChartData(
+                        centerSpaceRadius: 34,
+                        sectionsSpace: 2,
+                        sections:
+                            orderedEntries.asMap().entries.map((entry) {
+                              final percentage =
+                                  (entry.value.value / total * 100).round();
+                              return PieChartSectionData(
+                                color: _paletteColor(entry.key),
+                                value: entry.value.value.toDouble(),
+                                radius: 52,
+                                title: '$percentage%',
+                                titleStyle: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              );
+                            }).toList(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children:
+                        orderedEntries
+                            .asMap()
+                            .entries
+                            .map(
+                              (entry) => _buildMetricLegend(
+                                _ChartMetric(
+                                  entry.value.key,
+                                  entry.value.value,
+                                  _paletteColor(entry.key),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                  ),
+                ],
+              ),
+    );
+  }
+
+  Widget _buildFacultyDistributionCard() {
+    final sorted =
+        _advancedFacultyReportStats.entries
+            .where((entry) => entry.value > 0)
+            .toList()
+          ..sort((a, b) => b.value.compareTo(a.value));
+    final total = sorted.fold<int>(
+      0,
+      (accumulator, entry) => accumulator + entry.value,
+    );
+
+    return _buildChartCardShell(
+      title: 'Faculty Report Distribution',
+      subtitle: 'Where reports are coming from (filtered)',
+      child:
+          sorted.isEmpty
+              ? _buildEmptyChartState('No faculty data in current filter')
+              : Column(
+                children: [
+                  ...sorted.take(6).toList().asMap().entries.map((entry) {
+                    final ratio = total == 0 ? 0.0 : entry.value.value / total;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  _shortFaculty(entry.value.key),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[700],
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              Text(
+                                '${entry.value.value}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[700],
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 5),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: LinearProgressIndicator(
+                              value: ratio.clamp(0.0, 1.0),
+                              minHeight: 8,
+                              backgroundColor: Colors.grey[200],
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                _paletteColor(entry.key),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                  if (sorted.length > 6)
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        '+ ${sorted.length - 6} more faculties',
+                        style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                      ),
+                    ),
+                ],
+              ),
+    );
+  }
+
+  Widget _buildReportingWayCard() {
+    final way = _advancedReportingWayStats;
+    final metrics =
+        [
+          _ChartMetric('Anonymous', way['Anonymous'] ?? 0, Colors.grey[700]!),
+          _ChartMetric(
+            'Account Linked',
+            way['Account Linked'] ?? 0,
+            AppColors.primaryGreen,
+          ),
+        ].where((item) => item.value > 0).toList();
+    final total = metrics.fold<int>(
+      0,
+      (accumulator, item) => accumulator + item.value,
+    );
+
+    return _buildChartCardShell(
+      title: 'Reporting Way',
+      subtitle: 'Anonymous vs account-linked submissions',
+      child:
+          total == 0
+              ? _buildEmptyChartState(
+                'No reporting mode data in current filter',
+              )
+              : Column(
+                children: [
+                  SizedBox(
+                    height: 220,
+                    child: PieChart(
+                      PieChartData(
+                        centerSpaceRadius: 35,
+                        sectionsSpace: 2,
+                        sections:
+                            metrics.map((metric) {
+                              final percentage =
+                                  (metric.value / total * 100).round();
+                              return PieChartSectionData(
+                                color: metric.color,
+                                value: metric.value.toDouble(),
+                                radius: 52,
+                                title: '$percentage%',
+                                titleStyle: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              );
+                            }).toList(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: metrics.map(_buildMetricLegend).toList(),
+                  ),
+                ],
+              ),
+    );
+  }
+
   Widget _buildProfessionalKpiCard() {
     final reportsData = _advancedFilteredReports;
-    final usersData = _advancedFilteredUsers;
     final reports = reportsData.length;
     final resolved = reportsData.where((r) => r['status'] == 'resolved').length;
     final underReview =
         reportsData.where((r) => r['status'] == 'under_review').length;
     final anonymous = reportsData.where((r) => r['isAnonymous'] == true).length;
-    final roles = _advancedRoleStats.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
+    final roles =
+        _advancedRoleReportStats.entries.toList()
+          ..sort((a, b) => b.value.compareTo(a.value));
 
-    final resolutionRate = reports == 0 ? 0 : ((resolved / reports) * 100).round();
-    final anonymousRate = reports == 0 ? 0 : ((anonymous / reports) * 100).round();
-    final reviewRate = reports == 0 ? 0 : ((underReview / reports) * 100).round();
+    final resolutionRate =
+        reports == 0 ? 0 : ((resolved / reports) * 100).round();
+    final anonymousRate =
+        reports == 0 ? 0 : ((anonymous / reports) * 100).round();
+    final reviewRate =
+        reports == 0 ? 0 : ((underReview / reports) * 100).round();
 
     return _buildChartCardShell(
       title: 'Operational KPI Snapshot',
-      subtitle: 'Resolution, anonymity, workflow pressure, and user roles',
+      subtitle: 'Resolution, anonymity, workflow pressure, and reporter roles',
       child: Column(
         children: [
           Row(
@@ -2587,9 +3163,9 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
               const SizedBox(width: 10),
               Expanded(
                 child: _buildKpiTile(
-                  'Active Filters Users',
-                  '${usersData.length}',
-                  Icons.people,
+                  'Filtered Reports',
+                  '${reportsData.length}',
+                  Icons.assignment,
                   AppColors.secondaryOrange,
                 ),
               ),
@@ -2599,7 +3175,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
           Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              'Top User Roles',
+              'Top Reporter Roles',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
@@ -2630,7 +3206,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.primaryGreen.withOpacity(0.08),
+                            color: AppColors.primaryGreen.withValues(alpha: 0.08),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
@@ -2649,16 +3225,11 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
     );
   }
 
-  Widget _buildKpiTile(
-    String title,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
+  Widget _buildKpiTile(String title, String value, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
@@ -2712,7 +3283,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -2752,7 +3323,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
                 decoration: BoxDecoration(
                   color:
                       isSelected
-                          ? AppColors.secondaryOrange.withOpacity(0.1)
+                          ? AppColors.secondaryOrange.withValues(alpha: 0.1)
                           : Colors.grey[50],
                   borderRadius: BorderRadius.circular(8),
                   border:
@@ -2800,16 +3371,18 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
 
     for (final report in _allReports) {
       if (_selectedFaculty != 'All Faculties' &&
-          report['userFaculty'] != _selectedFaculty)
+          report['userFaculty'] != _selectedFaculty) {
         continue;
+      }
       final d = report['userDept'] ?? '';
       if (d.isNotEmpty) reportsByDept[d] = (reportsByDept[d] ?? 0) + 1;
     }
 
     for (final user in _allUsers) {
       if (_selectedFaculty != 'All Faculties' &&
-          user['department'] != _selectedFaculty)
+          user['department'] != _selectedFaculty) {
         continue;
+      }
       final d = user['facultyDepartment'] ?? '';
       if (d.isNotEmpty) usersByDept[d] = (usersByDept[d] ?? 0) + 1;
     }
@@ -2824,7 +3397,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -2885,7 +3458,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
                   decoration: BoxDecoration(
                     color:
                         isSelected
-                            ? AppColors.secondaryOrange.withOpacity(0.1)
+                            ? AppColors.secondaryOrange.withValues(alpha: 0.1)
                             : Colors.grey[50],
                     borderRadius: BorderRadius.circular(8),
                     border:
@@ -2935,6 +3508,26 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
     );
   }
 
+  String _compactLabel(String value, {int max = 12}) {
+    if (value.length <= max) return value;
+    if (max <= 3) return value.substring(0, max);
+    return '${value.substring(0, max - 3)}...';
+  }
+
+  Color _paletteColor(int index) {
+    const palette = <Color>[
+      AppColors.primaryGreen,
+      AppColors.secondaryOrange,
+      AppColors.royalBlue,
+      Color(0xFF6C5CE7),
+      Color(0xFF16A085),
+      Color(0xFFE67E22),
+      Color(0xFF8E44AD),
+      Color(0xFF2D3436),
+    ];
+    return palette[index % palette.length];
+  }
+
   Widget _miniCount(int count, IconData icon, Color color) {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -2957,7 +3550,7 @@ class _DashboardOverviewState extends State<_DashboardOverview> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: _getStatusColor(status).withOpacity(0.1),
+        color: _getStatusColor(status).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(

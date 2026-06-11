@@ -142,7 +142,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppColors.primaryGreen.withOpacity(0.1),
+              color: AppColors.primaryGreen.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(
@@ -252,16 +252,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: notification.isRead ? Colors.white : AppColors.primaryGreen.withOpacity(0.03),
+            color: notification.isRead ? Colors.white : AppColors.primaryGreen.withValues(alpha: 0.03),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: notification.isRead
-                  ? AppColors.primaryGreen.withOpacity(0.2)
-                  : AppColors.primaryGreen.withOpacity(0.4),
+                  ? AppColors.primaryGreen.withValues(alpha: 0.2)
+                  : AppColors.primaryGreen.withValues(alpha: 0.4),
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 6,
                 offset: const Offset(0, 2),
               ),
@@ -273,7 +273,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: iconColor.withOpacity(0.1),
+                  color: iconColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(icon, color: iconColor, size: 22),

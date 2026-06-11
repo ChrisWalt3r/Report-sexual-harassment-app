@@ -75,7 +75,7 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: categoryColor.withOpacity(0.1),
+                    color: categoryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -102,7 +102,7 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: AppColors.secondaryOrange.withOpacity(0.1),
+                    color: AppColors.secondaryOrange.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -134,9 +134,9 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryGreen.withOpacity(0.05),
+                    color: AppColors.primaryGreen.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.primaryGreen.withOpacity(0.2)),
+                    border: Border.all(color: AppColors.primaryGreen.withValues(alpha: 0.2)),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -257,7 +257,7 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.red.withOpacity(0.3),
+                color: Colors.red.withValues(alpha: 0.3),
                 blurRadius: 8,
                 offset: const Offset(0, 4),
               ),
@@ -275,7 +275,7 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Icon(Icons.phone_rounded, color: Colors.white, size: 20),
@@ -297,7 +297,7 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
                           Text(
                             'Tap to call ${EmergencyConstants.emergencyNumber}',
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.9),
+                              color: Colors.white.withValues(alpha: 0.9),
                               fontSize: 11,
                             ),
                           ),
@@ -324,7 +324,7 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.primaryGreen.withOpacity(0.1),
+              color: AppColors.primaryGreen.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: AppColors.primaryGreen, size: 24),
@@ -351,10 +351,10 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.primaryGreen.withOpacity(0.3), width: 1),
+        border: Border.all(color: AppColors.primaryGreen.withValues(alpha: 0.3), width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -372,7 +372,7 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: categoryColor.withOpacity(0.1),
+                    color: categoryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
@@ -410,7 +410,7 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                         decoration: BoxDecoration(
-                          color: AppColors.secondaryOrange.withOpacity(0.1),
+                          color: AppColors.secondaryOrange.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -429,7 +429,7 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
                 Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryGreen.withOpacity(0.1),
+                    color: AppColors.primaryGreen.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: const Icon(Icons.info_outline, color: AppColors.primaryGreen, size: 16),
@@ -446,16 +446,16 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.royalBlue.withOpacity(0.05),
+        color: AppColors.royalBlue.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.royalBlue.withOpacity(0.2)),
+        border: Border.all(color: AppColors.royalBlue.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.secondaryOrange.withOpacity(0.1),
+              color: AppColors.secondaryOrange.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(Icons.tips_and_updates_rounded, color: AppColors.secondaryOrange, size: 24),

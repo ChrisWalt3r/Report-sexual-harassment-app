@@ -317,7 +317,7 @@ class _AdminManagementScreenState extends State<AdminManagementScreen>
                             horizontal: 14, vertical: 11),
                         decoration: BoxDecoration(
                           color: selected
-                              ? role.color.withOpacity(0.08)
+                              ? role.color.withValues(alpha: 0.08)
                               : Colors.grey.shade50,
                           border: Border.all(
                             color: selected
@@ -332,7 +332,7 @@ class _AdminManagementScreenState extends State<AdminManagementScreen>
                             width: 32,
                             height: 32,
                             decoration: BoxDecoration(
-                              color: role.color.withOpacity(0.12),
+                              color: role.color.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Icon(role.icon, size: 16, color: role.color),
@@ -488,7 +488,7 @@ class _AdminManagementScreenState extends State<AdminManagementScreen>
                         fontWeight: FontWeight.w600, fontSize: 13)),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<SHCRole>(
-                  value: selectedRole,
+                  initialValue: selectedRole,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10)),
@@ -538,7 +538,7 @@ class _AdminManagementScreenState extends State<AdminManagementScreen>
                             style: TextStyle(fontWeight: FontWeight.w500))),
                     Switch(
                       value: isActive,
-                      activeColor: AppColors.primaryGreen,
+                      activeThumbColor: AppColors.primaryGreen,
                       onChanged: (v) => setS(() => isActive = v),
                     ),
                   ]),
@@ -713,7 +713,7 @@ class _AdminManagementScreenState extends State<AdminManagementScreen>
                 return Container(
                   margin: const EdgeInsets.only(bottom: 10),
                   decoration: BoxDecoration(
-                    border: Border.all(color: role.color.withOpacity(0.3)),
+                    border: Border.all(color: role.color.withValues(alpha: 0.3)),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: ListTile(
@@ -721,7 +721,7 @@ class _AdminManagementScreenState extends State<AdminManagementScreen>
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: role.color.withOpacity(0.12),
+                        color: role.color.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(role.icon, color: role.color, size: 20),
@@ -892,7 +892,7 @@ class _AdminManagementScreenState extends State<AdminManagementScreen>
                     icon: const Icon(Icons.person_add, size: 18),
                     label: const Text('Add Member'),
                     style: FilledButton.styleFrom(
-                      backgroundColor: Colors.white.withOpacity(0.2),
+                      backgroundColor: Colors.white.withValues(alpha: 0.2),
                       foregroundColor: Colors.white,
                     ),
                     onPressed: () => _showCreateAdminDialog(currentShcRole),
@@ -1141,7 +1141,7 @@ class _MemberCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
           color: isDevTeam
-              ? shcRole.color.withOpacity(0.4)
+              ? shcRole.color.withValues(alpha: 0.4)
               : Colors.grey.shade200,
           width: isDevTeam ? 1.5 : 1,
         ),
@@ -1158,7 +1158,7 @@ class _MemberCard extends StatelessWidget {
                 gradient: LinearGradient(
                   colors: [
                     shcRole.color,
-                    shcRole.color.withOpacity(0.7),
+                    shcRole.color.withValues(alpha: 0.7),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -1291,7 +1291,7 @@ class _DialogHeader extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.06),
+        color: color.withValues(alpha: 0.06),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
       ),
       child: Row(children: [
@@ -1299,7 +1299,7 @@ class _DialogHeader extends StatelessWidget {
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.12),
+            color: color.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(icon, color: color, size: 22),
@@ -1362,9 +1362,9 @@ class _RolePill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: role.color.withOpacity(0.1),
+        color: role.color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: role.color.withOpacity(0.3)),
+        border: Border.all(color: role.color.withValues(alpha: 0.3)),
       ),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         Icon(role.icon, size: 11, color: role.color),
@@ -1389,8 +1389,8 @@ class _StatusPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: isActive
-            ? Colors.green.withOpacity(0.1)
-            : Colors.red.withOpacity(0.1),
+            ? Colors.green.withValues(alpha: 0.1)
+            : Colors.red.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -1423,9 +1423,9 @@ class _Badge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withOpacity(0.4)),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
       ),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         if (icon != null) ...[
@@ -1455,9 +1455,9 @@ class _StatTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.07),
+        color: color.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Column(children: [
         Text(value,
@@ -1466,7 +1466,7 @@ class _StatTile extends StatelessWidget {
                 fontSize: 18,
                 color: color)),
         Text(label,
-            style: TextStyle(fontSize: 11, color: color.withOpacity(0.8))),
+            style: TextStyle(fontSize: 11, color: color.withValues(alpha: 0.8))),
       ]),
     );
   }
@@ -1509,11 +1509,11 @@ class _RoleFilterChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           color: selected != null
-              ? selected!.color.withOpacity(0.08)
+              ? selected!.color.withValues(alpha: 0.08)
               : Colors.grey.shade50,
           border: Border.all(
             color: selected != null
-                ? selected!.color.withOpacity(0.5)
+                ? selected!.color.withValues(alpha: 0.5)
                 : Colors.grey.shade300,
           ),
           borderRadius: BorderRadius.circular(10),

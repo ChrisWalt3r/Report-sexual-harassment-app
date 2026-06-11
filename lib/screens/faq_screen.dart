@@ -239,7 +239,7 @@ class _FAQScreenState extends State<FAQScreen> {
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -367,7 +367,7 @@ class _FAQScreenState extends State<FAQScreen> {
               color: isDark ? AppColors.darkSurface : Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, -2),
                 ),
@@ -449,12 +449,12 @@ class _FAQScreenState extends State<FAQScreen> {
         color: isDark ? AppColors.darkSurface : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.primaryGreen.withOpacity(0.3),
+          color: AppColors.primaryGreen.withValues(alpha: 0.3),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -475,7 +475,7 @@ class _FAQScreenState extends State<FAQScreen> {
           leading: Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: _getCategoryColor(faq.category).withOpacity(0.2),
+              color: _getCategoryColor(faq.category).withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
@@ -496,7 +496,7 @@ class _FAQScreenState extends State<FAQScreen> {
             margin: const EdgeInsets.only(top: 6),
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
-              color: _getCategoryColor(faq.category).withOpacity(0.15),
+              color: _getCategoryColor(faq.category).withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
@@ -518,7 +518,7 @@ class _FAQScreenState extends State<FAQScreen> {
                 color: isDark ? AppColors.darkBackground : Colors.grey[50],
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: AppColors.primaryGreen.withOpacity(0.2),
+                  color: AppColors.primaryGreen.withValues(alpha: 0.2),
                   width: 1,
                 ),
               ),

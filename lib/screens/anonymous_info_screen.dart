@@ -195,7 +195,7 @@ class _AnonymousInfoScreenState extends State<AnonymousInfoScreen> {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.15),
+                          color: Colors.black.withValues(alpha: 0.15),
                           blurRadius: 16,
                           offset: const Offset(0, 6),
                         ),
@@ -223,7 +223,7 @@ class _AnonymousInfoScreenState extends State<AnonymousInfoScreen> {
                     'Help us understand the community better',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.white.withOpacity(0.85),
+                      color: Colors.white.withValues(alpha: 0.85),
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -253,10 +253,10 @@ class _AnonymousInfoScreenState extends State<AnonymousInfoScreen> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: AppColors.mustBlue.withOpacity(0.06),
+                            color: AppColors.mustBlue.withValues(alpha: 0.06),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: AppColors.mustBlue.withOpacity(0.15),
+                              color: AppColors.mustBlue.withValues(alpha: 0.15),
                             ),
                           ),
                           child: Row(
@@ -400,7 +400,7 @@ class _AnonymousInfoScreenState extends State<AnonymousInfoScreen> {
                           // Faculty dropdown (optional)
                           DropdownButtonFormField<String>(
                             isExpanded: true,
-                            value: _selectedFaculty,
+                            initialValue: _selectedFaculty,
                             decoration: _dropdownDecoration(
                               label: 'Faculty (optional)',
                               hint: 'Select your faculty',
@@ -431,7 +431,7 @@ class _AnonymousInfoScreenState extends State<AnonymousInfoScreen> {
                             const SizedBox(height: 16),
                             DropdownButtonFormField<String>(
                               isExpanded: true,
-                              value: _selectedDepartment,
+                              initialValue: _selectedDepartment,
                               decoration: _dropdownDecoration(
                                 label: 'Department (optional)',
                                 hint: 'Select your department',

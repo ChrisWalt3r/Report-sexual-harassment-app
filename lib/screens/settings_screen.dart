@@ -258,7 +258,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             SettingsTileWithSwitch(
               icon: Icons.notifications,
-              iconBackgroundColor: AppColors.primaryGreen.withOpacity(0.1),
+              iconBackgroundColor: AppColors.primaryGreen.withValues(alpha: 0.1),
               iconColor: AppColors.primaryGreen,
               title: 'Notifications',
               value: _notificationsEnabled,
@@ -268,14 +268,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             SettingsTileWithChevron(
               icon: Icons.lock,
-              iconBackgroundColor: AppColors.royalBlue.withOpacity(0.1),
+              iconBackgroundColor: AppColors.royalBlue.withValues(alpha: 0.1),
               iconColor: AppColors.royalBlue,
               title: 'Change Password',
               onTap: _showChangePasswordDialog,
             ),
             SettingsTileWithValue(
               icon: Icons.language,
-              iconBackgroundColor: AppColors.secondaryOrange.withOpacity(0.1),
+              iconBackgroundColor: AppColors.secondaryOrange.withValues(alpha: 0.1),
               iconColor: AppColors.secondaryOrange,
               title: 'Language',
               value: 'English',
@@ -309,7 +309,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 SettingsTileWithValue(
                   icon: themeService.themeModeIcon,
-                  iconBackgroundColor: AppColors.secondaryOrange.withOpacity(0.1),
+                  iconBackgroundColor: AppColors.secondaryOrange.withValues(alpha: 0.1),
                   iconColor: AppColors.secondaryOrange,
                   title: 'Theme',
                   value: themeService.themeModeLabel,
@@ -488,7 +488,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 SettingsTileWithSwitch(
                   icon: Icons.pin,
-                  iconBackgroundColor: AppColors.secondaryOrange.withOpacity(0.1),
+                  iconBackgroundColor: AppColors.secondaryOrange.withValues(alpha: 0.1),
                   iconColor: AppColors.secondaryOrange,
                   title: 'PIN Protection',
                   value: securityService.isPinEnabled,
@@ -541,7 +541,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 if (securityService.isPinEnabled)
                   SettingsTileWithChevron(
                     icon: Icons.edit,
-                    iconBackgroundColor: AppColors.royalBlue.withOpacity(0.1),
+                    iconBackgroundColor: AppColors.royalBlue.withValues(alpha: 0.1),
                     iconColor: AppColors.royalBlue,
                     title: 'Change PIN',
                     onTap: () {
@@ -555,7 +555,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 SettingsTileWithSwitch(
                   icon: Icons.timer,
-                  iconBackgroundColor: AppColors.primaryGreen.withOpacity(0.1),
+                  iconBackgroundColor: AppColors.primaryGreen.withValues(alpha: 0.1),
                   iconColor: AppColors.primaryGreen,
                   title: 'Auto Logout',
                   subtitle: securityService.isAutoLogoutEnabled
@@ -678,7 +678,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             SettingsTileWithChevron(
               icon: Icons.quiz_outlined,
-              iconBackgroundColor: AppColors.royalBlue.withOpacity(0.1),
+              iconBackgroundColor: AppColors.royalBlue.withValues(alpha: 0.1),
               iconColor: AppColors.royalBlue,
               title: 'FAQs',
               onTap: () => Navigator.push(
@@ -688,7 +688,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             SettingsTileWithChevron(
               icon: Icons.shield_outlined,
-              iconBackgroundColor: AppColors.royalBlue.withOpacity(0.1),
+              iconBackgroundColor: AppColors.royalBlue.withValues(alpha: 0.1),
               iconColor: AppColors.royalBlue,
               title: 'Privacy Policy',
               onTap: () => Navigator.push(
@@ -698,7 +698,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             SettingsTileWithChevron(
               icon: Icons.description_outlined,
-              iconBackgroundColor: AppColors.primaryGreen.withOpacity(0.1),
+              iconBackgroundColor: AppColors.primaryGreen.withValues(alpha: 0.1),
               iconColor: AppColors.primaryGreen,
               title: 'Terms of Service',
               onTap: () => Navigator.push(

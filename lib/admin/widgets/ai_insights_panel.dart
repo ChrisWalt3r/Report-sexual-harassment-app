@@ -168,10 +168,10 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.mustBlue.withOpacity(0.2)),
+        border: Border.all(color: AppColors.mustBlue.withValues(alpha: 0.2)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.mustBlue.withOpacity(0.05),
+            color: AppColors.mustBlue.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -186,8 +186,8 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppColors.mustBlue.withOpacity(0.08),
-                  AppColors.mustGold.withOpacity(0.05),
+                  AppColors.mustBlue.withValues(alpha: 0.08),
+                  AppColors.mustGold.withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: const BorderRadius.only(
@@ -200,7 +200,7 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
                 Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: AppColors.mustBlue.withOpacity(0.1),
+                    color: AppColors.mustBlue.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
@@ -415,9 +415,9 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
                               color: AppColors.mustBlue,
                             ),
                           ),
-                          backgroundColor: AppColors.mustBlue.withOpacity(0.08),
+                          backgroundColor: AppColors.mustBlue.withValues(alpha: 0.08),
                           side: BorderSide(
-                            color: AppColors.mustBlue.withOpacity(0.2),
+                            color: AppColors.mustBlue.withValues(alpha: 0.2),
                           ),
                           padding: EdgeInsets.zero,
                           materialTapTargetSize:
@@ -625,7 +625,7 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.mustBlue.withOpacity(0.04),
+              color: AppColors.mustBlue.withValues(alpha: 0.04),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Row(
@@ -633,7 +633,7 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
                 Icon(
                   Icons.help_outline,
                   size: 18,
-                  color: AppColors.mustBlue.withOpacity(0.7),
+                  color: AppColors.mustBlue.withValues(alpha: 0.7),
                 ),
                 const SizedBox(width: 8),
                 const Expanded(
@@ -706,7 +706,7 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
                         : const Icon(Icons.send_rounded),
                 color: AppColors.mustBlue,
                 style: IconButton.styleFrom(
-                  backgroundColor: AppColors.mustBlue.withOpacity(0.1),
+                  backgroundColor: AppColors.mustBlue.withValues(alpha: 0.1),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -733,15 +733,15 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: AppColors.mustGold.withOpacity(0.08),
+          color: AppColors.mustGold.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.mustGold.withOpacity(0.3)),
+          border: Border.all(color: AppColors.mustGold.withValues(alpha: 0.3)),
         ),
         child: Text(
           question,
           style: TextStyle(
             fontSize: 11,
-            color: AppColors.mustBlue.withOpacity(0.8),
+            color: AppColors.mustBlue.withValues(alpha: 0.8),
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -885,7 +885,7 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.mustBlue.withOpacity(0.06),
+                color: AppColors.mustBlue.withValues(alpha: 0.06),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, size: 36, color: AppColors.mustBlue),
@@ -1049,7 +1049,7 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
       onPressed: onPressed,
       icon: Icon(icon, size: 18),
       style: IconButton.styleFrom(
-        backgroundColor: Colors.white.withOpacity(0.9),
+        backgroundColor: Colors.white.withValues(alpha: 0.9),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
       tooltip: tooltip,
@@ -1306,9 +1306,9 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: insight.severityColor.withOpacity(0.08),
+        color: insight.severityColor.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: insight.severityColor.withOpacity(0.3)),
+        border: Border.all(color: insight.severityColor.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -1355,9 +1355,9 @@ class _AIInsightsPanelState extends State<AIInsightsPanel>
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.04),
+        color: color.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withOpacity(0.15)),
+        border: Border.all(color: color.withValues(alpha: 0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -86,7 +86,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: AppColors.secondaryOrange.withOpacity(0.4),
+              color: AppColors.secondaryOrange.withValues(alpha: 0.4),
               blurRadius: 12,
               offset: const Offset(0, 6),
             ),
@@ -117,7 +117,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
             color: Colors.white,
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
+                color: Colors.grey.withValues(alpha: 0.1),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -237,12 +237,12 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
         color: _selectedStatus != 'All' 
-            ? _getStatusColor(_selectedStatus).withOpacity(0.1) 
+            ? _getStatusColor(_selectedStatus).withValues(alpha: 0.1) 
             : Colors.grey[50],
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: _selectedStatus != 'All' 
-              ? _getStatusColor(_selectedStatus).withOpacity(0.3)
+              ? _getStatusColor(_selectedStatus).withValues(alpha: 0.3)
               : Colors.grey.shade200,
         ),
       ),
@@ -431,8 +431,8 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      AppColors.primaryGreen.withOpacity(0.1),
-                      AppColors.primaryGreen.withOpacity(0.05),
+                      AppColors.primaryGreen.withValues(alpha: 0.1),
+                      AppColors.primaryGreen.withValues(alpha: 0.05),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -490,12 +490,12 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [AppColors.primaryGreen, AppColors.primaryGreen.withOpacity(0.8)],
+                    colors: [AppColors.primaryGreen, AppColors.primaryGreen.withValues(alpha: 0.8)],
                   ),
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primaryGreen.withOpacity(0.4),
+                      color: AppColors.primaryGreen.withValues(alpha: 0.4),
                       blurRadius: 12,
                       offset: const Offset(0, 6),
                     ),
@@ -544,7 +544,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -576,7 +576,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: _getStatusColor(status).withOpacity(0.1),
+                        color: _getStatusColor(status).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(
@@ -656,7 +656,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: Colors.blue.withOpacity(0.1),
+                                color: Colors.blue.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Row(
@@ -681,7 +681,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: Colors.purple.withOpacity(0.1),
+                                color: Colors.purple.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Row(
@@ -708,7 +708,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                     // View Details Button
                     Container(
                       decoration: BoxDecoration(
-                        color: AppColors.primaryGreen.withOpacity(0.1),
+                        color: AppColors.primaryGreen.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Material(
@@ -765,10 +765,10 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: _getStatusColor(status).withOpacity(0.15),
+        color: _getStatusColor(status).withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: _getStatusColor(status).withOpacity(0.3),
+          color: _getStatusColor(status).withValues(alpha: 0.3),
         ),
       ),
       child: Text(
@@ -811,8 +811,8 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      Colors.red.shade100.withOpacity(0.5),
-                      Colors.red.shade50.withOpacity(0.3),
+                      Colors.red.shade100.withValues(alpha: 0.5),
+                      Colors.red.shade50.withValues(alpha: 0.3),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -849,12 +849,12 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                 width: double.infinity,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [AppColors.primaryGreen, AppColors.primaryGreen.withOpacity(0.8)],
+                    colors: [AppColors.primaryGreen, AppColors.primaryGreen.withValues(alpha: 0.8)],
                   ),
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primaryGreen.withOpacity(0.4),
+                      color: AppColors.primaryGreen.withValues(alpha: 0.4),
                       blurRadius: 12,
                       offset: const Offset(0, 6),
                     ),
@@ -903,7 +903,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                   label: const Text('Submit Anonymous Report'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.primaryGreen,
-                    side: BorderSide(color: AppColors.primaryGreen.withOpacity(0.5)),
+                    side: BorderSide(color: AppColors.primaryGreen.withValues(alpha: 0.5)),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
@@ -938,7 +938,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                   border: Border.all(color: Colors.grey.shade200),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.08),
+                      color: Colors.grey.withValues(alpha: 0.08),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -949,7 +949,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                     Icon(
                       Icons.vpn_key_rounded,
                       size: 36,
-                      color: AppColors.primaryGreen.withOpacity(0.7),
+                      color: AppColors.primaryGreen.withValues(alpha: 0.7),
                     ),
                     const SizedBox(height: 12),
                     Text(
@@ -1189,13 +1189,13 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        _getStatusColor(status).withOpacity(0.1),
-                        _getStatusColor(status).withOpacity(0.05),
+                        _getStatusColor(status).withValues(alpha: 0.1),
+                        _getStatusColor(status).withValues(alpha: 0.05),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: _getStatusColor(status).withOpacity(0.3),
+                      color: _getStatusColor(status).withValues(alpha: 0.3),
                     ),
                   ),
                   child: Column(
@@ -1203,7 +1203,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: _getStatusColor(status).withOpacity(0.15),
+                          color: _getStatusColor(status).withValues(alpha: 0.15),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
@@ -1376,10 +1376,10 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.green.withOpacity(0.3)),
+        border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: Colors.green.withOpacity(0.08),
+            color: Colors.green.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -1391,7 +1391,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.08),
+              color: Colors.green.withValues(alpha: 0.08),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
@@ -1402,7 +1402,7 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.15),
+                    color: Colors.green.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(

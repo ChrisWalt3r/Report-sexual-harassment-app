@@ -58,7 +58,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen>
     final newTabs = _tabsForRole(roleKey);
     _tabController.dispose();
     final newController = TabController(length: newTabs.length, vsync: this);
-    newController.index = oldIndex.clamp(0, newTabs.length - 1) as int;
+    newController.index = oldIndex.clamp(0, newTabs.length - 1);
     setState(() {
       _currentRoleKey = roleKey;
       _tabs = newTabs;
@@ -229,7 +229,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen>
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: recipient,
+                initialValue: recipient,
                 items: const [
                   DropdownMenuItem(value: 'all',         child: Text('All Users')),
                   DropdownMenuItem(value: 'admins',      child: Text('Admins Only')),
@@ -344,7 +344,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen>
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryGreen.withOpacity(0.1),
+                    color: AppColors.primaryGreen.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
@@ -392,7 +392,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen>
                             height: 20,
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
-                              color: AppColors.primaryGreen.withOpacity(0.12),
+                              color: AppColors.primaryGreen.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(999),
                             ),
                             child: Text(
@@ -486,7 +486,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen>
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  value: selectedRole,
+                  initialValue: selectedRole,
                   items: const [
                     DropdownMenuItem(value: 'committeeMember', child: Text('Committee Member')),
                     DropdownMenuItem(value: 'chairperson', child: Text('Chairperson')),
@@ -911,7 +911,7 @@ class _CategoryAssignmentPanelState extends State<_CategoryAssignmentPanel> {
                             Expanded(
                               flex: 3,
                               child: DropdownButtonFormField<String>(
-                                value: currentAssignee?['uid'] as String?,
+                                initialValue: currentAssignee?['uid'] as String?,
                                 isExpanded: true,
                                 decoration: const InputDecoration(
                                   border: OutlineInputBorder(),
@@ -983,7 +983,7 @@ class _SettingsHeader extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: AppColors.primaryGreen.withOpacity(0.1),
+            color: AppColors.primaryGreen.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(icon, color: AppColors.primaryGreen),
@@ -1201,7 +1201,7 @@ class _AuditLogTableState extends State<_AuditLogTable> {
                           minWidth: MediaQuery.of(context).size.width - 64),
                       child: DataTable(
                         headingRowColor: WidgetStateProperty.all(
-                            AppColors.primaryGreen.withOpacity(0.08)),
+                            AppColors.primaryGreen.withValues(alpha: 0.08)),
                         columnSpacing: 16,
                         columns: const [
                           DataColumn(label: Text('Action',    style: TextStyle(fontWeight: FontWeight.bold))),
@@ -1219,7 +1219,7 @@ class _AuditLogTableState extends State<_AuditLogTable> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(
-                                color: actionColor.withOpacity(0.12),
+                                color: actionColor.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(l.action,
@@ -1359,7 +1359,7 @@ class _NotificationList extends StatelessWidget {
             return ListTile(
               leading: CircleAvatar(
                 backgroundColor:
-                    (chipColors[recipient] ?? Colors.grey).withOpacity(0.15),
+                    (chipColors[recipient] ?? Colors.grey).withValues(alpha: 0.15),
                 child: Icon(Icons.notifications,
                     color: chipColors[recipient] ?? Colors.grey, size: 20),
               ),
@@ -1368,7 +1368,7 @@ class _NotificationList extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                   decoration: BoxDecoration(
-                    color: (chipColors[recipient] ?? Colors.grey).withOpacity(0.12),
+                    color: (chipColors[recipient] ?? Colors.grey).withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(recipient,
@@ -1455,7 +1455,7 @@ class _AdminListState extends State<_AdminList> {
               leading: Stack(
                 children: [
                   CircleAvatar(
-                    backgroundColor: roleColor.withOpacity(0.15),
+                    backgroundColor: roleColor.withValues(alpha: 0.15),
                     child: Text(
                       email.isNotEmpty ? email[0].toUpperCase() : '?',
                       style: TextStyle(
@@ -1482,7 +1482,7 @@ class _AdminListState extends State<_AdminList> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                   decoration: BoxDecoration(
-                    color: roleColor.withOpacity(0.1),
+                    color: roleColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                     child: Text(RoleAccess.displayName(role),
@@ -1565,7 +1565,7 @@ class _AdminListState extends State<_AdminList> {
         builder: (ctx, setDialogState) => AlertDialog(
           title: const Text('Change Admin Role'),
           content: DropdownButtonFormField<String>(
-            value: selectedRole,
+            initialValue: selectedRole,
             decoration: const InputDecoration(
                 labelText: 'New Role', border: OutlineInputBorder()),
             items: const [
@@ -1924,7 +1924,7 @@ class _SlaSettingsPanelState extends State<_SlaSettingsPanel> {
                         label: 'Escalate when a case is unactioned:',
                         trailing: Switch(
                           value: autoEscalate,
-                          activeColor: AppColors.primaryGreen,
+                          activeThumbColor: AppColors.primaryGreen,
                           onChanged: (v) => _updateSla('auto_escalate', v),
                         ),
                       ),
@@ -2024,7 +2024,7 @@ class _SlaSettingsPanelState extends State<_SlaSettingsPanel> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 10),
                         decoration: BoxDecoration(
-                          color: Colors.blueGrey.withOpacity(0.08),
+                          color: Colors.blueGrey.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: Colors.blueGrey.shade200),
                         ),
@@ -2227,7 +2227,7 @@ class _SecuritySettingsPanelState extends State<_SecuritySettingsPanel> {
                             'Lock account after too many failed login attempts:',
                         trailing: Switch(
                           value: lockoutEnabled,
-                          activeColor: AppColors.primaryGreen,
+                          activeThumbColor: AppColors.primaryGreen,
                           onChanged: (v) => _updateSec('lockout_enabled', v),
                         ),
                       ),
@@ -2280,7 +2280,7 @@ class _SecuritySettingsPanelState extends State<_SecuritySettingsPanel> {
                         label: 'Restrict admin logins to specific IP ranges:',
                         trailing: Switch(
                           value: ipEnabled,
-                          activeColor: AppColors.primaryGreen,
+                          activeThumbColor: AppColors.primaryGreen,
                           onChanged: (v) =>
                               _updateSec('ip_allowlist_enabled', v),
                         ),
@@ -2357,8 +2357,8 @@ class _SecuritySettingsPanelState extends State<_SecuritySettingsPanel> {
                                   horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
                                 color: enabled
-                                    ? Colors.green.withOpacity(0.12)
-                                    : Colors.grey.withOpacity(0.12),
+                                    ? Colors.green.withValues(alpha: 0.12)
+                                    : Colors.grey.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Text(
@@ -2374,7 +2374,7 @@ class _SecuritySettingsPanelState extends State<_SecuritySettingsPanel> {
                             const SizedBox(width: 8),
                             Switch(
                               value: enabled,
-                              activeColor: AppColors.primaryGreen,
+                              activeThumbColor: AppColors.primaryGreen,
                               onChanged: (v) => _updateSec(r['key']!, v),
                             ),
                           ]),
@@ -2666,7 +2666,7 @@ class _EmailTemplatesPanelState extends State<_EmailTemplatesPanel> {
                         padding:
                             const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: Colors.orange.withOpacity(0.12),
+                          color: Colors.orange.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: const Row(mainAxisSize: MainAxisSize.min, children: [
@@ -2759,7 +2759,7 @@ class _EmailTemplatesPanelState extends State<_EmailTemplatesPanel> {
                     ].map((p) => ActionChip(
                       label: Text(p,
                           style: const TextStyle(fontFamily: 'monospace', fontSize: 12)),
-                      backgroundColor: Colors.blue.withOpacity(0.08),
+                      backgroundColor: Colors.blue.withValues(alpha: 0.08),
                       onPressed: () {
                         final ctrl = _bodyCtrl;
                         final text    = ctrl.text;
@@ -2938,7 +2938,7 @@ class _LoginHistoryPanelState extends State<_LoginHistoryPanel> {
                           minWidth: MediaQuery.of(context).size.width - 64),
                       child: DataTable(
                         headingRowColor: WidgetStateProperty.all(
-                            AppColors.primaryGreen.withOpacity(0.08)),
+                            AppColors.primaryGreen.withValues(alpha: 0.08)),
                         columnSpacing: 16,
                         columns: const [
                           DataColumn(label: Text('Email',  style: TextStyle(fontWeight: FontWeight.bold))),
@@ -2963,8 +2963,8 @@ class _LoginHistoryPanelState extends State<_LoginHistoryPanel> {
                                   horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(
                                 color: isOk
-                                    ? Colors.green.withOpacity(0.12)
-                                    : Colors.red.withOpacity(0.12),
+                                    ? Colors.green.withValues(alpha: 0.12)
+                                    : Colors.red.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -3299,7 +3299,7 @@ class _SystemSettingsPanelState extends State<_SystemSettingsPanel> {
                   margin: const EdgeInsets.only(top: 8),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.1),
+                    color: Colors.orange.withValues(alpha: 0.1),
                     border: Border.all(color: Colors.orange.shade300),
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -3433,7 +3433,7 @@ class _SystemSettingsPanelState extends State<_SystemSettingsPanel> {
                       trailing: Switch(
                         value: (_settings['require_special_char'] as bool?) ??
                             true,
-                        activeColor: AppColors.primaryGreen,
+                        activeThumbColor: AppColors.primaryGreen,
                         onChanged: (v) =>
                             _updateSetting('require_special_char', v),
                       ),
@@ -3697,8 +3697,8 @@ class _FeatureToggleRow extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           decoration: BoxDecoration(
             color: value
-                ? Colors.green.withOpacity(0.1)
-                : Colors.red.withOpacity(0.1),
+                ? Colors.green.withValues(alpha: 0.1)
+                : Colors.red.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Text(
@@ -3712,7 +3712,7 @@ class _FeatureToggleRow extends StatelessWidget {
         const SizedBox(width: 8),
         Switch(
           value: value,
-          activeColor: warningColor ?? AppColors.primaryGreen,
+          activeThumbColor: warningColor ?? AppColors.primaryGreen,
           onChanged: onChanged,
         ),
       ]),
@@ -3762,16 +3762,16 @@ class _StatBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         Text('$value',
             style: TextStyle(
                 fontSize: 20, fontWeight: FontWeight.bold, color: color)),
         Text(label,
-            style: TextStyle(fontSize: 11, color: color.withOpacity(0.8))),
+            style: TextStyle(fontSize: 11, color: color.withValues(alpha: 0.8))),
       ]),
     );
   }

@@ -12,10 +12,13 @@ import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../services/imgbb_service.dart';
 import '../services/cloudinary_service.dart';
 import '../constants/app_colors.dart';
+import '../features/support_services/screens/support_home_screen.dart';
+import 'report_details_screen.dart';
 
 class ReportFormScreen extends StatefulWidget {
   const ReportFormScreen({super.key});
@@ -353,8 +356,129 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
     return '${token.substring(0, 4)}-${token.substring(4, 8)}-${token.substring(8, 12)}';
   }
 
-  /// Show dialog with tracking token for anonymous reports
-  Future<void> _showTrackingTokenDialog(String token) async {
+  int _estimateInitialReviewHours({
+    required String description,
+    required List<String> incidentTypes,
+    required String location,
+    required String perpetratorInfo,
+    required int imageCount,
+    required int videoCount,
+    required int audioCount,
+  }) {
+    final normalizedDescription = description.trim().toLowerCase();
+    final normalizedLocation = location.trim().toLowerCase();
+    final normalizedPerpetrator = perpetratorInfo.trim().toLowerCase();
+    final normalizedTypes =
+        incidentTypes.map((type) => type.trim().toLowerCase()).where((type) => type.isNotEmpty);
+
+    int score = 20;
+
+    const criticalKeywords = [
+      'immediate danger',
+      'danger',
+      'threat',
+      'threaten',
+      'weapon',
+      'assault',
+      'rape',
+      'forced',
+      'violence',
+      'beating',
+      'kill',
+      'suicide',
+      'cannot escape',
+      'happening now',
+    ];
+    const highKeywords = [
+      'stalking',
+      'blackmail',
+      'coercion',
+      'retaliation',
+      'forced touch',
+      'physical',
+      'drugged',
+      'abduction',
+      'unsafe',
+      'fear for my safety',
+    ];
+    const highRiskTypeKeywords = [
+      'sexual assault',
+      'quid pro quo',
+      'dating violence',
+      'stalking',
+      'hostile environment',
+      'sexual exploitation',
+    ];
+
+    if (criticalKeywords.any(normalizedDescription.contains)) {
+      score += 40;
+    }
+    if (highKeywords.any(normalizedDescription.contains)) {
+      score += 25;
+    }
+    if (normalizedTypes.any(
+      (type) => highRiskTypeKeywords.any((keyword) => type.contains(keyword)),
+    )) {
+      score += 18;
+    }
+    if (audioCount > 0 || videoCount > 0) {
+      score += 10;
+    } else if (imageCount > 0) {
+      score += 6;
+    }
+    if (normalizedPerpetrator.contains('lecturer') ||
+        normalizedPerpetrator.contains('staff') ||
+        normalizedPerpetrator.contains('supervisor')) {
+      score += 8;
+    }
+    if (normalizedLocation.contains('hostel') ||
+        normalizedLocation.contains('night') ||
+        normalizedLocation.contains('off campus')) {
+      score += 6;
+    }
+
+    if (score >= 85) return 1;
+    if (score >= 65) return 6;
+    if (score >= 40) return 24;
+    return 72;
+  }
+
+  String _buildReviewWindowLabel(int hours) {
+    if (hours == 1) return 'within about 1 hour';
+    if (hours < 24) return 'within about $hours hours';
+    if (hours == 24) return 'within about 24 hours';
+    return 'within about ${hours ~/ 24} days';
+  }
+
+  String _buildReviewWindowHint(int hours) {
+    if (hours <= 6) {
+      return 'This report appears time-sensitive, so the system will flag it for faster review.';
+    }
+    if (hours <= 24) {
+      return 'You can expect an initial review update soon, and urgent cases may still be handled earlier.';
+    }
+    return 'You can check back in the app for updates, and you may add more information later if needed.';
+  }
+
+  Future<void> _showSubmissionConfirmationDialog({
+    required String reportId,
+    required bool isAnonymous,
+    String? trackingToken,
+    required Map<String, dynamic> reportData,
+  }) async {
+    final submittedAt = DateTime.now();
+    final reviewHours = _estimateInitialReviewHours(
+      description: reportData['description']?.toString() ?? '',
+      incidentTypes: List<String>.from(reportData['incidentTypes'] ?? const []),
+      location: reportData['location']?.toString() ?? '',
+      perpetratorInfo: reportData['perpetratorInfo']?.toString() ?? '',
+      imageCount: (reportData['imageUrls'] as List?)?.length ?? 0,
+      videoCount: (reportData['videoUrls'] as List?)?.length ?? 0,
+      audioCount: (reportData['audioUrls'] as List?)?.length ?? 0,
+    );
+    final reviewWindowLabel = _buildReviewWindowLabel(reviewHours);
+    final reviewWindowHint = _buildReviewWindowHint(reviewHours);
+
     return showDialog(
       context: context,
       barrierDismissible: false,
@@ -371,159 +495,374 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.green.shade50,
+                      color: AppColors.primaryGreen.withValues(alpha: 0.10),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      Icons.check_circle_outline_rounded,
+                      Icons.verified_user_outlined,
                       size: 48,
-                      color: Colors.green.shade600,
+                      color: AppColors.primaryGreen,
                     ),
                   ),
                   const SizedBox(height: 16),
                   const Text(
-                    'Report Submitted!',
+                    'Report Received',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Your anonymous report has been submitted successfully. Save this tracking token to check your report status later.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                      height: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryGreen.withOpacity(0.08),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: AppColors.primaryGreen.withOpacity(0.3),
+              content: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Your report has been received securely. The ASHC review team has been notified automatically and your case is now awaiting review.',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                          height: 1.5,
+                        ),
                       ),
-                    ),
-                    child: Column(
-                      children: [
+                      const SizedBox(height: 20),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[50],
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: Column(
+                          children: [
+                            _buildSubmissionInfoRow(
+                              icon: Icons.tag_rounded,
+                              label: 'Reference',
+                              value: reportId.substring(0, 8).toUpperCase(),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildSubmissionInfoRow(
+                              icon: Icons.schedule_rounded,
+                              label: 'Submitted',
+                              value: DateFormat('MMM d, yyyy - h:mm a').format(submittedAt),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildSubmissionInfoRow(
+                              icon: Icons.pending_actions_rounded,
+                              label: 'Status',
+                              value: 'Pending review',
+                            ),
+                            const SizedBox(height: 12),
+                            _buildSubmissionInfoRow(
+                              icon: Icons.timelapse_rounded,
+                              label: 'Expected initial review',
+                              value: reviewWindowLabel,
+                              highlight: true,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.royalBlue.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              Icons.info_outline_rounded,
+                              size: 18,
+                              color: AppColors.royalBlue,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                reviewWindowHint,
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  color: Colors.grey[800],
+                                  height: 1.4,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (isAnonymous && trackingToken != null) ...[
+                        const SizedBox(height: 18),
                         Text(
-                          'Your Tracking Token',
+                          'Tracking Token',
                           style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.primaryGreen,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                            color: Colors.grey[700],
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                         const SizedBox(height: 8),
-                        SelectableText(
-                          token,
+                        Text(
+                          'Save this token to check your report status later.',
                           style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primaryGreen,
-                            letterSpacing: 2,
+                            fontSize: 13,
+                            color: Colors.grey[600],
+                            height: 1.4,
                           ),
-                          textAlign: TextAlign.center,
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        Clipboard.setData(ClipboardData(text: token));
-                        setDialogState(() {
-                          copied = true;
-                        });
-                      },
-                      icon: Icon(
-                        copied ? Icons.check_rounded : Icons.copy_rounded,
-                        size: 18,
-                      ),
-                      label: Text(copied ? 'Copied!' : 'Copy Token'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor:
-                            copied ? Colors.green : AppColors.primaryGreen,
-                        side: BorderSide(
-                          color:
-                              copied
-                                  ? Colors.green
-                                  : AppColors.primaryGreen.withOpacity(0.4),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryGreen.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: AppColors.primaryGreen.withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              Text(
+                                'Your Tracking Token',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.primaryGreen,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              SelectableText(
+                                trackingToken,
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primaryGreen,
+                                  letterSpacing: 2,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
                         ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.shade50,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.warning_amber_rounded,
-                          size: 18,
-                          color: Colors.orange.shade700,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Save this token! You won\'t be able to retrieve it later.',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.orange.shade800,
-                              fontWeight: FontWeight.w500,
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              Clipboard.setData(ClipboardData(text: trackingToken));
+                              setDialogState(() {
+                                copied = true;
+                              });
+                            },
+                            icon: Icon(
+                              copied ? Icons.check_rounded : Icons.copy_rounded,
+                              size: 18,
+                            ),
+                            label: Text(copied ? 'Copied!' : 'Copy Token'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor:
+                                  copied ? Colors.green : AppColors.primaryGreen,
+                              side: BorderSide(
+                                color:
+                                    copied
+                                        ? Colors.green
+                                        : AppColors.primaryGreen.withValues(alpha: 0.4),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
                             ),
                           ),
                         ),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.warning_amber_rounded,
+                                size: 18,
+                                color: Colors.orange.shade700,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Save this token carefully. You may need it to follow up later.',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.orange.shade800,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
-                    ),
+                      const SizedBox(height: 18),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.green.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.favorite_border_rounded,
+                              color: Colors.green.shade700,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'You did the right thing. Support services are available whenever you\'re ready.',
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  color: Colors.green.shade900,
+                                  height: 1.35,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
               actions: [
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(dialogContext).pop();
-                      Navigator.of(context).pop();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryGreen,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.of(dialogContext).pop();
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const SupportHomeScreen(),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.volunteer_activism_outlined),
+                        label: const Text('Open Support Services'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.royalBlue,
+                          side: BorderSide(
+                            color: AppColors.royalBlue.withValues(alpha: 0.35),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
                       ),
                     ),
-                    child: const Text(
-                      'Done',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(dialogContext).pop();
+                          if (!isAnonymous) {
+                            Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(
+                                builder:
+                                    (_) => ReportDetailsScreen(
+                                      reportId: reportId,
+                                      reportData: reportData,
+                                    ),
+                              ),
+                            );
+                          } else {
+                            Navigator.of(context).pop();
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryGreen,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text(
+                          isAnonymous ? 'Done' : 'View Submitted Report',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
               ],
             );
           },
         );
       },
+    );
+  }
+
+  Widget _buildSubmissionInfoRow({
+    required IconData icon,
+    required String label,
+    required String value,
+    bool highlight = false,
+  }) {
+    final valueColor = highlight ? AppColors.primaryGreen : Colors.grey[900];
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color:
+                highlight
+                    ? AppColors.primaryGreen.withValues(alpha: 0.10)
+                    : Colors.grey.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(
+            icon,
+            size: 16,
+            color: highlight ? AppColors.primaryGreen : Colors.grey[700],
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: valueColor,
+                  fontWeight: highlight ? FontWeight.w700 : FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -905,8 +1244,9 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
         // Generate tracking token for anonymous reports
         final String? trackingToken =
             isAnonymous ? _generateTrackingToken() : null;
+        final submittedAt = DateTime.now();
 
-        await FirebaseFirestore.instance.collection('reports').add({
+        final reportPayload = {
           'userId': user?.uid, // Add userId for filtering
           'deviceId': deviceId, // Store device ID to enforce anonymous limit
           'description': _descriptionController.text,
@@ -940,7 +1280,9 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
           'status': 'pending',
           'isAnonymous': isAnonymous,
           if (trackingToken != null) 'trackingToken': trackingToken,
-        });
+        };
+        final reportRef =
+            await FirebaseFirestore.instance.collection('reports').add(reportPayload);
 
         setState(() {
           _uploadProgress = 1.0;
@@ -948,23 +1290,21 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
         });
 
         if (mounted) {
-          if (isAnonymous && trackingToken != null) {
-            // Show tracking token dialog for anonymous reports
-            setState(() {
-              _isUploading = false;
-              _uploadProgress = 0.0;
-              _uploadStatus = '';
-            });
-            await _showTrackingTokenDialog(trackingToken);
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Report submitted successfully'),
-                backgroundColor: Colors.green,
-              ),
-            );
-            Navigator.pop(context);
-          }
+          setState(() {
+            _isUploading = false;
+            _uploadProgress = 0.0;
+            _uploadStatus = '';
+          });
+          await _showSubmissionConfirmationDialog(
+            reportId: reportRef.id,
+            isAnonymous: isAnonymous,
+            trackingToken: trackingToken,
+            reportData: {
+              ...reportPayload,
+              'timestamp': Timestamp.fromDate(submittedAt),
+              'createdAt': Timestamp.fromDate(submittedAt),
+            },
+          );
         }
       } catch (e) {
         if (mounted) {
@@ -1012,7 +1352,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primaryGreen.withOpacity(0.2),
+                        color: AppColors.primaryGreen.withValues(alpha: 0.2),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -1078,7 +1418,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.grey.withOpacity(0.1),
+                                color: Colors.grey.withValues(alpha: 0.1),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -1100,7 +1440,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                                 color: AppColors.royalBlue,
                               ),
                             ),
-                            value:
+                            initialValue:
                                 _selectedIncidentTypes.isEmpty
                                     ? null
                                     : _selectedIncidentTypes.first,
@@ -1156,7 +1496,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                               borderRadius: BorderRadius.circular(12),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.grey.withOpacity(0.1),
+                                  color: Colors.grey.withValues(alpha: 0.1),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
@@ -1194,7 +1534,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.grey.withOpacity(0.1),
+                                color: Colors.grey.withValues(alpha: 0.1),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -1233,7 +1573,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.grey.withOpacity(0.1),
+                                color: Colors.grey.withValues(alpha: 0.1),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -1271,7 +1611,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.grey.withOpacity(0.1),
+                                color: Colors.grey.withValues(alpha: 0.1),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -1310,7 +1650,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.grey.withOpacity(0.1),
+                                color: Colors.grey.withValues(alpha: 0.1),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -1348,7 +1688,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.grey.withOpacity(0.1),
+                                color: Colors.grey.withValues(alpha: 0.1),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -1394,7 +1734,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                               borderRadius: BorderRadius.circular(12),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.grey.withOpacity(0.1),
+                                  color: Colors.grey.withValues(alpha: 0.1),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
@@ -1405,7 +1745,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                                 Container(
                                   padding: const EdgeInsets.all(10),
                                   decoration: BoxDecoration(
-                                    color: AppColors.royalBlue.withOpacity(0.1),
+                                    color: AppColors.royalBlue.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Icon(
@@ -1453,7 +1793,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.grey.withOpacity(0.1),
+                                color: Colors.grey.withValues(alpha: 0.1),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -1547,10 +1887,10 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                                 Container(
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: Colors.red.withOpacity(0.1),
+                                    color: Colors.red.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
-                                      color: Colors.red.withOpacity(0.3),
+                                      color: Colors.red.withValues(alpha: 0.3),
                                     ),
                                   ),
                                   child: Row(
@@ -1663,13 +2003,13 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                                           padding: const EdgeInsets.all(12),
                                           decoration: BoxDecoration(
                                             color: AppColors.royalBlue
-                                                .withOpacity(0.1),
+                                                .withValues(alpha: 0.1),
                                             borderRadius: BorderRadius.circular(
                                               8,
                                             ),
                                             border: Border.all(
                                               color: AppColors.royalBlue
-                                                  .withOpacity(0.3),
+                                                  .withValues(alpha: 0.3),
                                             ),
                                           ),
                                           child: Row(
@@ -1740,13 +2080,13 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                                           padding: const EdgeInsets.all(12),
                                           decoration: BoxDecoration(
                                             color: AppColors.secondaryOrange
-                                                .withOpacity(0.1),
+                                                .withValues(alpha: 0.1),
                                             borderRadius: BorderRadius.circular(
                                               8,
                                             ),
                                             border: Border.all(
                                               color: AppColors.secondaryOrange
-                                                  .withOpacity(0.3),
+                                                  .withValues(alpha: 0.3),
                                             ),
                                           ),
                                           child: Row(
@@ -1835,8 +2175,8 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.secondaryOrange.withOpacity(
-                                  0.4,
+                                color: AppColors.secondaryOrange.withValues(
+                                  alpha: 0.4,
                                 ),
                                 blurRadius: 12,
                                 offset: const Offset(0, 4),

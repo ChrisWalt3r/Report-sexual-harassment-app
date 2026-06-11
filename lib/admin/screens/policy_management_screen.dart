@@ -200,7 +200,7 @@ class _PolicyManagementScreenState extends State<PolicyManagementScreen> {
                           children: [
                             Expanded(
                               child: DropdownButtonFormField<String>(
-                                value: selectedCategory,
+                                initialValue: selectedCategory,
                                 decoration: const InputDecoration(
                                   labelText: 'Category',
                                   border: OutlineInputBorder(),
@@ -477,7 +477,7 @@ class _PolicyManagementScreenState extends State<PolicyManagementScreen> {
                                   style: const TextStyle(fontSize: 12),
                                 ),
                                 backgroundColor: AppColors.secondaryOrange
-                                    .withOpacity(0.2),
+                                    .withValues(alpha: 0.2),
                                 padding: EdgeInsets.zero,
                                 materialTapTargetSize:
                                     MaterialTapTargetSize.shrinkWrap,
@@ -542,7 +542,7 @@ class _PolicyManagementScreenState extends State<PolicyManagementScreen> {
                         ),
                         const SizedBox(height: 12),
                         DropdownButtonFormField<String>(
-                          value: selectedCategory,
+                          initialValue: selectedCategory,
                           decoration: const InputDecoration(
                             labelText: 'Category',
                             border: OutlineInputBorder(),
@@ -792,8 +792,8 @@ class _PolicyManagementScreenState extends State<PolicyManagementScreen> {
                   decoration: BoxDecoration(
                     color:
                         _statusMessage!.startsWith('✅')
-                            ? Colors.green.withOpacity(0.1)
-                            : Colors.red.withOpacity(0.1),
+                            ? Colors.green.withValues(alpha: 0.1)
+                            : Colors.red.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -942,7 +942,7 @@ class _PolicyManagementScreenState extends State<PolicyManagementScreen> {
                   ? Column(
                     children: [
                       DropdownButtonFormField<String>(
-                        value: _selectedCategory,
+                        initialValue: _selectedCategory,
                         decoration: InputDecoration(
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -970,7 +970,7 @@ class _PolicyManagementScreenState extends State<PolicyManagementScreen> {
                       ),
                       const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
-                        value: _selectedOffice,
+                        initialValue: _selectedOffice,
                         decoration: InputDecoration(
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -1014,7 +1014,7 @@ class _PolicyManagementScreenState extends State<PolicyManagementScreen> {
                         SizedBox(
                           width: 200,
                           child: DropdownButtonFormField<String>(
-                            value: _selectedCategory,
+                            initialValue: _selectedCategory,
                             decoration: InputDecoration(
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
@@ -1045,7 +1045,7 @@ class _PolicyManagementScreenState extends State<PolicyManagementScreen> {
                         SizedBox(
                           width: 220,
                           child: DropdownButtonFormField<String>(
-                            value: _selectedOffice,
+                            initialValue: _selectedOffice,
                             decoration: InputDecoration(
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
@@ -1187,7 +1187,7 @@ class _StatCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(icon, color: color),
@@ -1338,9 +1338,9 @@ class _OfficeChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.primaryGreen.withOpacity(0.1),
+        color: AppColors.primaryGreen.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.primaryGreen.withOpacity(0.3)),
+        border: Border.all(color: AppColors.primaryGreen.withValues(alpha: 0.3)),
       ),
       child: Text(
         office,
@@ -1392,9 +1392,9 @@ class _CategoryChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: _color.withOpacity(0.1),
+        color: _color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _color.withOpacity(0.3)),
+        border: Border.all(color: _color.withValues(alpha: 0.3)),
       ),
       child: Text(
         category,

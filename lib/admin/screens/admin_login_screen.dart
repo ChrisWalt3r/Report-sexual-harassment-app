@@ -74,7 +74,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
+                  color: Colors.black.withValues(alpha: 0.06),
                   blurRadius: 12,
                   offset: const Offset(0, 2),
                 ),
@@ -97,7 +97,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                         border: Border.all(color: AppColors.primaryGreen, width: 3),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primaryGreen.withOpacity(0.3),
+                            color: AppColors.primaryGreen.withValues(alpha: 0.3),
                             blurRadius: 12,
                             offset: const Offset(0, 4),
                           ),
@@ -242,7 +242,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.secondaryOrange.withOpacity(0.3),
+                          color: AppColors.secondaryOrange.withValues(alpha: 0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 4),
                         ),
@@ -284,9 +284,9 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.primaryGreen.withOpacity(0.05),
+                      color: AppColors.primaryGreen.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.primaryGreen.withOpacity(0.2)),
+                      border: Border.all(color: AppColors.primaryGreen.withValues(alpha: 0.2)),
                     ),
                     child: Row(
                       children: [
@@ -296,7 +296,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                           child: Text(
                             'This portal is restricted to authorized MUST administrators only.',
                             style: TextStyle(
-                              color: AppColors.primaryGreen.withOpacity(0.8),
+                              color: AppColors.primaryGreen.withValues(alpha: 0.8),
                               fontSize: 12,
                             ),
                           ),

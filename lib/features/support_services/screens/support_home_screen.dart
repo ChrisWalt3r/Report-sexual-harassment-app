@@ -117,7 +117,7 @@ class _SupportHomeScreenState extends State<SupportHomeScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: color, size: 22),
@@ -207,13 +207,13 @@ class _SupportHomeScreenState extends State<SupportHomeScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: service.color.withOpacity(0.1),
+            color: service.color.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
         ],
         border: Border.all(
-          color: service.color.withOpacity(0.2),
+          color: service.color.withValues(alpha: 0.2),
           width: 1,
         ),
       ),
@@ -235,7 +235,7 @@ class _SupportHomeScreenState extends State<SupportHomeScreen> {
                     borderRadius: BorderRadius.circular(8),
                     boxShadow: [
                       BoxShadow(
-                        color: service.color.withOpacity(0.3),
+                        color: service.color.withValues(alpha: 0.3),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -274,7 +274,7 @@ class _SupportHomeScreenState extends State<SupportHomeScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                   decoration: BoxDecoration(
-                    color: service.color.withOpacity(0.1),
+                    color: service.color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Row(
@@ -311,7 +311,7 @@ class _SupportHomeScreenState extends State<SupportHomeScreen> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: Colors.grey.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -325,7 +325,7 @@ class _SupportHomeScreenState extends State<SupportHomeScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.mustGold.withOpacity(0.15),
+                    color: AppColors.mustGold.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(Icons.lightbulb_rounded, color: AppColors.mustGold, size: 20),
@@ -395,21 +395,21 @@ class _SupportHomeScreenState extends State<SupportHomeScreen> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.royalBlue.withOpacity(0.05),
-            AppColors.royalBlue.withOpacity(0.02),
+            AppColors.royalBlue.withValues(alpha: 0.05),
+            AppColors.royalBlue.withValues(alpha: 0.02),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.royalBlue.withOpacity(0.2)),
+        border: Border.all(color: AppColors.royalBlue.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.royalBlue.withOpacity(0.1),
+              color: AppColors.royalBlue.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(Icons.shield_rounded, color: AppColors.royalBlue, size: 24),

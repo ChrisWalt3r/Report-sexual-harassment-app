@@ -75,9 +75,9 @@ class _ContactsManagementScreenState extends State<ContactsManagementScreen> {
             margin: const EdgeInsets.all(16),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.primaryGreen.withOpacity(0.1),
+              color: AppColors.primaryGreen.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.primaryGreen.withOpacity(0.3)),
+              border: Border.all(color: AppColors.primaryGreen.withValues(alpha: 0.3)),
             ),
             child: Row(
               children: [
@@ -291,7 +291,7 @@ class _ContactsManagementScreenState extends State<ContactsManagementScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: _getCategoryColor(contact.category).withOpacity(0.1),
+                    color: _getCategoryColor(contact.category).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -428,7 +428,7 @@ class _ContactsManagementScreenState extends State<ContactsManagementScreen> {
                   children: [
                     // Category Dropdown
                     DropdownButtonFormField<ContactCategory>(
-                      value: selectedCategory,
+                      initialValue: selectedCategory,
                       decoration: const InputDecoration(
                         labelText: 'Category *',
                         border: OutlineInputBorder(),

@@ -99,7 +99,7 @@ class _PinVerificationScreenState extends State<PinVerificationScreen> {
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.15),
+                      color: Colors.white.withValues(alpha: 0.15),
                       border: Border.all(color: AppColors.mustGold, width: 3),
                     ),
                     child: const Icon(
@@ -122,7 +122,7 @@ class _PinVerificationScreenState extends State<PinVerificationScreen> {
                     'Please enter your 4-digit PIN to continue',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -134,7 +134,7 @@ class _PinVerificationScreenState extends State<PinVerificationScreen> {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.15),
+                          color: Colors.black.withValues(alpha: 0.15),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
@@ -177,7 +177,7 @@ class _PinVerificationScreenState extends State<PinVerificationScreen> {
                       borderRadius: BorderRadius.circular(14),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.mustGold.withOpacity(0.4),
+                          color: AppColors.mustGold.withValues(alpha: 0.4),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),

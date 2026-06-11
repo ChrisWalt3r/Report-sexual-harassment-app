@@ -233,12 +233,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
       missing.add('Faculty');
     }
     if (UserRoleUtils.shouldShowStudyLevel(_selectedRole) &&
-        _selectedStudyLevel == null)
+        _selectedStudyLevel == null) {
       missing.add('Study Level');
+    }
     if (UserRoleUtils.shouldShowDepartment(_selectedRole) &&
         _selectedFaculty != null &&
-        _selectedDepartment == null)
+        _selectedDepartment == null) {
       missing.add('Department');
+    }
 
     return missing.join(', ');
   }
@@ -344,7 +346,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     labelStyle: TextStyle(color: AppColors.textSecondary),
                     hintText: 'Select your role',
                     hintStyle: TextStyle(
-                      color: AppColors.textSecondary.withOpacity(0.6),
+                      color: AppColors.textSecondary.withValues(alpha: 0.6),
                     ),
                     prefixIcon: Icon(
                       Icons.people_outline,
@@ -448,7 +450,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     labelStyle: TextStyle(color: AppColors.textSecondary),
                     hintText: 'Select your gender',
                     hintStyle: TextStyle(
-                      color: AppColors.textSecondary.withOpacity(0.6),
+                      color: AppColors.textSecondary.withValues(alpha: 0.6),
                     ),
                     prefixIcon: Icon(
                       Icons.wc_outlined,
@@ -515,14 +517,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
                     isExpanded: true,
-                    value: _selectedStudyLevel,
+                    initialValue: _selectedStudyLevel,
                     style: const TextStyle(color: Colors.black, fontSize: 16),
                     decoration: InputDecoration(
                       labelText: 'Study Level',
                       labelStyle: TextStyle(color: AppColors.textSecondary),
                       hintText: 'Select your study level',
                       hintStyle: TextStyle(
-                        color: AppColors.textSecondary.withOpacity(0.6),
+                        color: AppColors.textSecondary.withValues(alpha: 0.6),
                       ),
                       prefixIcon: Icon(
                         Icons.menu_book_outlined,
@@ -694,14 +696,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   // Faculty Dropdown
                   DropdownButtonFormField<String>(
                     isExpanded: true,
-                    value: _selectedFaculty,
+                    initialValue: _selectedFaculty,
                     style: const TextStyle(color: Colors.black, fontSize: 16),
                     decoration: InputDecoration(
                       labelText: 'Faculty',
                       labelStyle: TextStyle(color: AppColors.textSecondary),
                       hintText: 'Select your faculty',
                       hintStyle: TextStyle(
-                        color: AppColors.textSecondary.withOpacity(0.6),
+                        color: AppColors.textSecondary.withValues(alpha: 0.6),
                       ),
                       prefixIcon: Icon(
                         Icons.school_outlined,
@@ -777,14 +779,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                       isExpanded: true,
-                      value: _selectedDepartment,
+                      initialValue: _selectedDepartment,
                       style: const TextStyle(color: Colors.black, fontSize: 16),
                       decoration: InputDecoration(
                         labelText: 'Department',
                         labelStyle: TextStyle(color: AppColors.textSecondary),
                         hintText: 'Select your department',
                         hintStyle: TextStyle(
-                          color: AppColors.textSecondary.withOpacity(0.6),
+                          color: AppColors.textSecondary.withValues(alpha: 0.6),
                         ),
                         prefixIcon: Icon(
                           Icons.apartment_outlined,
