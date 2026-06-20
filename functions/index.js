@@ -453,6 +453,267 @@ function _plainTextToHtml(text) {
   return _escapeHtml(text).replace(/\n/g, '<br>');
 }
 
+function _buildReportSubmissionEmail({
+  reportId,
+  ashcName,
+  criticalityLabel,
+  criticality,
+  incidentTypes,
+  location,
+  reportData,
+  timestamp,
+}) {
+  return `
+    <html>
+      <head>
+        <style>
+          body { margin: 0; padding: 24px; background: #f3f6f8; font-family: Arial, sans-serif; line-height: 1.6; color: #24323d; }
+          .container { max-width: 720px; margin: 0 auto; background: #ffffff; border: 1px solid #dbe3e8; border-radius: 14px; overflow: hidden; }
+          .header { background: linear-gradient(135deg, #0f5d35 0%, #1f7a48 100%); color: white; padding: 24px 28px; }
+          .eyebrow { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.88; margin-bottom: 8px; }
+          .header h1 { margin: 0; font-size: 24px; font-weight: 700; }
+          .header p { margin: 10px 0 0; color: rgba(255,255,255,0.92); font-size: 14px; }
+          .content { padding: 28px; }
+          .intro { margin: 0 0 18px; font-size: 15px; }
+          .summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0 0 22px; }
+          .summary-card { background: #f7faf8; border: 1px solid #dbe7df; border-radius: 12px; padding: 14px; }
+          .summary-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #64707d; margin-bottom: 6px; }
+          .summary-value { font-size: 18px; font-weight: 700; color: #0f5d35; }
+          .section { margin-bottom: 22px; }
+          .section-title { font-size: 15px; font-weight: 700; color: #16364f; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid #dbe3e8; }
+          .field-table { width: 100%; border-collapse: collapse; }
+          .field-table td { padding: 10px 0; vertical-align: top; border-bottom: 1px solid #eef2f5; }
+          .field-table td:first-child { width: 180px; color: #5e6b77; font-weight: 600; padding-right: 16px; }
+          .notice { background: #fff8e6; border: 1px solid #f0d37a; border-radius: 12px; padding: 14px 16px; color: #5d4a09; }
+          .footer { background: #f7f9fb; border-top: 1px solid #dbe3e8; padding: 18px 28px; font-size: 12px; color: #5e6b77; }
+          .footer p { margin: 0 0 6px; }
+          @media only screen and (max-width: 640px) {
+            body { padding: 12px; }
+            .content { padding: 20px; }
+            .summary { grid-template-columns: 1fr; }
+            .field-table td:first-child { width: 120px; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <div class="eyebrow">SafeReport Notification</div>
+            <h1>New Report Requiring Committee Review</h1>
+            <p>An official SafeReport submission has been received and routed for ASHC attention.</p>
+          </div>
+          <div class="content">
+            <p class="intro">Dear <strong>${ashcName}</strong>,</p>
+            <p class="intro">A new sexual harassment report has been submitted through SafeReport. Please review the case details and proceed in accordance with MUST policy and committee procedure.</p>
+
+            <div class="summary">
+              <div class="summary-card">
+                <div class="summary-label">Urgency Level</div>
+                <div class="summary-value">${criticalityLabel}</div>
+              </div>
+              <div class="summary-card">
+                <div class="summary-label">Risk Score</div>
+                <div class="summary-value">${criticality.score}/100</div>
+              </div>
+              <div class="summary-card">
+                <div class="summary-label">Target Review Window</div>
+                <div class="summary-value">${criticality.slaHours} hr</div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">Triage Summary</div>
+              <table class="field-table" role="presentation">
+                <tr>
+                  <td>Assessment source</td>
+                  <td>${criticality.source || 'System triage'}</td>
+                </tr>
+                <tr>
+                  <td>Risk indicators</td>
+                  <td>${criticality.signals?.length ? criticality.signals.join(', ') : 'No strong indicators detected'}</td>
+                </tr>
+                <tr>
+                  <td>Rationale</td>
+                  <td>${criticality.rationale}</td>
+                </tr>
+              </table>
+            </div>
+
+            <div class="section">
+              <div class="section-title">Report Record</div>
+              <table class="field-table" role="presentation">
+                <tr>
+                  <td>Report ID</td>
+                  <td><strong>${reportId}</strong></td>
+                </tr>
+                <tr>
+                  <td>Tracking ID</td>
+                  <td><strong>${reportId.substring(0, 8).toUpperCase()}</strong></td>
+                </tr>
+                <tr>
+                  <td>Submitted</td>
+                  <td>${timestamp}</td>
+                </tr>
+                <tr>
+                  <td>Status</td>
+                  <td><strong>PENDING</strong> - Awaiting investigation</td>
+                </tr>
+              </table>
+            </div>
+
+            <div class="section">
+              <div class="section-title">Incident Information</div>
+              <table class="field-table" role="presentation">
+                <tr>
+                  <td>Type(s)</td>
+                  <td>${Array.isArray(incidentTypes) ? incidentTypes.join(', ') : incidentTypes}</td>
+                </tr>
+                <tr>
+                  <td>Location</td>
+                  <td>${location}</td>
+                </tr>
+                <tr>
+                  <td>Anonymous report</td>
+                  <td>${reportData.isAnonymous ? 'Yes' : 'No'}</td>
+                </tr>
+              </table>
+            </div>
+
+            <div class="section">
+              <div class="section-title">Evidence Summary</div>
+              <table class="field-table" role="presentation">
+                <tr>
+                  <td>Images</td>
+                  <td>${(reportData.imageUrls?.length || 0)} file(s)</td>
+                </tr>
+                <tr>
+                  <td>Videos</td>
+                  <td>${(reportData.videoUrls?.length || 0)} file(s)</td>
+                </tr>
+                <tr>
+                  <td>Audio</td>
+                  <td>${(reportData.audioUrls?.length || 0)} file(s)</td>
+                </tr>
+              </table>
+            </div>
+
+            <div class="notice">
+              <strong>Action required:</strong> Please sign in to the SafeReport Admin Dashboard to review the full case record, attached evidence, and required next steps. Handle all information in confidence and in line with MUST Sexual Harassment Policy.
+            </div>
+          </div>
+          <div class="footer">
+            <p>This is an automated communication from the MUST Sexual Harassment Response Team via SafeReport.</p>
+            <p>Please do not reply directly to this email. Use the official dashboard and approved university channels for committee action.</p>
+            <p>All report information must be handled confidentially and with due process.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+}
+
+function _buildReportAssignmentEmail({
+  reportId,
+  assigneeName,
+  assignerName,
+  assignedRole,
+  status,
+  incidentTypes,
+  location,
+  reportData,
+}) {
+  return `
+    <html>
+      <head>
+        <style>
+          body { margin: 0; padding: 24px; background: #f3f6f8; font-family: Arial, sans-serif; line-height: 1.6; color: #24323d; }
+          .container { max-width: 720px; margin: 0 auto; background: #ffffff; border: 1px solid #dbe3e8; border-radius: 14px; overflow: hidden; }
+          .header { background: linear-gradient(135deg, #16364f 0%, #245a7b 100%); color: white; padding: 24px 28px; }
+          .eyebrow { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.88; margin-bottom: 8px; }
+          .header h1 { margin: 0; font-size: 24px; font-weight: 700; }
+          .header p { margin: 10px 0 0; color: rgba(255,255,255,0.92); font-size: 14px; }
+          .content { padding: 28px; }
+          .intro { margin: 0 0 18px; font-size: 15px; }
+          .summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0 0 22px; }
+          .summary-card { background: #f7f9fb; border: 1px solid #dbe3e8; border-radius: 12px; padding: 14px; }
+          .summary-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #64707d; margin-bottom: 6px; }
+          .summary-value { font-size: 17px; font-weight: 700; color: #16364f; }
+          .section { margin-bottom: 22px; }
+          .section-title { font-size: 15px; font-weight: 700; color: #16364f; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid #dbe3e8; }
+          .field-table { width: 100%; border-collapse: collapse; }
+          .field-table td { padding: 10px 0; vertical-align: top; border-bottom: 1px solid #eef2f5; }
+          .field-table td:first-child { width: 180px; color: #5e6b77; font-weight: 600; padding-right: 16px; }
+          .notice { background: #eef6ff; border: 1px solid #bfd7f2; border-radius: 12px; padding: 14px 16px; color: #16364f; }
+          .footer { background: #f7f9fb; border-top: 1px solid #dbe3e8; padding: 18px 28px; font-size: 12px; color: #5e6b77; }
+          .footer p { margin: 0 0 6px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <div class="eyebrow">SafeReport Assignment</div>
+            <h1>Report Assignment Notification</h1>
+            <p>A case has been assigned to you for review and handling within the SafeReport workflow.</p>
+          </div>
+          <div class="content">
+            <p class="intro">Dear <strong>${assigneeName}</strong>,</p>
+            <p class="intro">You have been assigned a SafeReport case by <strong>${assignerName}</strong>. Please review the record and take the next appropriate action in line with your committee role and MUST policy.</p>
+
+            <div class="summary">
+              <div class="summary-card">
+                <div class="summary-label">Assigned Role</div>
+                <div class="summary-value">${assignedRole}</div>
+              </div>
+              <div class="summary-card">
+                <div class="summary-label">Tracking ID</div>
+                <div class="summary-value">${reportId.substring(0, 8).toUpperCase()}</div>
+              </div>
+              <div class="summary-card">
+                <div class="summary-label">Current Status</div>
+                <div class="summary-value">${status}</div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">Case Summary</div>
+              <table class="field-table" role="presentation">
+                <tr>
+                  <td>Report ID</td>
+                  <td><strong>${reportId}</strong></td>
+                </tr>
+                <tr>
+                  <td>Assigned by</td>
+                  <td>${assignerName}</td>
+                </tr>
+                <tr>
+                  <td>Incident type(s)</td>
+                  <td>${Array.isArray(incidentTypes) ? incidentTypes.join(', ') : incidentTypes}</td>
+                </tr>
+                <tr>
+                  <td>Location</td>
+                  <td>${location}</td>
+                </tr>
+                <tr>
+                  <td>Anonymous report</td>
+                  <td>${reportData.isAnonymous ? 'Yes' : 'No'}</td>
+                </tr>
+              </table>
+            </div>
+
+            <div class="notice">
+              <strong>Action required:</strong> Please sign in to the SafeReport Admin Dashboard to review the full report, supporting evidence, and process history. Handle the case confidentially and follow approved committee procedure.
+            </div>
+          </div>
+          <div class="footer">
+            <p>This is an automated communication from the MUST Sexual Harassment Response Team via SafeReport.</p>
+            <p>Please do not reply directly to this email. Use the official dashboard and approved university channels for case handling.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+}
+
 /**
  * Cloud Function: Send email notification to ASHC Chairperson when a report is submitted
  * Triggers on new document creation in 'reports' collection
@@ -525,10 +786,19 @@ exports.notifyASHCOnReportSubmission = functions
       const timestamp = reportData.timestamp ? new Date(reportData.timestamp.toDate()).toLocaleString('en-US') : 'Just now';
 
       const criticalityLabel = criticality.level.toUpperCase();
-      const levelEmoji = _levelEmoji(criticality.level);
-      const emailSubject = `${levelEmoji} [${criticalityLabel}] NEW REPORT - Tracking ID: ${reportId.substring(0, 8).toUpperCase()}`;
+      const emailSubject = `[${criticalityLabel}] New SafeReport Submission - ${reportId.substring(0, 8).toUpperCase()}`;
 
-      const emailHtml = `
+      const emailHtml = _buildReportSubmissionEmail({
+        reportId,
+        ashcName,
+        criticalityLabel,
+        criticality,
+        incidentTypes,
+        location,
+        reportData,
+        timestamp,
+      });
+      /*
         <html>
           <head>
             <style>
@@ -647,7 +917,7 @@ exports.notifyASHCOnReportSubmission = functions
             </div>
           </body>
         </html>
-      `;
+      */
 
       // Send email
       const mailOptions = {
@@ -784,6 +1054,85 @@ exports.notifyOnReportStatusChange = functions
 
     } catch (error) {
       console.error('Error sending status change notification:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+exports.notifyOnReportAssignment = functions
+  .runWith({ secrets: [gmailPassword] })
+  .region('europe-west1')
+  .firestore.document('reports/{reportId}')
+  .onUpdate(async (change, context) => {
+    try {
+      const before = change.before.data();
+      const after = change.after.data();
+      const reportId = context.params.reportId;
+
+      const beforeAssignee = _normalizeText(before.assignedToUid || before.assignedToEmail);
+      const afterAssignee = _normalizeText(after.assignedToUid || after.assignedToEmail);
+      if (!afterAssignee || beforeAssignee === afterAssignee) {
+        return null;
+      }
+
+      const assigneeEmail = _normalizeText(after.assignedToEmail);
+      if (!assigneeEmail) {
+        console.warn(`Report ${reportId} was assigned but no assignee email was found.`);
+        return null;
+      }
+
+      const emailConfig = await getEmailConfig();
+      const transporter = createTransporter(emailConfig.gmailEmail);
+      if (!transporter) {
+        console.warn('Email service not configured. Skipping assignment notification.');
+        return null;
+      }
+
+      const assigneeName = _normalizeText(after.assignedToName) || 'Committee Member';
+      const assignerName =
+        _normalizeText(after.assignedByName) ||
+        _normalizeText(after.assignedByEmail) ||
+        'ASHC Chairperson';
+      const assignedRole = _normalizeText(after.assignedToRole) || 'Committee Member';
+      const currentStatus = _normalizeText(after.status) || 'submitted';
+      const incidentTypes = after.incidentTypes || after.incidentType || 'Not specified';
+      const location = after.location || 'Not specified';
+
+      const emailHtml = _buildReportAssignmentEmail({
+        reportId,
+        assigneeName,
+        assignerName,
+        assignedRole,
+        status: currentStatus.replaceAll('_', ' ').toUpperCase(),
+        incidentTypes,
+        location,
+        reportData: after,
+      });
+
+      const mailOptions = {
+        from: _getMailFromAddress(emailConfig.gmailEmail),
+        to: assigneeEmail,
+        subject: `Report Assignment - ${reportId.substring(0, 8).toUpperCase()}`,
+        html: emailHtml,
+        replyTo: emailConfig.gmailEmail,
+      };
+
+      const result = await transporter.sendMail(mailOptions);
+
+      await admin.firestore().collection('notifications_archive').add({
+        type: 'report_assignment',
+        reportId,
+        recipientEmail: assigneeEmail,
+        recipientName: assigneeName,
+        assignedRole,
+        assignedBy: assignerName,
+        sentAt: admin.firestore.FieldValue.serverTimestamp(),
+        status: 'sent',
+        messageId: result.messageId,
+      });
+
+      return { success: true, messageId: result.messageId };
+    } catch (error) {
+      console.error('Error sending report assignment notification:', error);
       return { success: false, error: error.message };
     }
   });

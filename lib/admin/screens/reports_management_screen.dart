@@ -227,7 +227,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
         _usersCacheLoaded = true;
       });
     } catch (e) {
-      print('Error loading users cache: $e');
+      debugPrint('Error loading users cache: $e');
     }
   }
 
@@ -469,26 +469,42 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setS) => AlertDialog(
-          title: const Text('Assign Report'),
+          title: const Text('Assign Case'),
           content: SizedBox(
             width: 420,
             child: admins.isEmpty
                 ? const Text('No active admins available for assignment.')
-                : DropdownButtonFormField<String>(
-                    initialValue: selectedUid,
-                    decoration: const InputDecoration(
-                      labelText: 'Assign to',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: admins
-                        .map(
-                          (a) => DropdownMenuItem<String>(
-                            value: a['uid'] as String,
-                            child: Text('${a['name']} (${a['email']})'),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (v) => setS(() => selectedUid = v),
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Assign this report to the appropriate committee member or reviewer. The selected assignee will receive an official email notification from the project mailbox.',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey[700],
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        isExpanded: true,
+                        initialValue: selectedUid,
+                        decoration: const InputDecoration(
+                          labelText: 'Assign to',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: admins
+                            .map(
+                              (a) => DropdownMenuItem<String>(
+                                value: a['uid'] as String,
+                                child: Text('${a['name']} (${a['email']})'),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (v) => setS(() => selectedUid = v),
+                      ),
+                    ],
                   ),
           ),
           actions: [
@@ -513,6 +529,8 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                         'assignedToRole': selected['role'],
                         'assignedAt': FieldValue.serverTimestamp(),
                         'assignedBy': widget.admin.uid,
+                        'assignedByEmail': widget.admin.email,
+                        'assignedByName': widget.admin.fullName,
                         'updatedAt': FieldValue.serverTimestamp(),
                         'updatedBy': widget.admin.uid,
                       });
@@ -524,7 +542,10 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                         meta: {
                           'assignedToUid': selected['uid'],
                           'assignedToEmail': selected['email'],
+                          'assignedToName': selected['name'],
                           'assignedToRole': selected['role'],
+                          'assignedByEmail': widget.admin.email,
+                          'assignedByName': widget.admin.fullName,
                         },
                       );
 
@@ -670,7 +691,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
         return userDoc.data();
       }
     } catch (e) {
-      print('Error fetching user data: $e');
+      debugPrint('Error fetching user data: $e');
     }
     return null;
   }
@@ -744,7 +765,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   const Text(
-                                    'Report Details',
+                                    'Case Review Workspace',
                                     style: TextStyle(
                                       fontSize: 22,
                                       fontWeight: FontWeight.bold,
@@ -753,7 +774,7 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    'ID: ${reportDoc.id.substring(0, 8)}...',
+                                    'Tracking ID ${reportDoc.id.substring(0, 8).toUpperCase()}',
                                     style: TextStyle(
                                       fontSize: 13,
                                       color: Colors.white.withValues(alpha: 0.8),
@@ -1186,13 +1207,6 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                       imageUrls.isNotEmpty ||
                                       videoUrls.isNotEmpty ||
                                       audioUrls.isNotEmpty;
-
-                                  print('ADMIN DEBUG: imageUrls=$imageUrls');
-                                  print('ADMIN DEBUG: videoUrls=$videoUrls');
-                                  print('ADMIN DEBUG: audioUrls=$audioUrls');
-                                  print(
-                                    'ADMIN DEBUG: hasEvidence=$hasEvidence',
-                                  );
 
                                   if (!hasEvidence) {
                                     return _buildDetailCard(
@@ -1926,6 +1940,28 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                             color: Colors.grey[700],
                                           ),
                                         ),
+                                        if ((data['assignedByName'] as String?)?.isNotEmpty ==
+                                            true) ...[
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            'Assigned by ${data['assignedByName']}',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey[700],
+                                            ),
+                                          ),
+                                        ] else if ((data['assignedByEmail'] as String?)
+                                                ?.isNotEmpty ==
+                                            true) ...[
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            'Assigned by ${data['assignedByEmail']}',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey[700],
+                                            ),
+                                          ),
+                                        ],
                                         if (data['assignedAt'] != null) ...[
                                           const SizedBox(height: 6),
                                           Text(
@@ -1933,6 +1969,29 @@ class _ReportsManagementScreenState extends State<ReportsManagementScreen> {
                                             style: TextStyle(
                                               fontSize: 12,
                                               color: Colors.grey[600],
+                                            ),
+                                          ),
+                                        ],
+                                        if ((data['assignedToEmail'] as String?)?.isNotEmpty ==
+                                            true) ...[
+                                          const SizedBox(height: 10),
+                                          Container(
+                                            width: double.infinity,
+                                            padding: const EdgeInsets.all(10),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius: BorderRadius.circular(8),
+                                              border: Border.all(
+                                                color: Colors.orange.shade200,
+                                              ),
+                                            ),
+                                            child: Text(
+                                              'An assignment notification email is sent to the assignee through the official project mailbox when this case is assigned or reassigned.',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.grey[800],
+                                                height: 1.4,
+                                              ),
                                             ),
                                           ),
                                         ],
