@@ -1,6 +1,7 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const nodemailer = require('nodemailer');
+require('dotenv').config();
 const { defineString, defineSecret } = require('firebase-functions/params');
 
 // Initialize Firebase Admin SDK
@@ -9,23 +10,56 @@ admin.initializeApp();
 // Define params (modern replacement for functions.config())
 const gmailEmail = defineString('GMAIL_EMAIL');
 const gmailPassword = defineSecret('GMAIL_PASSWORD');
-const configuredAshcEmail = defineString('ASHC_EMAIL');
 const groqApiKey = defineSecret('GROQ_API_KEY');
+
+function _getEnv(name, fallback = '') {
+  const value = _normalizeText(process.env[name]);
+  return value || fallback;
+}
+
+function _getBoolEnv(name, fallback = false) {
+  const value = _normalizeText(process.env[name]).toLowerCase();
+  if (!value) return fallback;
+  return value === 'true' || value === '1' || value === 'yes';
+}
+
+function _getMailFromAddress(emailOverride = '') {
+  const email =
+    _normalizeText(emailOverride) ||
+    _getEnv('MAIL_FROM') ||
+    _getEnv('SMTP_USER') ||
+    _getEnv('GMAIL_EMAIL') ||
+    gmailEmail.value();
+  const name = _getEnv(
+    'MAIL_FROM_NAME',
+    'MUST Sexual Harassment Response Team',
+  );
+  return name ? `"${name}" <${email}>` : email;
+}
 
 // Helper function to create email transporter
 function createTransporter(senderEmailOverride = '') {
-  const email = _normalizeText(senderEmailOverride) || gmailEmail.value();
-  const password = gmailPassword.value();
+  const email =
+    _normalizeText(senderEmailOverride) ||
+    _getEnv('SMTP_USER') ||
+    _getEnv('GMAIL_EMAIL') ||
+    gmailEmail.value();
+  const password = _getEnv('SMTP_PASS') || _getEnv('GMAIL_PASSWORD') || gmailPassword.value();
+  const host = _getEnv('SMTP_HOST', 'smtp.gmail.com');
+  const port = Number.parseInt(_getEnv('SMTP_PORT', '587'), 10);
+  const secure = _getBoolEnv('SMTP_SECURE', false);
   
   if (!email || !password) {
     return null;
   }
   
   return nodemailer.createTransport({
-    service: 'gmail',
+    host,
+    port: Number.isFinite(port) ? port : 587,
+    secure,
     auth: {
       user: email,
-      pass: password, // Use app password, not your actual password
+      pass: password,
     },
   });
 }
@@ -320,8 +354,14 @@ async function getEmailConfig() {
     if (doc.exists) {
       const data = doc.data();
       return {
-        gmailEmail: _normalizeText(data?.gmailEmail) || gmailEmail.value(),
-        ashcChairpersonEmail: _normalizeText(data?.ashcChairpersonEmail) || configuredAshcEmail.value(),
+        gmailEmail:
+          _normalizeText(data?.gmailEmail) ||
+          _getEnv('MAIL_FROM') ||
+          _getEnv('SMTP_USER') ||
+          _getEnv('GMAIL_EMAIL') ||
+          gmailEmail.value(),
+        ashcChairpersonEmail:
+          _normalizeText(data?.ashcChairpersonEmail),
         groqApiKey: _normalizeText(data?.groqApiKey) || '',
       };
     }
@@ -330,8 +370,12 @@ async function getEmailConfig() {
   }
   // Fallback to environment variables
   return {
-    gmailEmail: gmailEmail.value(),
-    ashcChairpersonEmail: configuredAshcEmail.value(),
+    gmailEmail:
+      _getEnv('MAIL_FROM') ||
+      _getEnv('SMTP_USER') ||
+      _getEnv('GMAIL_EMAIL') ||
+      gmailEmail.value(),
+    ashcChairpersonEmail: '',
     groqApiKey: '',
   };
 }
@@ -385,6 +429,28 @@ async function getAshcChairpersonContact() {
   }
 
   return null;
+}
+
+function _escapeHtml(value) {
+  return _normalizeText(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function _renderTemplate(template, replacements) {
+  let output = _normalizeText(template);
+  Object.entries(replacements).forEach(([key, value]) => {
+    const token = new RegExp(`{{\\s*${key}\\s*}}`, 'g');
+    output = output.replace(token, _normalizeText(value));
+  });
+  return output;
+}
+
+function _plainTextToHtml(text) {
+  return _escapeHtml(text).replace(/\n/g, '<br>');
 }
 
 /**
@@ -585,7 +651,7 @@ exports.notifyASHCOnReportSubmission = functions
 
       // Send email
       const mailOptions = {
-        from: emailConfig.gmailEmail,
+        from: _getMailFromAddress(emailConfig.gmailEmail),
         to: primaryRecipient,
         bcc: bccRecipients.length ? bccRecipients.join(',') : undefined,
         cc: '', // Can add more recipients here if needed
@@ -670,7 +736,7 @@ exports.notifyOnReportStatusChange = functions
       // Notify ASHC of status change
       const ashcContact = await getAshcChairpersonContact();
       const ashcEmail =
-        ashcContact?.email || emailConfig.ashcChairpersonEmail || configuredAshcEmail.value();
+        ashcContact?.email || emailConfig.ashcChairpersonEmail;
       const ashcName = ashcContact?.name || 'ASHC Chairperson';
       if (ashcEmail) {
 
@@ -701,7 +767,7 @@ exports.notifyOnReportStatusChange = functions
         `;
 
         const mailOptions = {
-          from: emailConfig.gmailEmail || gmailEmail.value(),
+          from: _getMailFromAddress(emailConfig.gmailEmail),
           to: ashcEmail,
           subject: `📋 Report Status Update: ${reportId.substring(0, 8).toUpperCase()} - ${after.status}`,
           html: emailHtml,
@@ -735,6 +801,157 @@ exports.healthCheck = functions
     });
   });
 
+exports.processCommunicationQueue = functions
+  .runWith({ secrets: [gmailPassword] })
+  .region('europe-west1')
+  .firestore.document('communication_queue/{messageId}')
+  .onCreate(async (snap, context) => {
+    const data = snap.data() || {};
+    const type = _normalizeText(data.type);
+    if (type !== 'invitation_email') {
+      return null;
+    }
+
+    const recipients = _toArray(data.recipients);
+    if (!recipients.length) {
+      await snap.ref.set(
+        {
+          status: 'failed',
+          error: 'No recipients supplied',
+          processedAt: admin.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
+      return null;
+    }
+
+    const emailConfig = await getEmailConfig();
+    const transporter = createTransporter(emailConfig.gmailEmail);
+    if (!transporter) {
+      await snap.ref.set(
+        {
+          status: 'failed',
+          error: 'Email transporter not configured',
+          processedAt: admin.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
+      return null;
+    }
+
+    await snap.ref.set(
+      {
+        status: 'processing',
+        startedAt: admin.firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true },
+    );
+
+    const subject = _normalizeText(data.subject);
+    const messageTemplate = _normalizeText(data.messageTemplate);
+    const footer = _normalizeText(data.footer);
+    const senderName = _normalizeText(data.senderName) || 'MUST Sexual Harassment Response Team';
+    const senderEmail = _normalizeText(data.senderEmail) || emailConfig.gmailEmail;
+    const replyToEmail = _normalizeText(data.replyToEmail) || senderEmail;
+    const chairpersonName = _normalizeText(data.chairpersonName) || 'ASHC Chairperson';
+    const includePlayStoreLink = !!data.includePlayStoreLink;
+    const includeWebPortalLink = !!data.includeWebPortalLink;
+    const playStoreUrl = _normalizeText(data.playStoreUrl);
+    const webPortalUrl = _normalizeText(data.webPortalUrl);
+    const mode = _normalizeText(data.mode) || 'bulk';
+
+    let deliveredCount = 0;
+    const deliveryLog = [];
+
+    for (const recipient of recipients) {
+      const replacements = {
+        recipientName: recipient,
+        senderName,
+        playStoreUrl,
+        webPortalUrl,
+        chairpersonName,
+      };
+      const renderedBody = _renderTemplate(messageTemplate, replacements);
+      const renderedSubject = _renderTemplate(subject, replacements);
+
+      const linkLines = [
+        includePlayStoreLink && playStoreUrl
+          ? `Play Store: ${playStoreUrl}`
+          : '',
+        includeWebPortalLink && webPortalUrl
+          ? `Web Portal: ${webPortalUrl}`
+          : '',
+      ].filter(Boolean);
+
+      const htmlSections = [
+        `<p>${_plainTextToHtml(renderedBody)}</p>`,
+        linkLines.length
+          ? `<p>${linkLines.map((line) => _escapeHtml(line)).join('<br>')}</p>`
+          : '',
+        footer ? `<p style="color:#666;font-size:12px;">${_plainTextToHtml(footer)}</p>` : '',
+      ].filter(Boolean);
+
+      try {
+        const result = await transporter.sendMail({
+          from: _getMailFromAddress(senderEmail),
+          to: recipient,
+          subject: mode === 'test' ? `[Test] ${renderedSubject}` : renderedSubject,
+          html: `
+            <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;padding:24px;background:#ffffff;border:1px solid #e5e7eb;border-radius:12px;">
+              <h2 style="color:#0F5D35;margin-top:0;">SafeReport Communication</h2>
+              ${htmlSections.join('\n')}
+            </div>
+          `,
+          replyTo: replyToEmail,
+        });
+        deliveredCount += 1;
+        deliveryLog.push({
+          email: recipient,
+          status: 'sent',
+          messageId: result.messageId,
+          sentAt: new Date().toISOString(),
+        });
+      } catch (error) {
+        deliveryLog.push({
+          email: recipient,
+          status: 'failed',
+          error: error.message,
+          failedAt: new Date().toISOString(),
+        });
+      }
+    }
+
+    const finalStatus = deliveredCount === recipients.length
+      ? 'sent'
+      : deliveredCount > 0
+        ? 'partial'
+        : 'failed';
+
+    await snap.ref.set(
+      {
+        status: finalStatus,
+        deliveredCount,
+        failedCount: recipients.length - deliveredCount,
+        processedAt: admin.firestore.FieldValue.serverTimestamp(),
+        deliveryLog,
+      },
+      { merge: true },
+    );
+
+    await admin.firestore().collection('notifications_archive').add({
+      type: 'invitation_email',
+      queueId: context.params.messageId,
+      mode,
+      recipientCount: recipients.length,
+      deliveredCount,
+      createdByEmail: _normalizeText(data.createdByEmail),
+      status: finalStatus,
+      processedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    return null;
+  });
+
 // --- Admin Invite Email Function ---
 exports.sendAdminInviteEmail = functions.firestore
   .document('admin_invites/{inviteId}')
@@ -751,7 +968,7 @@ exports.sendAdminInviteEmail = functions.firestore
       return null;
     }
     const mailOptions = {
-      from: gmailEmail.value(),
+      from: _getMailFromAddress(),
       to: email,
       subject: 'Admin Invitation',
       html: `<p>You have been invited as <b>${role}</b> by ${invitedBy}.<br>

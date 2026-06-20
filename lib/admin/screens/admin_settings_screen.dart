@@ -9,7 +9,6 @@ import 'package:intl/intl.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
-import 'package:uuid/uuid.dart';
 
 // ---------------------------------------------------------------------------
 // AdminSettingsScreen
@@ -66,21 +65,11 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen>
     });
   }
 
-  List<_SettingsTab> _tabsForRole(String roleKey) {
-    final canSystem = RoleAccess.canEditSystemSettings(roleKey);
-    final canAssign = RoleAccess.canAccessAssignments(roleKey);
+  List<_SettingsTab> _tabsForRole(String _) {
     return [
       _SettingsTab(icon: Icons.history,              label: 'Logs',          builder: _buildLogsTab),
-      _SettingsTab(icon: Icons.notifications,        label: 'Notify',        builder: _buildNotificationsTab),
       _SettingsTab(icon: Icons.admin_panel_settings, label: 'Admins',        builder: _buildAdminsTab),
-      _SettingsTab(icon: Icons.timer,                label: 'SLA',           builder: _buildSlaTab),
-      _SettingsTab(icon: Icons.security,             label: 'Security',      builder: _buildSecurityTab),
-      _SettingsTab(icon: Icons.email,                label: 'Templates',     builder: _buildEmailTemplatesTab),
       _SettingsTab(icon: Icons.manage_search,        label: 'Login History', builder: _buildLoginHistoryTab),
-      if (canSystem)
-        _SettingsTab(icon: Icons.settings,           label: 'System',        builder: _buildSystemTab),
-      if (canAssign)
-        _SettingsTab(icon: Icons.assignment_ind,     label: 'Assign',        builder: _buildChairpersonAssignTab),
     ];
   }
 
@@ -165,115 +154,9 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen>
   // =========================================================================
 
   Widget _buildLogsTab()            => const _AuditLogTable();
-  Widget _buildSlaTab()             => _SlaSettingsPanel(admin: widget.admin);
-  Widget _buildSecurityTab()        => _SecuritySettingsPanel(admin: widget.admin);
-  Widget _buildEmailTemplatesTab()  => _EmailTemplatesPanel(admin: widget.admin);
   Widget _buildLoginHistoryTab()    => const _LoginHistoryPanel();
 
-  Widget _buildChairpersonAssignTab() => _CategoryAssignmentPanel(
-        admin: widget.admin,
-        currentRoleKey: _currentRoleKey,
-      );
-
-  Widget _buildNotificationsTab() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _SettingsHeader(
-            icon: Icons.notifications,
-            title: 'Notifications Center',
-            subtitle: 'Broadcast messages to user groups.',
-          ),
-          const SizedBox(height: 12),
-          Row(children: [
-            ElevatedButton.icon(
-              icon: const Icon(Icons.send),
-              label: const Text('Send Notification'),
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryGreen,
-                  foregroundColor: Colors.white),
-              onPressed: () => _showSendNotificationDialog(context),
-            ),
-            const SizedBox(width: 12),
-            OutlinedButton.icon(
-              icon: const Icon(Icons.refresh),
-              label: const Text('Refresh'),
-              onPressed: () => setState(() {}),
-            ),
-          ]),
-          const SizedBox(height: 16),
-          const Expanded(child: _NotificationList()),
-        ],
-      ),
-    );
-  }
-
-  void _showSendNotificationDialog(BuildContext context) {
-    final messageController = TextEditingController();
-    String recipient = 'all';
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: const Text('Send Notification'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: messageController,
-                decoration: const InputDecoration(
-                    labelText: 'Message', border: OutlineInputBorder()),
-                maxLines: 3,
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: recipient,
-                items: const [
-                  DropdownMenuItem(value: 'all',         child: Text('All Users')),
-                  DropdownMenuItem(value: 'admins',      child: Text('Admins Only')),
-                  DropdownMenuItem(value: 'committee',   child: Text('Committee')),
-                  DropdownMenuItem(value: 'chairperson', child: Text('Chairperson')),
-                ],
-                onChanged: (v) => setDialogState(() => recipient = v ?? 'all'),
-                decoration: const InputDecoration(labelText: 'Recipient Group'),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryGreen,
-                  foregroundColor: Colors.white),
-              onPressed: () async {
-                final msg = messageController.text.trim();
-                if (msg.isEmpty) return;
-                await FirebaseFirestore.instance.collection('notifications').add({
-                  'message':   msg,
-                  'recipient': recipient,
-                  'sentBy':    widget.admin?.email ?? 'Unknown',
-                  'timestamp': Timestamp.now(),
-                });
-                await _writeAuditLog('notify', 'notification', null,
-                    'Sent notification to $recipient');
-                if (ctx.mounted) Navigator.pop(ctx);
-                if (mounted) {
-                  _showSuccess('Notification sent to $recipient.');
-                  setState(() {});
-                }
-              },
-              child: const Text('Send'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildAdminsTab() {
-    final canInviteUsers = RoleAccess.canInviteUsers(_currentRoleKey);
     final canManageUsers = RoleAccess.canManageUsers(_currentRoleKey);
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -282,39 +165,26 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen>
         children: [
           _SettingsHeader(
             icon: Icons.admin_panel_settings,
-            title: 'Admin & Committee Management',
-            subtitle: 'Manage roles, access, and committee membership.',
+            title: 'Admin Access Management',
+            subtitle: 'Manage active admin accounts, roles, and access status.',
           ),
           const SizedBox(height: 12),
-          Wrap(
-            spacing: 10, runSpacing: 8,
+          Row(
             children: [
-              ElevatedButton.icon(
-                icon: const Icon(Icons.person_add),
-                label: const Text('Invite Admin'),
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryGreen,
-                    foregroundColor: Colors.white),
-                onPressed:
-                  canInviteUsers ? () => _showInviteAdminDialog(context) : null,
+              Expanded(
+                child: Text(
+                  canManageUsers
+                      ? 'Only live account controls are shown here to keep this area reliable and professional.'
+                      : 'You can review active admin accounts here. Editing remains restricted by role.',
+                  style: TextStyle(color: Colors.grey[700], fontSize: 13),
+                ),
               ),
+              const SizedBox(width: 12),
               OutlinedButton.icon(
                 icon: const Icon(Icons.refresh),
                 label: const Text('Refresh'),
                 onPressed: () => setState(() {}),
               ),
-              if (canManageUsers) ...[
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.group_add),
-                  label: const Text('Create Ad Hoc Committee'),
-                  onPressed: () => _showCreateAdHocCommitteeDialog(context),
-                ),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.upload_file),
-                  label: const Text('Bulk Import CSV'),
-                  onPressed: () => _showBulkImportDialog(context),
-                ),
-              ],
             ],
           ),
           const SizedBox(height: 16),
@@ -325,212 +195,7 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen>
               adminEmail: widget.admin?.email ?? '',
             ),
           ),
-          const SizedBox(height: 12),
-          Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.borderLight),
-            ),
-            child: Theme(
-              data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-              child: ExpansionTile(
-                tilePadding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 2,
-                ),
-                childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryGreen.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.rule_folder_outlined,
-                    color: AppColors.primaryGreen,
-                    size: 18,
-                  ),
-                ),
-                title: const Text(
-                  'Ad Hoc Committee Rules',
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-                ),
-                subtitle: Text(
-                  '7 governance checks for constitution and assignment compliance',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[700]),
-                ),
-                children: [
-                  ...[
-                    'All members must have no previous allegations of sexual harassment.',
-                    'No conflict of interest.',
-                    'At least half of members are female.',
-                    'Odd number of members.',
-                    'Student reps only if students are involved.',
-                    'No junior staff to investigate senior staff unless victim is junior.',
-                    'If perpetrator is Top Management, Council committee investigates.',
-                  ].asMap().entries.map((entry) {
-                    final index = entry.key + 1;
-                    final rule = entry.value;
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade50,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey.shade200),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            width: 20,
-                            height: 20,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryGreen.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Text(
-                              '$index',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.primaryGreen,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              rule,
-                              style: const TextStyle(fontSize: 13, height: 1.35),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
-                ],
-              ),
-            ),
-          ),
         ],
-      ),
-    );
-  }
-
-  void _showCreateAdHocCommitteeDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Create Ad Hoc Committee'),
-        content: const Text(
-            'Ad hoc committee creation UI coming soon. This will allow super admins to '
-            'select members, enforce rules, and co-opt students as needed.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
-        ],
-      ),
-    );
-  }
-
-  void _showBulkImportDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Bulk Import Admins via CSV'),
-        content: const Text(
-            'Upload a CSV file with columns: email, role.\n\nCSV import UI coming soon.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
-        ],
-      ),
-    );
-  }
-
-  void _showInviteAdminDialog(BuildContext context) {
-    if (!RoleAccess.canInviteUsers(_currentRoleKey)) {
-      _showError('You do not have permission to invite admin users.');
-      return;
-    }
-
-    final emailController = TextEditingController();
-    String selectedRole = 'committeeMember';
-    final formKey = GlobalKey<FormState>();
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: const Text('Invite New Admin'),
-          content: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: emailController,
-                  decoration: const InputDecoration(
-                      labelText: 'Email', border: OutlineInputBorder()),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) return 'Email is required';
-                    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
-                    if (!emailRegex.hasMatch(v.trim())) return 'Enter a valid email';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  initialValue: selectedRole,
-                  items: const [
-                    DropdownMenuItem(value: 'committeeMember', child: Text('Committee Member')),
-                    DropdownMenuItem(value: 'chairperson', child: Text('Chairperson')),
-                    DropdownMenuItem(value: 'adHocMember', child: Text('Ad Hoc Member')),
-                    DropdownMenuItem(value: 'advisor',     child: Text('Advisor')),
-                    DropdownMenuItem(value: 'studentRep',  child: Text('Student Representative')),
-                    DropdownMenuItem(value: 'technicalOfficer', child: Text('Technical Officer')),
-                    DropdownMenuItem(value: 'superAdmin',  child: Text('Super Admin')),
-                  ],
-                  onChanged: (v) =>
-                      setDialogState(() => selectedRole = v ?? 'committeeMember'),
-                  decoration: const InputDecoration(labelText: 'Role'),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryGreen,
-                  foregroundColor: Colors.white),
-              onPressed: () async {
-                if (!formKey.currentState!.validate()) return;
-                final email = emailController.text.trim();
-                final token = const Uuid().v4();
-                await FirebaseFirestore.instance.collection('admin_invites').add({
-                  'email':     email,
-                  'role':      selectedRole,
-                  'invitedBy': widget.admin?.email ?? 'Unknown',
-                  'timestamp': Timestamp.now(),
-                  'token':     token,
-                  'accepted':  false,
-                });
-                await _writeAuditLog(
-                    'invite', 'admin_invite', email,
-                    'Invited $email as $selectedRole');
-                if (ctx.mounted) Navigator.pop(ctx);
-                if (mounted) _showSuccess('Invite sent to $email.');
-              },
-              child: const Text('Send Invite'),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -3047,7 +2712,7 @@ class _SystemSettingsPanelState extends State<_SystemSettingsPanel> {
   Map<String, dynamic> _settings = {};
 
   final _features = [
-    {'key': 'notifications',     'label': 'Notifications',     'icon': Icons.notifications},
+    {'key': 'notifications',     'label': 'Notifications',      'icon': Icons.notifications},
     {'key': 'report_editing',    'label': 'Report Editing',     'icon': Icons.edit},
     {'key': 'maintenance_mode',  'label': 'Maintenance Mode',   'icon': Icons.construction},
     {'key': 'user_registration', 'label': 'User Registration',  'icon': Icons.person_add},
@@ -3055,8 +2720,8 @@ class _SystemSettingsPanelState extends State<_SystemSettingsPanel> {
   ];
 
   final _retentionOptions = [30, 90, 180, 365];
-  final _fontOptions      = ['Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Nunito'];
-  final _colorOptions     = [
+  final _fontOptions = ['Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Nunito'];
+  final _colorOptions = [
     {'label': 'Green',  'value': 0xFF388E3C, 'color': Colors.green},
     {'label': 'Blue',   'value': 0xFF1976D2, 'color': Colors.blue},
     {'label': 'Purple', 'value': 0xFF7B1FA2, 'color': Colors.purple},
@@ -3089,7 +2754,7 @@ class _SystemSettingsPanelState extends State<_SystemSettingsPanel> {
   void initState() {
     super.initState();
     _maintenanceReasonCtrl = TextEditingController();
-    _fileTypesCtrl         = TextEditingController();
+    _fileTypesCtrl = TextEditingController();
     _minPasswordLengthCtrl = TextEditingController();
     _fetchSettings();
   }
@@ -3181,12 +2846,13 @@ class _SystemSettingsPanelState extends State<_SystemSettingsPanel> {
           Text('Reset All Settings'),
         ]),
         content: const Text(
-            'This will reset all system settings to their defaults. '
-            'This action cannot be undone.'),
+          'This will reset all system settings to their defaults. This action cannot be undone.',
+        ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel')),
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () => Navigator.pop(ctx, true),
@@ -3195,40 +2861,41 @@ class _SystemSettingsPanelState extends State<_SystemSettingsPanel> {
         ],
       ),
     );
-    if (confirm == true) {
-      setState(() => _loading = true);
-      await FirebaseFirestore.instance.collection('system').doc('settings').set({
-        ..._defaults,
-        'last_update':    Timestamp.now(),
-        'last_update_by': widget.admin?.email ?? 'Unknown',
-      });
-      await FirebaseFirestore.instance
-          .collection('public_config')
-          .doc('app_status')
-          .set({
-            'maintenance_mode': false,
-            'maintenance_reason': '',
-            'updatedAt': Timestamp.now(),
-            'updatedBy': widget.admin?.email ?? 'Unknown',
-          }, SetOptions(merge: true));
-      await FirebaseFirestore.instance.collection('audit_logs').add({
-        'action':      'system_update',
-        'performedBy': widget.admin?.email ?? 'Unknown',
-        'targetType':  'system',
-        'details':     'Reset all settings to default',
-        'timestamp':   Timestamp.now(),
-      });
-      await _fetchSettings();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: const Row(children: [
-            Icon(Icons.restore, color: Colors.white),
-            SizedBox(width: 8),
-            Text('Settings reset to defaults.'),
-          ]),
-          backgroundColor: Colors.orange[700],
-        ));
-      }
+
+    if (confirm != true) return;
+
+    setState(() => _loading = true);
+    await FirebaseFirestore.instance.collection('system').doc('settings').set({
+      ..._defaults,
+      'last_update': Timestamp.now(),
+      'last_update_by': widget.admin?.email ?? 'Unknown',
+    });
+    await FirebaseFirestore.instance
+        .collection('public_config')
+        .doc('app_status')
+        .set({
+      'maintenance_mode': false,
+      'maintenance_reason': '',
+      'updatedAt': Timestamp.now(),
+      'updatedBy': widget.admin?.email ?? 'Unknown',
+    }, SetOptions(merge: true));
+    await FirebaseFirestore.instance.collection('audit_logs').add({
+      'action': 'system_update',
+      'performedBy': widget.admin?.email ?? 'Unknown',
+      'targetType': 'system',
+      'details': 'Reset all settings to default',
+      'timestamp': Timestamp.now(),
+    });
+    await _fetchSettings();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: const Row(children: [
+          Icon(Icons.restore, color: Colors.white),
+          SizedBox(width: 8),
+          Text('Settings reset to defaults.'),
+        ]),
+        backgroundColor: Colors.orange[700],
+      ));
     }
   }
 
@@ -3250,7 +2917,7 @@ class _SystemSettingsPanelState extends State<_SystemSettingsPanel> {
               _SettingsHeader(
                 icon: Icons.settings,
                 title: 'System Settings',
-                subtitle: 'Application-wide toggles, appearance, and policies.',
+                subtitle: 'Only live system controls that are currently enforced.',
               ),
               const SizedBox(height: 20),
 
